@@ -1,0 +1,23 @@
+@import "tailwindcss";
+:root {
+  --primary-color: #1e3a8a;         /* Dark blue */
+  --primary-light: #3b82f6;         /* Bright blue */
+  --primary-dark: #1e40af;          /* Navy */
+  --accent-color: #e0f2fe;          /* Light blue background */
+  --text-color: #1e293b;            /* Slate gray */
+  --text-light: #64748b;            /* Light gray */
+  --bg-color: #f8fafc;              /* Light dashboard background */
+  --card-bg: #ffffff;
+  --border-color: #dbeafe;
+}
+*{
+    box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+}
