@@ -6,7 +6,9 @@ export const Oppur = () => {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, []);
+
+  console.log(data.leads)
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -54,9 +56,8 @@ export const Oppur = () => {
                   <td key={header} className="px-4 py-3">
                     {header === "status" ? (
                       <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          remarkColors[lead[header]] || remarkColors["Other"]
-                        }`}
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${remarkColors[lead[header]] || remarkColors["Other"]
+                          }`}
                       >
                         {lead[header] || "Other"}
                       </span>
