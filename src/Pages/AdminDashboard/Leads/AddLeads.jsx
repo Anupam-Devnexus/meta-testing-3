@@ -53,7 +53,7 @@
 
     try {
       const response = await fetch(
-        "http://ec2-65-2-37-114.ap-south-1.compute.amazonaws.com:3000/auth/api/Add-leads",
+        "https://dbbackend.devnexussolutions.com/auth/api/Add-leads",
         {
           method: "POST",
           headers: {
@@ -86,8 +86,14 @@
 
 
     return (
-      <section className="p-2  max-w-6xl mx-auto">
+      <section className="p-2  max-w-6xl mx-auto mt-10">
+        <div className="pb-10">
+  <span className="text-3xl font-bold mb-10 ">Create Leads</span>
 
+
+        </div>
+
+        
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
@@ -96,14 +102,14 @@
           {({ isSubmitting, values }) => (
             <Form className="space-y-5 bg-white p-6 rounded-xl shadow-md">
               {/* Date Field */}
-              <div>
+              {/* <div>
                 <label className="block font-medium text-sm text-gray-700">Date</label>
                 <Field
                   name="date"
                   readOnly
                   className="w-full border p-2 rounded bg-gray-100 text-gray-700"
                 />
-              </div>
+              </div> */}
 
               {/* Static Fields */}
               <div className="grid sm:grid-cols-2 gap-4">

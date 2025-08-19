@@ -8,7 +8,7 @@ const useMetaLeads = create((set) => ({
   fetchMetaLeads: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('http://ec2-15-206-164-254.ap-south-1.compute.amazonaws.com:3000/auth/api/meta-ads/all-leads'); // replace with your API URL
+      const response = await fetch('https://dbbackend.devnexussolutions.com/auth/api/meta-ads/all-leads'); // replace with your API URL
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

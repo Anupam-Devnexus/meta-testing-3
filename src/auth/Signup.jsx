@@ -70,7 +70,7 @@ export default function Signup() {
   // Mock post function (replace with real API)
  const postData = async (data) => {
   try {
-    const response = await axios.post("http://ec2-15-206-164-254.ap-south-1.compute.amazonaws.com:3000/auth/api/signup-users", data);
+    const response = await axios.post("https://dbbackend.devnexussolutions.com/auth/api/signup-users", data);
 
     if (response.status === 201) {
       alert("Admin registered successfully!");

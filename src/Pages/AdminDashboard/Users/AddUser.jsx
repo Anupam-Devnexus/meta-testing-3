@@ -3,13 +3,15 @@ import { useState } from "react";
 export default function AddUser() {
   const [formData, setFormData] = useState({
     name: "",
-    username: "",
-    role: "",
     email: "",
+    phone: "",
     password: "",
+    confirmPassword: "",
+    role: "",
   });
 
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,27 +24,51 @@ export default function AddUser() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { name, username, role, email, password } = formData;
-    if (!name || !username || !role || !email || !password) {
+    const { name, email, phone, password, confirmPassword, role } = formData;
+
+    if (!name || !email || !phone || !password || !confirmPassword || !role) {
       setError("All fields are required!");
+      setSuccess("");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      setSuccess("");
       return;
     }
 
     setError("");
 
-    console.log("Submitting Data:", formData);
-
     try {
-      const response = await fetch("http://ec2-65-2-37-114.ap-south-1.compute.amazonaws.com:3000/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        "https://dbbackend.devnexussolutions.com/auth/api/signup-users",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const result = await response.json();
       console.log("API Response:", result);
+
+      if (response.ok) {
+        setSuccess("User added successfully!");
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          password: "",
+          confirmPassword: "",
+          role: "",
+        });
+      } else {
+        setError(result.message || "Something went wrong!");
+      }
     } catch (err) {
       console.error("Error posting user:", err);
+      setError("Network or server error");
     }
   };
 
@@ -54,16 +80,18 @@ export default function AddUser() {
         </h2>
 
         {error && (
-          <p className="mb-6 text-center text-red-600 font-medium">{error}</p>
+          <p className="mb-4 text-center text-red-600 font-medium">{error}</p>
+        )}
+        {success && (
+          <p className="mb-4 text-center text-green-600 font-medium">
+            {success}
+          </p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
           <div className="flex flex-col">
-            <label
-              htmlFor="name"
-              className="mb-2 text-gray-700 font-medium select-none"
-            >
+            <label htmlFor="name" className="mb-2 text-gray-700 font-medium">
               Name
             </label>
             <input
@@ -73,61 +101,14 @@ export default function AddUser() {
               value={formData.name}
               onChange={handleChange}
               placeholder="Enter full name"
-              className="rounded-md border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="input-style"
               required
             />
-          </div>
-
-          {/* Username */}
-          <div className="flex flex-col">
-            <label
-              htmlFor="username"
-              className="mb-2 text-gray-700 font-medium select-none"
-            >
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Enter username"
-              className="rounded-md border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              required
-            />
-          </div>
-
-          {/* Role */}
-          <div className="flex flex-col">
-            <label
-              htmlFor="role"
-              className="mb-2 text-gray-700 font-medium select-none"
-            >
-              Role
-            </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="rounded-md border border-gray-300 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              required
-            >
-              <option value="" disabled>
-                Select Role
-              </option>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
-            </select>
           </div>
 
           {/* Email */}
           <div className="flex flex-col">
-            <label
-              htmlFor="email"
-              className="mb-2 text-gray-700 font-medium select-none"
-            >
+            <label htmlFor="email" className="mb-2 text-gray-700 font-medium">
               Email
             </label>
             <input
@@ -137,17 +118,31 @@ export default function AddUser() {
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter email"
-              className="rounded-md border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="input-style"
+              required
+            />
+          </div>
+
+          {/* Phone */}
+          <div className="flex flex-col">
+            <label htmlFor="phone" className="mb-2 text-gray-700 font-medium">
+              Phone
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter phone number"
+              className="input-style"
               required
             />
           </div>
 
           {/* Password */}
           <div className="flex flex-col">
-            <label
-              htmlFor="password"
-              className="mb-2 text-gray-700 font-medium select-none"
-            >
+            <label htmlFor="password" className="mb-2 text-gray-700 font-medium">
               Password
             </label>
             <input
@@ -157,9 +152,50 @@ export default function AddUser() {
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter password"
-              className="rounded-md border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="input-style"
               required
             />
+          </div>
+
+          {/* Confirm Password */}
+          <div className="flex flex-col">
+            <label
+              htmlFor="confirmPassword"
+              className="mb-2 text-gray-700 font-medium"
+            >
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Re-enter password"
+              className="input-style"
+              required
+            />
+          </div>
+
+          {/* Role */}
+          <div className="flex flex-col">
+            <label htmlFor="role" className="mb-2 text-gray-700 font-medium">
+              Role
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="input-style"
+              required
+            >
+              <option value="" disabled>
+                Select Role
+              </option>
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+            </select>
           </div>
 
           {/* Submit Button */}
@@ -171,6 +207,21 @@ export default function AddUser() {
           </button>
         </form>
       </div>
+
+      {/* Tailwind Custom Class for Inputs */}
+      <style jsx>{`
+        .input-style {
+          border: 1px solid #d1d5db;
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          outline: none;
+          transition: border 0.2s ease-in-out;
+        }
+        .input-style:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+      `}</style>
     </div>
   );
 }

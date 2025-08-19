@@ -10,7 +10,7 @@ const useUserStore = create((set) => ({
 
     try {
       const response = await fetch(
-        'http://ec2-15-206-164-254.ap-south-1.compute.amazonaws.com:3000/auth/api/get-all-users'
+        'https://dbbackend.devnexussolutions.com/auth/api/get-all-users'
       );
 
       if (!response.ok) {

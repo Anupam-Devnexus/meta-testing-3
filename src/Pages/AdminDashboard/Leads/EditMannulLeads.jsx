@@ -7,7 +7,7 @@ export default function EditMannualLeads() {
   const { leadId } = useParams();
   const navigate = useNavigate();
 
-  const { data, loading, error, fetchData, updateLead } = useLeadStore();
+  const { data, loading, error, fetchData } = useLeadStore();
   const { users, fetchUser } = useUserStore();
 
   const [formData, setFormData] = useState({
@@ -57,7 +57,8 @@ export default function EditMannualLeads() {
       </p>
     );
 
-  const adminUsers = users?.users?.filter((user) => user.role === "admin") || [];
+  const adminUsers =
+    users?.users?.filter((user) => user.role === "admin") || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,16 +68,36 @@ export default function EditMannualLeads() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Call your update API or Zustand update function here
-    console.log("Submitting updated lead data:", formData);
 
-    // Example Zustand update call (you must implement this in your store)
-    // updateLead(leadId, formData);
+    const apiUrl = `https://dbbackend.devnexussolutions.com/auth/api/get-all-leads/edit/${leadId}`;
 
-    alert("Lead updated! (implement your update logic)");
-    navigate("/admin-dashboard/mannual-leads"); // redirect back to leads list
+    console.log("PATCH request to:", apiUrl);
+    console.log("Payload being sent:", formData);
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          // Authorization: `Bearer ${localStorage.getItem("token")}`, // Uncomment if token is needed
+        },
+        body: JSON.stringify(formData),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update lead");
+      }
+
+      await response.json();
+      alert("Lead updated successfully!");
+      navigate("/admin-dashboard/mannual-leads");
+    } catch (err) {
+      console.error("Error updating lead:", err);
+      alert("An error occurred while updating the lead.");
+    }
   };
 
   return (
@@ -86,9 +107,7 @@ export default function EditMannualLeads() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Grid for larger screens */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Name */}
           <label className="block">
             <span className="font-semibold text-gray-700">Name</span>
             <input
@@ -96,15 +115,12 @@ export default function EditMannualLeads() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2
-                         shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                         focus:border-blue-500 transition"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               placeholder="Full Name"
               required
             />
           </label>
 
-          {/* Email */}
           <label className="block">
             <span className="font-semibold text-gray-700">Email</span>
             <input
@@ -112,15 +128,12 @@ export default function EditMannualLeads() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2
-                         shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                         focus:border-blue-500 transition"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               placeholder="example@email.com"
               required
             />
           </label>
 
-          {/* Phone */}
           <label className="block">
             <span className="font-semibold text-gray-700">Phone</span>
             <input
@@ -128,15 +141,12 @@ export default function EditMannualLeads() {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2
-                         shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                         focus:border-blue-500 transition"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               placeholder="+91 9876543210"
               required
             />
           </label>
 
-          {/* City */}
           <label className="block">
             <span className="font-semibold text-gray-700">City</span>
             <input
@@ -144,15 +154,12 @@ export default function EditMannualLeads() {
               name="city"
               value={formData.city}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2
-                         shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                         focus:border-blue-500 transition"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               placeholder="City"
             />
           </label>
         </div>
 
-        {/* Requirement */}
         <label className="block">
           <span className="font-semibold text-gray-700">Requirement</span>
           <input
@@ -160,25 +167,19 @@ export default function EditMannualLeads() {
             name="requirement"
             value={formData.requirement}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2
-                       shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                       focus:border-blue-500 transition"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             placeholder="Requirement details"
           />
         </label>
 
-        {/* Grid for assignedTo and assignedDate */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Assigned To */}
           <label className="block">
             <span className="font-semibold text-gray-700">Assigned To</span>
             <select
               name="assignedTo"
               value={formData.assignedTo}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2
-                         shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                         focus:border-blue-500 transition"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             >
               <option value="">-- Select Admin --</option>
               {adminUsers.map((admin) => (
@@ -189,7 +190,6 @@ export default function EditMannualLeads() {
             </select>
           </label>
 
-          {/* Assigned Date */}
           <label className="block">
             <span className="font-semibold text-gray-700">Assigned Date</span>
             <input
@@ -197,23 +197,18 @@ export default function EditMannualLeads() {
               name="assignedDate"
               value={formData.assignedDate}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2
-                         shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                         focus:border-blue-500 transition"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             />
           </label>
         </div>
 
-        {/* Status */}
         <label className="block">
           <span className="font-semibold text-gray-700">Status</span>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2
-                       shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                       focus:border-blue-500 transition"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             required
           >
             <option value="">-- Select Status --</option>
@@ -239,8 +234,7 @@ export default function EditMannualLeads() {
 
         <button
           type="submit"
-          className="w-full sm:w-auto mt-6 bg-blue-600 text-white font-semibold px-6 py-3 rounded-md
-                     hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition"
+          className="w-full sm:w-auto mt-6 bg-blue-600 text-white font-semibold px-6 py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition"
         >
           Save Changes
         </button>

@@ -165,7 +165,7 @@ export default function Meta() {
   console.log("insight", insight)
 
   return (
-    <section className="w-full bg-gray-50 min-h-screen p-6">
+    <section className="w-full bg-gray-50 min-h-screen p-6 ">
       {/* Header */}
       <header className="mb-6">
         <h1 className="text-3xl font-extrabold text-gray-800 mb-4">Meta Leads</h1>

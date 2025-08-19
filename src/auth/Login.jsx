@@ -1,19 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext"; // Adjust path if necessary
-
-const mockUsers = [
-  { id: "admin1@example.com", password: "admin123", name: "Alice Admin", role: "Admin" },
-  { id: "admin2@example.com", password: "admin456", name: "Bob Admin", role: "Admin" },
-  { id: "user1@example.com", password: "user123", name: "Charlie User", role: "User" },
-  { id: "user2@example.com", password: "user456", name: "Dana User", role: "User" },
-];
+import { useAuth } from "../auth/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
-  const [formData, setFormData] = useState({ id: "", password: "", role: "Admin" }); // 🔧 Added role
+  const [formData, setFormData] = useState({ id: "", password: "", role: "Admin" });
   const [errors, setErrors] = useState({ id: "", password: "", login: "", role: "" });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -49,39 +42,53 @@ export default function Login() {
     return valid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const user = mockUsers.find(
-      (u) =>
-        u.id === formData.id &&
-        u.password === formData.password &&
-        u.role === formData.role
-    );
+    try {
+      const response = await fetch("https://dbbackend.devnexussolutions.com/auth/api/signin-users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.id,
+          password: formData.password,
+        }),
+        // Uncomment below if backend requires cookies (only if CORS is properly configured)
+        // credentials: 'include'
+      });
 
-    if (user) {
-      const tokenPayload = {
-        email: user.id,
-        role: user.role,
-        timestamp: new Date().toISOString(),
-      };
+      const data = await response.json();
 
-      const token = btoa(JSON.stringify(tokenPayload));
+      if (response.ok && data.token) {
+        // Save user and token in localStorage
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userEmail", formData.id);
+        localStorage.setItem("userRole", formData.role);
+        localStorage.setItem("userName", data.name || formData.id);
 
-      localStorage.setItem("userName", user.name);
-      localStorage.setItem("userEmail", user.id);
-      localStorage.setItem("userRole", user.role);
-      localStorage.setItem("token", token);
+        setUser &&
+          setUser({
+            id: formData.id,
+            role: formData.role,
+            name: data.name || formData.id,
+          });
 
-      setUser && setUser(user);
-
-      const route = user.role.toLowerCase();
-      navigate(`/${route}-dashboard`);
-    } else {
+        const route = formData.role.toLowerCase();
+        navigate(`/${route}-dashboard`);
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          login: data.message || "Invalid credentials. Please try again.",
+        }));
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       setErrors((prev) => ({
         ...prev,
-        login: "Invalid credentials or role. Please try again.",
+        login: "Something went wrong. Please try again later.",
       }));
     }
   };
@@ -172,20 +179,6 @@ export default function Login() {
       {errors.login && (
         <div className="text-red-500 text-sm mt-4">{errors.login}</div>
       )}
-
-      {/* Test Credentials */}
-      <div className="mt-6 w-full max-w-3xl px-6">
-        <h3 className="text-md font-semibold mb-2">Test Credentials:</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
-          {mockUsers.map((user) => (
-            <div key={user.id} className="bg-gray-100 p-3 rounded-lg">
-              <p><strong>Email:</strong> {user.id}</p>
-              <p><strong>Password:</strong> {user.password}</p>
-              <p><strong>Role:</strong> {user.role}</p>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

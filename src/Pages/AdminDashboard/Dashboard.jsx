@@ -5,6 +5,8 @@ import StatCard from "../../Components/Cards/StatCard";
 import { useNavigate } from "react-router-dom";
 import useMetaLeads from "../../Zustand/MetaLeadsGet";
 import useLeadStore from "../../Zustand/LeadsGet";
+import SellHistoryChart from "../../Components/SellHistoryChart";
+import SupportTracker from "../../Components/SupportTracker";
 
 export default function Dashboard() {
   const {metaleads , fetchMetaLeads} = useMetaLeads();
@@ -18,6 +20,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    
     const userName = localStorage.getItem("userName") || "User";
     const userEmail = localStorage.getItem("userEmail") || "email@example.com";
     const userRole = localStorage.getItem("userRole") || "Role";
@@ -79,6 +82,10 @@ const totalLeads = data?.leads?.length;
           onClick={() => navigate("/admin-dashboard/stats")}
           hoverEffect={true}
         />
+      </div>
+           <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 pt-20">
+        <SellHistoryChart />
+        <SupportTracker />
       </div>
     </div>
   );
