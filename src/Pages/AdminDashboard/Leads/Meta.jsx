@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { FaRegEdit } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
+import { FaRegEdit, FaSearch, FaPlus, FaTag } from "react-icons/fa";
+import { MdDelete, MdOutlineNotes } from "react-icons/md";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import useMetaLeads from "../../../Zustand/MetaLeadsGet";
 import metainsights from "../../../Zustand/MetaIns";
 import useNewMetaLeads from "../../../Zustand/NewMetaLeads";
@@ -26,6 +27,7 @@ export default function Meta() {
     "Other",
   ]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState("");
 
   const itemsPerPage = 7;
   const leadFields = ["created_time", "created_at"];
@@ -89,76 +91,99 @@ export default function Meta() {
     ...leadFields.map((f) => f.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())),
     ...allFieldKeys.map((k) => k.charAt(0).toUpperCase() + k.slice(1)),
     "Tags",
-    "Remark",
+    "Remark 1",
+    "Remark 2",
     "Actions",
   ];
 
-  const rows = leads.map((lead) => {
-    const leadFieldValues = leadFields.map((f) => lead[f] || "-");
-    const allFieldValues = allFieldKeys.map((k) => lead.AllFields[k] || "-");
-    return [lead._id, ...leadFieldValues, ...allFieldValues];
-  });
+  const rows = leads
+    .filter((lead) =>
+      Object.values(lead.AllFields || {})
+        .join(" ")
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    )
+    .map((lead) => {
+      const leadFieldValues = leadFields.map((f) => lead[f] || "-");
+      const allFieldValues = allFieldKeys.map((k) => lead.AllFields[k] || "-");
+      return [lead._id, ...leadFieldValues, ...allFieldValues];
+    });
 
   const totalPages = Math.ceil(rows.length / itemsPerPage);
   const currentRows = rows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <section className="w-full bg-gray-50 min-h-screen p-6">
-      {/* Global Remarks */}
-      <div className="mb-4 flex gap-2 items-center">
-        <div className="flex items-center gap-2">
-          <select
-            value={globalRemark1}
-            onChange={(e) => handleRemark1Change(e.target.value)}
-            className="px-4 py-2 border rounded-md text-sm border-blue-300"
-          >
-            <option value="">Select Remark 1</option>
-            {remarkOptions1.map((opt, idx) => (
-              <option key={idx} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-
-          {showCustomInput && (
-            <div className="flex gap-1">
-              <input
-                type="text"
-                placeholder="Enter custom remark"
-                value={customRemark1}
-                onChange={(e) => setCustomRemark1(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm border-blue-300"
-              />
-              <button
-                onClick={addCustomRemark}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-              >
-                Add
-              </button>
-            </div>
-          )}
+      {/* Header with search */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-blue-700 flex items-center gap-2">
+          <FaTag className="text-blue-500" /> Meta Leads
+        </h1>
+        <div className="flex items-center bg-white px-3 py-2 rounded-lg shadow-sm border">
+          <FaSearch className="text-gray-400 mr-2" />
+          <input
+            type="text"
+            placeholder="Search leads..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="outline-none text-sm w-60"
+          />
         </div>
+      </div>
+
+      {/* Global Remarks */}
+      <div className="mb-4 flex gap-2 items-center flex-wrap p-4  border-b">
+        <select
+          value={globalRemark1}
+          onChange={(e) => handleRemark1Change(e.target.value)}
+          className="px-4 py-2 border-b outline-none text-sm"
+        >
+          <option value="">Select Remark 1</option>
+          {remarkOptions1.map((opt, idx) => (
+            <option key={idx} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+
+        {showCustomInput && (
+          <div className="flex gap-1">
+            <input
+              type="text"
+              placeholder="Enter custom remark"
+              value={customRemark1}
+              onChange={(e) => setCustomRemark1(e.target.value)}
+              className="px-3 py-2 border-b outline-none text-sm"
+            />
+            <button
+              onClick={addCustomRemark}
+              className="px-3 py-2 bg-green-600 text-white rounded-full cursor-pointer hover:bg-green-700 transition flex items-center gap-1"
+            >
+              <FaPlus size={14} /> 
+            </button>
+          </div>
+        )}
 
         <input
           type="text"
           placeholder="Enter Remark 2"
           value={globalRemark2}
           onChange={(e) => setGlobalRemark2(e.target.value)}
-          className="px-4 py-2 border rounded-md text-sm border-blue-300"
+          className="px-4 py-2 border-b outline-none text-sm"
         />
 
         <button
           onClick={applyGlobalRemarks}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-blue-600 cursor-pointer text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-1"
         >
-          Apply to Selected
+          <MdOutlineNotes size={16} /> Apply
         </button>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg shadow-lg divide-y divide-gray-200">
-          <thead className="bg-blue-100 sticky top-0 z-10">
+        <table className="min-w-full bg-white rounded-xl shadow-md divide-y divide-gray-200">
+          <thead className="bg-blue-50">
             <tr>
               {headers.map((header) => (
                 <th
@@ -184,9 +209,9 @@ export default function Meta() {
               return (
                 <tr
                   key={id}
-                  className={`transition-all duration-200 hover:shadow-md ${
+                  className={`transition-all duration-200 hover:shadow-sm ${
                     enabledRows[id] ? "bg-green-50" : "bg-white"
-                  } rounded-md`}
+                  }`}
                 >
                   <td className="px-4 py-3 text-center">
                     <input
@@ -198,13 +223,17 @@ export default function Meta() {
                   </td>
 
                   {row.map((cell, idx) => (
-                    <td key={idx} className="px-4 py-3 whitespace-nowrap text-gray-800 text-sm font-medium">
+                    <td key={idx} className="px-4 py-3 whitespace-nowrap text-gray-700 text-sm">
                       {cell}
                     </td>
                   ))}
 
-                  <td className="px-4 py-3 text-sm">{remarks[id]?.remark1 || "-"}</td>
-                  <td className="px-4 py-3 text-sm">{remarks[id]?.remark2 || "-"}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-600">
+                    {remarks[id]?.remark1 || "-"}
+                  </td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-600">
+                    {remarks[id]?.remark2 || "-"}
+                  </td>
 
                   <td className="px-4 py-3 flex items-center gap-2">
                     <button className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition">
@@ -223,12 +252,20 @@ export default function Meta() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-6 flex justify-center space-x-2">
+        <div className="mt-6 flex justify-center items-center space-x-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            className="p-2 bg-white rounded-lg shadow-sm hover:bg-blue-50 disabled:opacity-50"
+          >
+            <IoIosArrowBack />
+          </button>
+
           {[...Array(totalPages)].map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                 currentPage === i + 1
                   ? "bg-blue-600 text-white shadow"
                   : "bg-white text-gray-700 hover:bg-blue-50"
@@ -237,6 +274,14 @@ export default function Meta() {
               {i + 1}
             </button>
           ))}
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className="p-2 bg-white rounded-lg shadow-sm hover:bg-blue-50 disabled:opacity-50"
+          >
+            <IoIosArrowForward />
+          </button>
         </div>
       )}
     </section>

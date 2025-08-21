@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
-import UserData from "../../Datastore/Allusers.json";
 import { FaUser, FaUsers, FaChartLine } from "react-icons/fa";
-import StatCard from "../../Components/Cards/StatCard";
 import { useNavigate } from "react-router-dom";
+
 import useMetaLeads from "../../Zustand/MetaLeadsGet";
 import useLeadStore from "../../Zustand/LeadsGet";
+
+import StatCard from "../../Components/Cards/StatCard";
+import SalesFunnel from "../../Components/Charts/SalesFunnel";
 import SellHistoryChart from "../../Components/SellHistoryChart";
 import SupportTracker from "../../Components/SupportTracker";
 
 export default function Dashboard() {
-  const {metaleads , fetchMetaLeads} = useMetaLeads();
-  const {data , fetchData} = useLeadStore();
+  const { metaleads, fetchMetaLeads } = useMetaLeads();
+  const { data, fetchData } = useLeadStore();
   const [userInfo, setUserInfo] = useState({
     userName: "",
     userEmail: "",
@@ -20,7 +22,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    
     const userName = localStorage.getItem("userName") || "User";
     const userEmail = localStorage.getItem("userEmail") || "email@example.com";
     const userRole = localStorage.getItem("userRole") || "Role";
@@ -30,31 +31,29 @@ export default function Dashboard() {
     fetchMetaLeads();
     fetchData();
   }, []);
-  const metadata = metaleads.leads
 
-const totalLeads = data?.leads?.length;
-  
+  const metadata = metaleads.leads;
+  const totalLeads = data?.leads?.length;
 
   return (
-    <div className="p-3 bg-gradient-to-tr from-indigo-50 via-white to-indigo-50 min-h-screen">
-      {/* User greeting */}
-      <div className="mb-12 p-8 bg-white rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-gradient-to-tr from-indigo-50 via-white to-indigo-50 p-6">
+      {/* Header Section */}
+      <div className="mb-12 bg-white rounded-2xl shadow-lg p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-extrabold text-indigo-700">
-            Welcome back,{" "}
-            <span className="text-indigo-900">{userInfo.userName}!</span>
+          <h1 className="text-xl md:text-2xl font-extrabold text-indigo-700">
+            Welcome back, <span className="text-indigo-900">{userInfo.userName}!</span>
           </h1>
-          <p className="mt-1 text-lg text-indigo-600 font-semibold">
-            Role: {userInfo.userRole}
-          </p>
+          <p className="mt-2 text-lg text-indigo-600 font-medium">Role: {userInfo.userRole}</p>
         </div>
-        <div className="mt-4 sm:mt-0 text-indigo-500 text-base font-medium select-text">
-        <button className="px-3 py-1 bg-blue-600 text-white font-semibold rounded-2xl cursor-pointer">Connect Facebook</button>
+        <div className="flex gap-4 items-center">
+          <button className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-2xl hover:bg-blue-700 transition duration-300">
+            Connect Facebook
+          </button>
         </div>
       </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
         <StatCard
           icon={FaUser}
           title="Total Users"
@@ -62,7 +61,7 @@ const totalLeads = data?.leads?.length;
           bgColor="bg-indigo-100"
           iconColor="text-indigo-600"
           onClick={() => navigate("/admin-dashboard/users")}
-          hoverEffect={true}
+          hoverEffect
         />
         <StatCard
           icon={FaUsers}
@@ -71,7 +70,7 @@ const totalLeads = data?.leads?.length;
           bgColor="bg-green-100"
           iconColor="text-green-600"
           onClick={() => navigate("/admin-dashboard/meta")}
-          hoverEffect={true}
+          hoverEffect
         />
         <StatCard
           icon={FaChartLine}
@@ -80,11 +79,28 @@ const totalLeads = data?.leads?.length;
           bgColor="bg-yellow-100"
           iconColor="text-yellow-600"
           onClick={() => navigate("/admin-dashboard/stats")}
-          hoverEffect={true}
+          hoverEffect
         />
       </div>
-           <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 pt-20">
-        <SellHistoryChart />
+
+      {/* Sales & Analytics Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+        {/* Sales Funnel */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales Funnel</h2>
+          <SalesFunnel />
+        </div>
+
+        {/* Sales History Chart */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales History</h2>
+          <SellHistoryChart />
+        </div>
+      </div>
+
+      {/* Support Tracker */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-10">
+        <h2 className="text-2xl font-bold mb-4 text-indigo-700">Support Tracker</h2>
         <SupportTracker />
       </div>
     </div>

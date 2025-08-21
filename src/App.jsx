@@ -29,6 +29,7 @@ import MannualLeads from "./Pages/AdminDashboard/Leads/MannualLeads";
 import Stats from "./Pages/AdminDashboard/Stats/Stats";
 import Contact from "./Pages/AdminDashboard/Contact/Contact";
 import Calender from "./Pages/AdminDashboard/Calender/Calender";
+import { Oppur } from "./Pages/AdminDashboard/Oppur";
 
 // User Layout + Pages
 import UserLayout from "./Pages/UserDashboard/UserLayout";
@@ -44,6 +45,7 @@ import BlogsPage from "./Pages/Blogs/BlogsPage";
 import IntegrationPage from "./Pages/AdminDashboard/Interagtion/IntegrationPage";
 import Appointments from "./Pages/AdminDashboard/Calender/Appointments";
 import AppointmentForm from "./Pages/AdminDashboard/Calender/AppointmentForm";
+import GoogleAds from "./Pages/AdminDashboard/Google/GoogleAds";
 
 // Unauthorized
 // import Unauthorized from "./Pages/Unauthorized";
@@ -98,6 +100,8 @@ function AppContent() {
           <Route path="/admin-dashboard/appointments" element={<Appointments />} />
           <Route path="/admin-dashboard/integrations" element={<IntegrationPage />} />
           <Route path="/admin-dashboard/appointment-form" element={<AppointmentForm />} />
+          <Route path="/admin-dashboard/google-ads" element={<GoogleAds />} />
+          <Route path="/admin-dashboard/oppurtunity" element={<Oppur/>}/>
 
 
           <Route path="/admin-dashboard/stats" element={<Stats />} />

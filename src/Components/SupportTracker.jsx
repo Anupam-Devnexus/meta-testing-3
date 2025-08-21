@@ -5,7 +5,7 @@ import { MdOutlineAccessTime } from "react-icons/md";
 export default function SupportTracker() {
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-full md:w-[350px]">
-      <h2 className="text-lg font-semibold mb-4">Support Tracker</h2>
+      {/* <h2 className="text-lg font-semibold mb-4">Support Tracker</h2> */}
 
       <div className="flex justify-center items-center mb-6">
         <div className="relative w-40 h-40">

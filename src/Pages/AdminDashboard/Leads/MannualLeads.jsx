@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import useLeadStore from "../../../Zustand/LeadsGet";
 import useUserStore from "../../../Zustand/UsersGet";
 import { useNavigate } from "react-router-dom";
+import { FiPlus, FiEdit3, FiCheck, FiMessageSquare } from "react-icons/fi";
+import { MdOutlineAddComment } from "react-icons/md";
+import { FaFilter } from "react-icons/fa";
 
 export default function MannualLeads() {
   const { data, loading, error, fetchData } = useLeadStore();
@@ -112,66 +115,78 @@ export default function MannualLeads() {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Manual Leads</h1>
-        <button
-          onClick={() => navigate("/admin-dashboard/mannual-leads/add")}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
-          Add Lead
-        </button>
-      </div>
+      {/* Header */}
+<div className="flex items-center justify-between mb-4">
+  <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+    <FaFilter className="text-blue-600" /> Manual Leads
+  </h1>
 
-      {/* Global remarks */}
-      <div className="mb-4 flex gap-2 items-center flex-wrap">
-        <div className="flex items-center gap-2">
-          <select
-            value={globalRemark1}
-            onChange={(e) => handleRemark1Change(e.target.value)}
-            className="px-4 py-2 border rounded-md text-sm border-blue-300"
-          >
-            <option value="">Select Remark 1</option>
-            {remarkOptions1.map((opt, idx) => (
-              <option key={idx} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
+  <button
+    onClick={() => navigate("/admin-dashboard/mannual-leads/add")}
+    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition"
+  >
+    <FiPlus className="text-lg" /> Add Lead
+  </button>
+</div>
 
-          {showCustomInput && (
-            <div className="flex gap-1">
-              <input
-                type="text"
-                placeholder="Enter custom remark"
-                value={customRemark1}
-                onChange={(e) => setCustomRemark1(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm border-blue-300"
-              />
-              <button
-                onClick={addCustomRemark}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-              >
-                Add
-              </button>
-            </div>
-          )}
-        </div>
+{/* Global Remarks Toolbar */}
+<div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-wrap gap-3 items-center">
+  {/* Remark 1 dropdown */}
+  <div className="flex items-center gap-2">
+    <FaFilter className="text-gray-500" />
+    <select
+      value={globalRemark1}
+      onChange={(e) => handleRemark1Change(e.target.value)}
+      className="px-4 py-2 border-b border-gray-300  text-sm 
+      "
+    >
+      <option value="">Select Remark 1</option>
+      {remarkOptions1.map((opt, idx) => (
+        <option key={idx} value={opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
+  </div>
 
-        <input
-          type="text"
-          placeholder="Enter Remark 2"
-          value={globalRemark2}
-          onChange={(e) => setGlobalRemark2(e.target.value)}
-          className="px-4 py-2 border rounded-md text-sm border-blue-300"
-        />
+  {/* Custom Remark Input */}
+  {showCustomInput && (
+    <div className="flex gap-2 items-center">
+      <input
+        type="text"
+        placeholder="Enter custom remark"
+        value={customRemark1}
+        onChange={(e) => setCustomRemark1(e.target.value)}
+        className="px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none"
+      />
+      <button
+        onClick={addCustomRemark}
+        className="flex items-center gap-1 px-2 cursor-pointer py-2 bg-green-600 text-white rounded-full shadow-sm hover:bg-green-700 transition"
+      >
+        <FiCheck /> 
+      </button>
+    </div>
+  )}
 
-        <button
-          onClick={applyGlobalRemarks}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-        >
-          Apply to Selected
-        </button>
-      </div>
+  {/* Remark 2 input */}
+  <input
+    type="text"
+    placeholder="Enter Remark 2"
+    value={globalRemark2}
+    onChange={(e) => setGlobalRemark2(e.target.value)}
+    className="px-4 py-2 border-b border-gray-300 text-sm outline-none flex-1"
+  />
+
+  {/* Apply button */}
+  <button
+    onClick={applyGlobalRemarks}
+    className="flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded-full cursor-pointer shadow-sm hover:bg-blue-700 transition"
+  >
+    <FiCheck className="text-lg" /> 
+  </button>
+</div>
+
+
 
       {loading && <p className="text-yellow-600">Loading leads...</p>}
       {error && <p className="text-red-500">Error: {error}</p>}

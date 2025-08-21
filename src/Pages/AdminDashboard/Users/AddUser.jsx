@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { RiAdminLine } from "react-icons/ri";
 import { FaUsers } from "react-icons/fa";
 import { SiGoogleads } from "react-icons/si";
+import { IoLogoGoogleplus } from "react-icons/io";
+import { SlCalender } from "react-icons/sl";
+import { GrIntegration } from "react-icons/gr";
 
 const adminNav = [
   { icon: <RiAdminLine />, label: "Admin Dashboard", path: "/admin-dashboard" },
@@ -41,10 +44,28 @@ const adminNav = [
       { icon: <FaUsers />, sublabel: "Travel Agency Leads", path: "/admin-dashboard/travel-agency-leads" },
     ],
   },
+  { icon: <IoLogoGoogleplus />, label: "Google Ads", path: "/admin-dashboard/google-ads" },
   { icon: <RiAdminLine />, label: "Stats", path: "/admin-dashboard/stats" },
   { icon: <FaUsers />, label: "Contact", path: "/admin-dashboard/contact" },
   { icon: <RiAdminLine />, label: "Blogs", path: "/admin-dashboard/blogs" },
+  { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" },
+  { icon: <GrIntegration />, label: "Integrations", path: "/admin-dashboard/integrations" },
 ];
+
+const InputField = ({ label, name, type = "text", value, onChange, placeholder }) => (
+  <div className="flex flex-col">
+    <label className="mb-2 text-gray-700 font-medium">{label}</label>
+    <input
+      name={name}
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="input-style"
+      required
+    />
+  </div>
+);
 
 export default function AddUser() {
   const [formData, setFormData] = useState({
@@ -60,27 +81,29 @@ export default function AddUser() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  useEffect(() => {
+    // console.log("Admin Nav Routes:");
+    adminNav.forEach(item => {
+      // console.log(item.path, item.label);
+      // item.submenu?.forEach(sub => console.log(sub.path, sub.sublabel));
+    });
+  }, []);
 
-    if (name === "access") {
-      setFormData((prev) => ({
-        ...prev,
-        access: checked
-          ? [...prev.access, value]
-          : prev.access.filter((item) => item !== value),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
+  const handleChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => {
+      if (name === "access") {
+        return {
+          ...prev,
+          access: checked ? [...prev.access, value] : prev.access.filter(p => p !== value),
+        };
+      }
+      return { ...prev, [name]: value };
+    });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const { name, email, phone, password, confirmPassword, role } = formData;
 
     if (!name || !email || !phone || !password || !confirmPassword || !role) {
@@ -96,21 +119,15 @@ export default function AddUser() {
     }
 
     setError("");
-    console.log("Submitting form data:", formData);
-    setSuccess("");
+    console.log("Form Data:", formData);
     try {
-      const response = await fetch(
-        "https://dbbackend.devnexussolutions.com/auth/api/signup-users",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch("https://dbbackend.devnexussolutions.com/auth/api/signup-users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
       const result = await response.json();
-      console.log("API Response:", result);
-
       if (response.ok) {
         setSuccess("User added successfully!");
         setFormData({
@@ -126,143 +143,40 @@ export default function AddUser() {
         setError(result.message || "Something went wrong!");
       }
     } catch (err) {
-      console.error("Error posting user:", err);
+      console.error(err);
       setError("Network or server error");
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-1">
-      <div className="w-full max-w-5xl  p-6 sm:p-4 ">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center">
-          Add New User
-        </h2>
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-5xl p-6 bg-gray-50 rounded-lg shadow-md">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Add New User</h2>
 
-        {error && (
-          <p className="mb-4 text-center text-red-600 font-medium">{error}</p>
-        )}
-        {success && (
-          <p className="mb-4 text-center text-green-600 font-medium">
-            {success}
-          </p>
-        )}
+        {error && <p className="mb-4 text-center text-red-600 font-medium">{error}</p>}
+        {success && <p className="mb-4 text-center text-green-600 font-medium">{success}</p>}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* Name */}
-          <div className="flex flex-col">
-            <label htmlFor="name" className="mb-2 text-gray-700 font-medium">
-              Name
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter full name"
-              className="input-style"
-              required
-            />
-          </div>
+          <InputField label="Name" name="name" value={formData.name} onChange={handleChange} placeholder="Enter full name" />
+          <InputField label="Email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Enter email" />
+          <InputField label="Phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} placeholder="Enter phone number" />
 
-          {/* Email */}
           <div className="flex flex-col">
-            <label htmlFor="email" className="mb-2 text-gray-700 font-medium">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter email"
-              className="input-style"
-              required
-            />
-          </div>
-
-          {/* Phone */}
-          <div className="flex flex-col">
-            <label htmlFor="phone" className="mb-2 text-gray-700 font-medium">
-              Phone
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="Enter phone number"
-              className="input-style"
-              required
-            />
-          </div>
-
-          {/* Role */}
-          <div className="flex flex-col">
-            <label htmlFor="role" className="mb-2 text-gray-700 font-medium">
-              Role
-            </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="input-style"
-              required
-            >
-              <option value="" disabled>
-                Select Role
-              </option>
+            <label className="mb-2 text-gray-700 font-medium">Role</label>
+            <select name="role" value={formData.role} onChange={handleChange} className="input-style" required>
+              <option value="" disabled>Select Role</option>
               <option value="admin">Admin</option>
               <option value="user">User</option>
             </select>
           </div>
 
-          {/* Password */}
-          <div className="flex flex-col">
-            <label htmlFor="password" className="mb-2 text-gray-700 font-medium">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter password"
-              className="input-style"
-              required
-            />
-          </div>
-
-          {/* Confirm Password */}
-          <div className="flex flex-col">
-            <label
-              htmlFor="confirmPassword"
-              className="mb-2 text-gray-700 font-medium"
-            >
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Re-enter password"
-              className="input-style"
-              required
-            />
-          </div>
+          <InputField label="Password" name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Enter password" />
+          <InputField label="Confirm Password" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} placeholder="Re-enter password" />
 
           {/* Page Access */}
           <div className="flex flex-col sm:col-span-2">
-            <label htmlFor="access" className="mb-2 text-gray-700 font-medium">
-              Page Access
-            </label>
-            <div className="border rounded-lg p-4 max-h-64 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="mb-2 text-gray-700 font-medium">Page Access</label>
+            <div className="border rounded-lg p-4 max-h-[400px] overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
               {adminNav.map((item, idx) => (
                 <div key={idx} className="border-b pb-2">
                   <label className="flex items-center gap-2 font-medium">
@@ -275,14 +189,10 @@ export default function AddUser() {
                     />
                     {item.label}
                   </label>
-
                   {item.submenu && (
                     <div className="ml-6 mt-2 space-y-1">
                       {item.submenu.map((sub, subIdx) => (
-                        <label
-                          key={subIdx}
-                          className="flex items-center gap-2 text-sm text-gray-600"
-                        >
+                        <label key={subIdx} className="flex items-center gap-2 text-sm text-gray-600">
                           <input
                             type="checkbox"
                             name="access"
@@ -300,7 +210,6 @@ export default function AddUser() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="sm:col-span-2 w-full mt-4 py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition duration-200"
@@ -310,18 +219,17 @@ export default function AddUser() {
         </form>
       </div>
 
-      {/* Tailwind Custom Class for Inputs */}
       <style jsx>{`
         .input-style {
           border: 1px solid #d1d5db;
           padding: 0.5rem 1rem;
           border-radius: 0.375rem;
           outline: none;
-          transition: border 0.2s ease-in-out;
+          transition: border 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
         .input-style:focus {
           border-color: #3b82f6;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
       `}</style>
     </div>
