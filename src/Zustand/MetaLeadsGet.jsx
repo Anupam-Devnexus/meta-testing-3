@@ -9,6 +9,7 @@ const useMetaLeads = create((set) => ({
     set({ loading: true, error: null });
     
     try {
+<<<<<<< HEAD
 
         // Get token from localStorage
       const tokenData = localStorage.getItem("UserDetails");
@@ -29,6 +30,9 @@ const useMetaLeads = create((set) => ({
         credentials: "include", // needed if backend uses cookies/sessions
       });
    // replace with your API URL
+=======
+      const response = await fetch('https://dbbackend.devnexussolutions.com/auth/api/meta-ads/all-leads'); // replace with your API URL
+>>>>>>> 390aa61 (mukti changes in UI)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

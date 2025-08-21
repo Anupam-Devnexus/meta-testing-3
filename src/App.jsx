@@ -26,16 +26,27 @@ import AddUser from "./Pages/AdminDashboard/Users/AddUser";
 import AddLeads from "./Pages/AdminDashboard/Leads/AddLeads";
 import UploadExcel from "./Pages/AdminDashboard/Leads/UploadExcel";
 import MannualLeads from "./Pages/AdminDashboard/Leads/MannualLeads";
+<<<<<<< HEAD
 import Stats from "./Pages/AdminDashboard/Stats/Stats";
 import Contact from "./Pages/AdminDashboard/Contact/Contact";
 import Calender from "./Pages/AdminDashboard/Calender/Calender";
 
 // User Layout + Pages
 import UserLayout from "./Pages/UserDashboard/UserLayout";
+=======
+import Stats from "./Pages/AdminDashboard/Stats/Stats"
+import Contact from "./Pages/AdminDashboard/Contact/Contact";
+
+
+// User Layout + Pages
+import UserLayout from "./Pages/UserDashboard/UserLayout";
+import UserDashboard from "./Pages/UserDashboard/UserDashboard";
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
 
 // Edit Mannual Pages
 import EditMannualLeads from "./Pages/AdminDashboard/Leads/EditMannulLeads";
 import EditUser from "./Pages/AdminDashboard/Leads/EditUser";
+<<<<<<< HEAD
 import InvoiceTable from "./Pages/AdminDashboard/Caleads/Caleads";
 import UserDashboard from "./Components/UserDashboardleads";
 import FollowUpStatus from "./Pages/UserDashboard/Follow-up Status";
@@ -44,24 +55,32 @@ import BlogsPage from "./Pages/Blogs/BlogsPage";
 import IntegrationPage from "./Pages/AdminDashboard/Interagtion/IntegrationPage";
 import Appointments from "./Pages/AdminDashboard/Calender/Appointments";
 import AppointmentForm from "./Pages/AdminDashboard/Calender/AppointmentForm";
+=======
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
 
 // Unauthorized
 // import Unauthorized from "./Pages/Unauthorized";
 
+<<<<<<< HEAD
+=======
+// Unauthorized
+// import Unauthorized from "./Pages/Unauthorized";
+
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
 function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Hide navbar on auth pages
-  const hideNavbar = ["/login", "/signup", "/forgot-password","/terms","/privacy", "/confirm-otp"].includes(
-    location.pathname
-  );
-  const mainMarginClass = hideNavbar ? "ml-0" : "ml-64";
+  const hideNavbar = location.pathname === "/" || location.pathname === "/signup" || location.pathname === "/unauthorized";
 
   return (
+<<<<<<< HEAD
     <div className="flex min-h-screen bg-gray-100">
       {/* Navbar */}
     <div className="pl-64">
+=======
+    <div className="">
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
       {!hideNavbar && user && <Navbar />}
 
       <main className={`flex-1 ${mainMarginClass} min-h-screen overflow-auto`}>
@@ -91,6 +110,7 @@ function AppContent() {
           <Route path="/admin-dashboard/users" element={<AllUsers />} />
           <Route path="/admin-dashboard/meta" element={<Meta />} />
           <Route path="/admin-dashboard/users/add" element={<AddUser />} />
+<<<<<<< HEAD
           <Route
             path="/admin-dashboard/mannual-leads/add"
             element={<AddLeads />}
@@ -129,6 +149,23 @@ function AppContent() {
             path="/admin-dashboard/users/edit/:userId"
             element={<EditUser />}
           />
+=======
+          <Route path="/admin-dashboard/mannual-leads/add" element={<AddLeads/>}/>
+          <Route path="/admin-dashboard/upload-excel" element={<UploadExcel/>}/>
+          <Route path="/admin-dashboard/mannual-leads" element={<MannualLeads/>}/>
+          <Route path="/admin-dashboard/stats" element={<Stats/>}/>
+          <Route path="/admin-dashboard/contact" element={<Contact/>}/>
+          {/* Add more nested admin routes here */}
+
+
+          {/* Dynamic Routes */}
+
+ {/* Edit manual lead */}
+ <Route path="/admin-dashboard/mannual-leads/edit/:leadId" element={<EditMannualLeads />} />
+ <Route path="/admin-dashboard/users/edit/:userId" element={<EditUser/>}/>
+
+        
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
         </Route>
 
         {/* User Routes */}
@@ -141,9 +178,12 @@ function AppContent() {
           }
         >
           <Route index element={<UserDashboard />} />
+<<<<<<< HEAD
           <Route path="/user-dashboard/leads" element={<UserDashboard />} />
           <Route path="/user-dashboard/follow-up" element={<FollowUpStatus />} />
           <Route path="/user-dashboard/change-password" element={<ForgotPass />} />
+=======
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
           {/* Add more nested user routes here */}
         </Route>
 

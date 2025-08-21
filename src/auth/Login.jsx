@@ -6,8 +6,8 @@ export default function Login() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
-  const [formData, setFormData] = useState({ username: "", password: "" });
-  const [errors, setErrors] = useState({ username: "", password: "", login: "" });
+  const [formData, setFormData] = useState({ id: "", password: "", role: "Admin" }); // 🔧 Added role
+  const [errors, setErrors] = useState({ id: "", password: "", login: "", role: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -44,60 +44,41 @@ export default function Login() {
     return valid;
   };
 
-  // -----------------------
-  // Handle Form Submit
-  // -----------------------
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    setLoading(true);
-    try {
-      const res = await fetch(
-        "https://dbbackend.devnexussolutions.com/auth/api/signin-users",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: formData.username.trim(),
-            password: formData.password.trim(),
-          }),
-        }
-      );
+    const user = mockUsers.find(
+      (u) =>
+        u.id === formData.id &&
+        u.password === formData.password &&
+        u.role === formData.role
+    );
 
-      const data = await res.json();
-      console.log("Backend response:", data);
+    if (user) {
+      const tokenPayload = {
+        email: user.id,
+        role: user.role,
+        timestamp: new Date().toISOString(),
+      };
 
-      if (res.ok && data.token && data.user) {
-        const userDetails = {
-          id: data.user._id,
-          name: data.user.name || "Unknown",
-          email: data.user.email || "",
-          role: data.user.role || "User",
-          token: data.token,
-        };
+      const token = btoa(JSON.stringify(tokenPayload));
 
-        localStorage.setItem("UserDetails", JSON.stringify(userDetails));
-        setUser(userDetails);
+      localStorage.setItem("userName", user.name);
+      localStorage.setItem("userEmail", user.id);
+      localStorage.setItem("userRole", user.role);
+      localStorage.setItem("token", token);
 
-        // Navigate based on role
-        const role = userDetails.role.toLowerCase();
-        if (role === "admin") navigate("/admin-dashboard");
-        else if (role === "user") navigate("/user-dashboard");
-        else navigate("/");
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          login: data.msg || data.message || "Invalid credentials",
-        }));
-      }
-    } catch (err) {
-      console.error("Login error:", err);
+      setUser && setUser(user);
+
+      const route = user.role.toLowerCase();
+      navigate(`/${route}-dashboard`);
+    } else {
       setErrors((prev) => ({
         ...prev,
         login: "Something went wrong. Please try again later.",
       }));
-    } finally {
+    }  {
       setLoading(false);
     }
   };
@@ -201,6 +182,25 @@ export default function Login() {
             </span>
           </div>
         </form>
+      </div>
+
+      {/* Login error message */}
+      {errors.login && (
+        <div className="text-red-500 text-sm mt-4">{errors.login}</div>
+      )}
+
+      {/* Test Credentials */}
+      <div className="mt-6 w-full max-w-3xl px-6">
+        <h3 className="text-md font-semibold mb-2">Test Credentials:</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+          {mockUsers.map((user) => (
+            <div key={user.id} className="bg-gray-100 p-3 rounded-lg">
+              <p><strong>Email:</strong> {user.id}</p>
+              <p><strong>Password:</strong> {user.password}</p>
+              <p><strong>Role:</strong> {user.role}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

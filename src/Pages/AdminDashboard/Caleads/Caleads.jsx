@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useEffect, useMemo } from "react";
 import useCaleads from "../../../Zustand/Caleads";
 import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
@@ -107,6 +108,7 @@ const Caleads = () => {
   if (error) return <div className="p-6 text-red-600">{error}</div>;
 
   return (
+<<<<<<< HEAD
     <div className="p-6 bg-white shadow-md rounded-lg overflow-x-auto space-y-4">
       {/* Global remarks */}
       <div className="flex gap-2 items-center flex-wrap">
@@ -163,6 +165,88 @@ const Caleads = () => {
         <thead className="text-gray-700 bg-gray-100 uppercase text-sm">
           <tr>
             <th className="px-4 py-3">Select</th>
+=======
+    <div className="p-6 bg-white shadow-md rounded-lg">
+      {loading && <div className="p-6">Loading...</div>}
+      {error && <div className="p-6 text-red-600">{error}</div>}
+      {!loading && !error && <DynamicDataTable apiData={apiResponse} />}
+=======
+import React, { useEffect, useState } from "react";
+
+const statusColor = {
+  Paid: "text-green-600 bg-green-100",
+  Due: "text-yellow-600 bg-yellow-100",
+  Canceled: "text-red-600 bg-red-100",
+};
+
+const InvoiceTable = () => {
+  const [data, setData] = useState([]);
+  const [uniqueFields, setUniqueFields] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchLeads = async () => {
+      try {
+        const response = await fetch(
+          "https://dbbackend.devnexussolutions.com/all-leads-via-webhook",
+          {
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch data");
+
+        const json = await response.json();
+        const leads = json?.leads || [];
+
+        const allFieldsSet = new Set();
+
+        const transformed = leads.map((item, idx) => {
+          const fieldMap = {};
+          (item.field_data || []).forEach((f) => {
+            const cleanName = f.name.replace(/_/g, " ").replace(/\?$/, "");
+            allFieldsSet.add(cleanName);
+            fieldMap[cleanName] = f.values?.join(", ") || "N/A";
+          });
+
+          return {
+            id: item._id || `#LEAD${idx + 1}`,
+            createdDate: item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString("en-IN")
+              : "N/A",
+            dueDate: "20-10-2023",
+            price: "₹0.00",
+            status: "Due",
+            image: `https://randomuser.me/api/portraits/${
+              idx % 2 ? "men" : "women"
+            }/${idx + 1}.jpg`,
+            fields: fieldMap,
+          };
+        });
+
+        setData(transformed);
+        setUniqueFields(Array.from(allFieldsSet));
+      } catch (err) {
+        console.error(err);
+        setError("Something went wrong while fetching leads.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeads();
+  }, []);
+
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (error) return <div className="p-6 text-red-600">{error}</div>;
+
+  return (
+    <div className="p-6 bg-white shadow-md rounded-lg overflow-x-auto">
+      <table className="min-w-full table-auto text-sm text-left">
+        <thead className="text-gray-700 bg-gray-100 uppercase text-sm">
+          <tr>
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
             <th className="px-4 py-3">Image</th>
             {uniqueFields.map((field, i) => (
               <th key={i} className="px-4 py-3">
@@ -173,13 +257,17 @@ const Caleads = () => {
             <th className="px-4 py-3">Due Date</th>
             <th className="px-4 py-3">Price</th>
             <th className="px-4 py-3">Status</th>
+<<<<<<< HEAD
             <th className="px-4 py-3">Tags</th>
             <th className="px-4 py-3">Remark 2</th>
+=======
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
           </tr>
         </thead>
         <tbody className="text-gray-600 divide-y">
           {data.map((item, idx) => (
             <tr key={idx}>
+<<<<<<< HEAD
               <td className="px-4 py-3 text-center">
                 <input
                   type="checkbox"
@@ -188,6 +276,8 @@ const Caleads = () => {
                   className="w-5 h-5 accent-blue-500"
                 />
               </td>
+=======
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
               <td className="px-4 py-3">
                 <img
                   src={item.image}
@@ -223,14 +313,25 @@ const Caleads = () => {
                   {item.status}
                 </span>
               </td>
+<<<<<<< HEAD
               <td className="px-4 py-3">{remarks[item.id]?.remark1 || "-"}</td>
               <td className="px-4 py-3">{remarks[item.id]?.remark2 || "-"}</td>
+=======
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
             </tr>
           ))}
         </tbody>
       </table>
+<<<<<<< HEAD
+=======
+>>>>>>> 390aa61 (mukti changes in UI)
+>>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
     </div>
   );
 };
 
+<<<<<<< HEAD
 export default Caleads;
+=======
+export default InvoiceTable;
+>>>>>>> 390aa61 (mukti changes in UI)

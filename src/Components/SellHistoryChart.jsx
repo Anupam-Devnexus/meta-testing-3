@@ -43,3 +43,38 @@ export default function SellHistoryChart() {
     </div>
   );
 }
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
+
+export default function SellHistoryChart() {
+  return (
+    <div className="bg-[#5755c2] text-white rounded-xl p-4 flex-1">
+      <h2 className="text-lg font-semibold mb-4">Sell History</h2>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#38bdf8" />
+          <XAxis dataKey="name" stroke="#ffffff" />
+          <YAxis stroke="#ffffff" />
+          <Tooltip />
+          <Legend
+            verticalAlign="top"
+            height={36}
+            wrapperStyle={{ color: "white" }}
+          />
+          <Bar dataKey="sellPrice" fill="#ffffff" name="Sell Price" />
+          <Bar dataKey="totalSell" fill="#facc15" name="Total Sell" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
