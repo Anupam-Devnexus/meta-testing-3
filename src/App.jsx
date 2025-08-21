@@ -28,6 +28,7 @@ import UploadExcel from "./Pages/AdminDashboard/Leads/UploadExcel";
 import MannualLeads from "./Pages/AdminDashboard/Leads/MannualLeads";
 import Stats from "./Pages/AdminDashboard/Stats/Stats";
 import Contact from "./Pages/AdminDashboard/Contact/Contact";
+import Calender from "./Pages/AdminDashboard/Calender/Calender";
 
 // User Layout + Pages
 import UserLayout from "./Pages/UserDashboard/UserLayout";
@@ -40,6 +41,9 @@ import UserDashboard from "./Components/UserDashboardleads";
 import FollowUpStatus from "./Pages/UserDashboard/Follow-up Status";
 import ForgotPass from "./Pages/UserDashboard/ChangePass";
 import BlogsPage from "./Pages/Blogs/BlogsPage";
+import IntegrationPage from "./Pages/AdminDashboard/Interagtion/IntegrationPage";
+import Appointments from "./Pages/AdminDashboard/Calender/Appointments";
+import AppointmentForm from "./Pages/AdminDashboard/Calender/AppointmentForm";
 
 // Unauthorized
 // import Unauthorized from "./Pages/Unauthorized";
@@ -54,7 +58,7 @@ function AppContent() {
     location.pathname === "/unauthorized";
 
   return (
-    <div className="pl-72">
+    <div className="pl-64">
       {!hideNavbar && user && <Navbar />}
 
       <Routes>
@@ -91,6 +95,9 @@ function AppContent() {
           <Route path="/admin-dashboard/digital-leads" element={<InvoiceTable />} />
           <Route path="/admin-dashboard/web-development-leads" element={<InvoiceTable />} />
           <Route path="/admin-dashboard/travel-agency-leads" element={<InvoiceTable />} />
+          <Route path="/admin-dashboard/appointments" element={<Appointments />} />
+          <Route path="/admin-dashboard/integrations" element={<IntegrationPage />} />
+          <Route path="/admin-dashboard/appointment-form" element={<AppointmentForm />} />
 
 
           <Route path="/admin-dashboard/stats" element={<Stats />} />
@@ -122,9 +129,9 @@ function AppContent() {
           }
         >
           <Route index element={<UserDashboard />} />
-            <Route path="/user-dashboard/leads" element={<UserDashboard />} /> 
-            <Route path="/user-dashboard/follow-up" element={<FollowUpStatus />} /> 
-  <Route path="/user-dashboard/change-password" element={<ForgotPass />} /> 
+          <Route path="/user-dashboard/leads" element={<UserDashboard />} />
+          <Route path="/user-dashboard/follow-up" element={<FollowUpStatus />} />
+          <Route path="/user-dashboard/change-password" element={<ForgotPass />} />
           {/* Add more nested user routes here */}
         </Route>
 

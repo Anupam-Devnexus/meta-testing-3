@@ -2,8 +2,10 @@ import { useState } from "react";
 import { FaUsers } from "react-icons/fa";
 import { FiChevronDown, FiLogOut, FiUser } from "react-icons/fi";
 import { GrTableAdd } from "react-icons/gr";
+import { SlCalender } from "react-icons/sl";
 import { MdLeaderboard } from "react-icons/md";
 import { RiAdminLine } from "react-icons/ri";
+import { GrIntegration } from "react-icons/gr";
 import { SiGoogleads } from "react-icons/si";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -67,6 +69,16 @@ export default function Navbar() {
       label: "Blogs",
       path: "/admin-dashboard/blogs",
     },
+    {
+      icon: <SlCalender />,
+      label: "Appointments",
+      path:"/admin-dashboard/appointments"
+    },
+    {
+      icon: <GrIntegration />,
+      label: "Integrations",
+      path: "/admin-dashboard/integrations",
+    }
   ];
 
   const userNav = [

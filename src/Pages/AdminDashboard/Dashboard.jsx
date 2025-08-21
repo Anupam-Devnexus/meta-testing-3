@@ -36,7 +36,7 @@ const totalLeads = data?.leads?.length;
   
 
   return (
-    <div className="p-8 bg-gradient-to-tr from-indigo-50 via-white to-indigo-50 min-h-screen">
+    <div className="p-3 bg-gradient-to-tr from-indigo-50 via-white to-indigo-50 min-h-screen">
       {/* User greeting */}
       <div className="mb-12 p-8 bg-white rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -49,7 +49,7 @@ const totalLeads = data?.leads?.length;
           </p>
         </div>
         <div className="mt-4 sm:mt-0 text-indigo-500 text-base font-medium select-text">
-          📧 {userInfo.userEmail}
+        <button className="px-3 py-1 bg-blue-600 text-white font-semibold rounded-2xl cursor-pointer">Connect Facebook</button>
         </div>
       </div>
 

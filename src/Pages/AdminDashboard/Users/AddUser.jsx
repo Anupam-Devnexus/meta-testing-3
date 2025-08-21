@@ -1,4 +1,50 @@
 import { useState } from "react";
+import { RiAdminLine } from "react-icons/ri";
+import { FaUsers } from "react-icons/fa";
+import { SiGoogleads } from "react-icons/si";
+
+const adminNav = [
+  { icon: <RiAdminLine />, label: "Admin Dashboard", path: "/admin-dashboard" },
+  {
+    icon: <FaUsers />,
+    label: "Create Users",
+    path: "/admin-dashboard/users",
+    submenu: [{ icon: <FaUsers />, sublabel: "All Users", path: "/admin-dashboard/users" }],
+  },
+  {
+    icon: <FaUsers />,
+    label: "Leads",
+    path: "/admin-dashboard/users",
+    submenu: [
+      { icon: <FaUsers />, sublabel: "Create Leads", path: "/admin-dashboard/mannual-leads/add" },
+      { icon: <FaUsers />, sublabel: "All New Leads", path: "/admin-dashboard/mannual-leads" },
+    ],
+  },
+  {
+    icon: <SiGoogleads />,
+    label: "Lead Source",
+    path: "/admin-dashboard/leads",
+    submenu: [
+      { icon: <SiGoogleads />, sublabel: "Meta Leads", path: "/admin-dashboard/meta" },
+      { icon: <SiGoogleads />, sublabel: "Mannual Leads", path: "/admin-dashboard/mannual-leads" },
+      { icon: <FaUsers />, sublabel: "Company Website Leads", path: "/admin-dashboard/contact" },
+    ],
+  },
+  {
+    icon: <FaUsers />,
+    label: "All Leads",
+    path: "/admin-dashboard/all-leads",
+    submenu: [
+      { icon: <FaUsers />, sublabel: "CA Leads", path: "/admin-dashboard/ca-leads" },
+      { icon: <FaUsers />, sublabel: "Digital Leads", path: "/admin-dashboard/digital-leads" },
+      { icon: <FaUsers />, sublabel: "Web Development Leads", path: "/admin-dashboard/web-development-leads" },
+      { icon: <FaUsers />, sublabel: "Travel Agency Leads", path: "/admin-dashboard/travel-agency-leads" },
+    ],
+  },
+  { icon: <RiAdminLine />, label: "Stats", path: "/admin-dashboard/stats" },
+  { icon: <FaUsers />, label: "Contact", path: "/admin-dashboard/contact" },
+  { icon: <RiAdminLine />, label: "Blogs", path: "/admin-dashboard/blogs" },
+];
 
 export default function AddUser() {
   const [formData, setFormData] = useState({
@@ -8,17 +54,28 @@ export default function AddUser() {
     password: "",
     confirmPassword: "",
     role: "",
+    access: [],
   });
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value, type, checked } = e.target;
+
+    if (name === "access") {
+      setFormData((prev) => ({
+        ...prev,
+        access: checked
+          ? [...prev.access, value]
+          : prev.access.filter((item) => item !== value),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -39,7 +96,8 @@ export default function AddUser() {
     }
 
     setError("");
-
+    console.log("Submitting form data:", formData);
+    setSuccess("");
     try {
       const response = await fetch(
         "https://dbbackend.devnexussolutions.com/auth/api/signup-users",
@@ -62,6 +120,7 @@ export default function AddUser() {
           password: "",
           confirmPassword: "",
           role: "",
+          access: [],
         });
       } else {
         setError(result.message || "Something went wrong!");
@@ -73,8 +132,8 @@ export default function AddUser() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 sm:p-10">
+    <div className="min-h-screen bg-white flex items-center justify-center p-1">
+      <div className="w-full max-w-5xl  p-6 sm:p-4 ">
         <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center">
           Add New User
         </h2>
@@ -88,7 +147,7 @@ export default function AddUser() {
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Name */}
           <div className="flex flex-col">
             <label htmlFor="name" className="mb-2 text-gray-700 font-medium">
@@ -140,6 +199,27 @@ export default function AddUser() {
             />
           </div>
 
+          {/* Role */}
+          <div className="flex flex-col">
+            <label htmlFor="role" className="mb-2 text-gray-700 font-medium">
+              Role
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="input-style"
+              required
+            >
+              <option value="" disabled>
+                Select Role
+              </option>
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+            </select>
+          </div>
+
           {/* Password */}
           <div className="flex flex-col">
             <label htmlFor="password" className="mb-2 text-gray-700 font-medium">
@@ -177,31 +257,53 @@ export default function AddUser() {
             />
           </div>
 
-          {/* Role */}
-          <div className="flex flex-col">
-            <label htmlFor="role" className="mb-2 text-gray-700 font-medium">
-              Role
+          {/* Page Access */}
+          <div className="flex flex-col sm:col-span-2">
+            <label htmlFor="access" className="mb-2 text-gray-700 font-medium">
+              Page Access
             </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="input-style"
-              required
-            >
-              <option value="" disabled>
-                Select Role
-              </option>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
-            </select>
+            <div className="border rounded-lg p-4 max-h-64 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {adminNav.map((item, idx) => (
+                <div key={idx} className="border-b pb-2">
+                  <label className="flex items-center gap-2 font-medium">
+                    <input
+                      type="checkbox"
+                      name="access"
+                      value={item.path}
+                      checked={formData.access.includes(item.path)}
+                      onChange={handleChange}
+                    />
+                    {item.label}
+                  </label>
+
+                  {item.submenu && (
+                    <div className="ml-6 mt-2 space-y-1">
+                      {item.submenu.map((sub, subIdx) => (
+                        <label
+                          key={subIdx}
+                          className="flex items-center gap-2 text-sm text-gray-600"
+                        >
+                          <input
+                            type="checkbox"
+                            name="access"
+                            value={sub.path}
+                            checked={formData.access.includes(sub.path)}
+                            onChange={handleChange}
+                          />
+                          {sub.sublabel}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full mt-4 py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition duration-200"
+            className="sm:col-span-2 w-full mt-4 py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition duration-200"
           >
             Submit
           </button>
