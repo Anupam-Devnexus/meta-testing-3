@@ -81,6 +81,9 @@ import { useState } from "react";
 import { RiAdminLine } from "react-icons/ri";
 import { FaUsers } from "react-icons/fa";
 import { SiGoogleads } from "react-icons/si";
+import { IoLogoGoogleplus } from "react-icons/io";
+import { SlCalender } from "react-icons/sl";
+import { GrIntegration } from "react-icons/gr";
 
 const adminNav = [
   { icon: <RiAdminLine />, label: "Admin Dashboard", path: "/admin-dashboard" },
@@ -120,10 +123,28 @@ const adminNav = [
       { icon: <FaUsers />, sublabel: "Travel Agency Leads", path: "/admin-dashboard/travel-agency-leads" },
     ],
   },
+  { icon: <IoLogoGoogleplus />, label: "Google Ads", path: "/admin-dashboard/google-ads" },
   { icon: <RiAdminLine />, label: "Stats", path: "/admin-dashboard/stats" },
   { icon: <FaUsers />, label: "Contact", path: "/admin-dashboard/contact" },
   { icon: <RiAdminLine />, label: "Blogs", path: "/admin-dashboard/blogs" },
+  { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" },
+  { icon: <GrIntegration />, label: "Integrations", path: "/admin-dashboard/integrations" },
 ];
+
+const InputField = ({ label, name, type = "text", value, onChange, placeholder }) => (
+  <div className="flex flex-col">
+    <label className="mb-2 text-gray-700 font-medium">{label}</label>
+    <input
+      name={name}
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="input-style"
+      required
+    />
+  </div>
+);
 
 export default function AddUser() {
 <<<<<<< HEAD
@@ -224,25 +245,19 @@ const handleSubmit = async (e) => {
   const { name, email, phone, password, confirmPassword, role, access } = formData;
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    if (name === "access") {
-      setFormData((prev) => ({
-        ...prev,
-        access: checked
-          ? [...prev.access, value]
-          : prev.access.filter((item) => item !== value),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
+    setFormData(prev => {
+      if (name === "access") {
+        return {
+          ...prev,
+          access: checked ? [...prev.access, value] : prev.access.filter(p => p !== value),
+        };
+      }
+      return { ...prev, [name]: value };
+    });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const { name, email, phone, password, confirmPassword, role } = formData;
 
 <<<<<<< HEAD
@@ -290,8 +305,7 @@ console.log(loggedInUser.id)
       }
     );
     setError("");
-    console.log("Submitting form data:", formData);
-    setSuccess("");
+    console.log("Form Data:", formData);
     try {
       const response = await fetch(
         "https://dbbackend.devnexussolutions.com/auth/api/signup-users",
@@ -348,8 +362,6 @@ console.log(loggedInUser.id)
 
 
       const result = await response.json();
-      console.log("API Response:", result);
-
       if (response.ok) {
         setSuccess("User added successfully!");
         setFormData({
@@ -365,7 +377,7 @@ console.log(loggedInUser.id)
         setError(result.message || "Something went wrong!");
       }
     } catch (err) {
-      console.error("Error posting user:", err);
+      console.error(err);
       setError("Network or server error");
     }
   };
@@ -486,49 +498,13 @@ console.log(loggedInUser.id)
             </select>
           </div>
 
-          {/* Password */}
-          <div className="flex flex-col">
-            <label htmlFor="password" className="mb-2 text-gray-700 font-medium">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter password"
-              className="input-style"
-              required
-            />
-          </div>
-
-          {/* Confirm Password */}
-          <div className="flex flex-col">
-            <label
-              htmlFor="confirmPassword"
-              className="mb-2 text-gray-700 font-medium"
-            >
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Re-enter password"
-              className="input-style"
-              required
-            />
-          </div>
+          <InputField label="Password" name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Enter password" />
+          <InputField label="Confirm Password" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} placeholder="Re-enter password" />
 
           {/* Page Access */}
           <div className="flex flex-col sm:col-span-2">
-            <label htmlFor="access" className="mb-2 text-gray-700 font-medium">
-              Page Access
-            </label>
-            <div className="border rounded-lg p-4 max-h-64 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="mb-2 text-gray-700 font-medium">Page Access</label>
+            <div className="border rounded-lg p-4 max-h-[400px] overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
               {adminNav.map((item, idx) => (
                 <div key={idx} className="border-b pb-2">
                   <label className="flex items-center gap-2 font-medium">
@@ -541,14 +517,10 @@ console.log(loggedInUser.id)
                     />
                     {item.label}
                   </label>
-
                   {item.submenu && (
                     <div className="ml-6 mt-2 space-y-1">
                       {item.submenu.map((sub, subIdx) => (
-                        <label
-                          key={subIdx}
-                          className="flex items-center gap-2 text-sm text-gray-600"
-                        >
+                        <label key={subIdx} className="flex items-center gap-2 text-sm text-gray-600">
                           <input
                             type="checkbox"
                             name="access"
@@ -692,18 +664,17 @@ console.log(loggedInUser.id)
         </form>
       </div>
 
-      {/* Tailwind Custom Class for Inputs */}
       <style jsx>{`
         .input-style {
           border: 1px solid #d1d5db;
           padding: 0.5rem 1rem;
           border-radius: 0.375rem;
           outline: none;
-          transition: border 0.2s ease-in-out;
+          transition: border 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
         .input-style:focus {
           border-color: #3b82f6;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
       `}</style>
     </div>

@@ -30,18 +30,10 @@ import MannualLeads from "./Pages/AdminDashboard/Leads/MannualLeads";
 import Stats from "./Pages/AdminDashboard/Stats/Stats";
 import Contact from "./Pages/AdminDashboard/Contact/Contact";
 import Calender from "./Pages/AdminDashboard/Calender/Calender";
+import { Oppur } from "./Pages/AdminDashboard/Oppur";
 
 // User Layout + Pages
 import UserLayout from "./Pages/UserDashboard/UserLayout";
-=======
-import Stats from "./Pages/AdminDashboard/Stats/Stats"
-import Contact from "./Pages/AdminDashboard/Contact/Contact";
-
-
-// User Layout + Pages
-import UserLayout from "./Pages/UserDashboard/UserLayout";
-import UserDashboard from "./Pages/UserDashboard/UserDashboard";
->>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
 
 // Edit Mannual Pages
 import EditMannualLeads from "./Pages/AdminDashboard/Leads/EditMannulLeads";
@@ -55,18 +47,12 @@ import BlogsPage from "./Pages/Blogs/BlogsPage";
 import IntegrationPage from "./Pages/AdminDashboard/Interagtion/IntegrationPage";
 import Appointments from "./Pages/AdminDashboard/Calender/Appointments";
 import AppointmentForm from "./Pages/AdminDashboard/Calender/AppointmentForm";
-=======
->>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
+import GoogleAds from "./Pages/AdminDashboard/Google/GoogleAds";
 
 // Unauthorized
 // import Unauthorized from "./Pages/Unauthorized";
 
-<<<<<<< HEAD
-=======
-// Unauthorized
-// import Unauthorized from "./Pages/Unauthorized";
 
->>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
 function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
@@ -74,13 +60,7 @@ function AppContent() {
   const hideNavbar = location.pathname === "/" || location.pathname === "/signup" || location.pathname === "/unauthorized";
 
   return (
-<<<<<<< HEAD
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Navbar */}
     <div className="pl-64">
-=======
-    <div className="">
->>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
       {!hideNavbar && user && <Navbar />}
 
       <main className={`flex-1 ${mainMarginClass} min-h-screen overflow-auto`}>
@@ -130,6 +110,8 @@ function AppContent() {
           <Route path="/admin-dashboard/appointments" element={<Appointments />} />
           <Route path="/admin-dashboard/integrations" element={<IntegrationPage />} />
           <Route path="/admin-dashboard/appointment-form" element={<AppointmentForm />} />
+          <Route path="/admin-dashboard/google-ads" element={<GoogleAds />} />
+          <Route path="/admin-dashboard/oppurtunity" element={<Oppur/>}/>
 
 
           <Route path="/admin-dashboard/stats" element={<Stats />} />

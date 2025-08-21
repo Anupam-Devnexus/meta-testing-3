@@ -1,20 +1,7 @@
-<<<<<<< HEAD
-import { useState, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import {
-  FaUsers,
-} from "react-icons/fa";
-import {
-  FiChevronDown,
-  FiLogOut,
-  FiUser,
-} from "react-icons/fi";
-import { GrIntegration } from "react-icons/gr";
-import { SlCalender } from "react-icons/sl";
 import { useState } from "react";
 import { FaUsers } from "react-icons/fa";
 import { FiChevronDown, FiLogOut, FiUser } from "react-icons/fi";
-import { GrTableAdd } from "react-icons/gr";
+import { GrTableAdd, GrIntegration } from "react-icons/gr";
 import { SlCalender } from "react-icons/sl";
 import { MdLeaderboard } from "react-icons/md";
 import { RiAdminLine } from "react-icons/ri";
@@ -30,74 +17,64 @@ import { GrTableAdd } from "react-icons/gr";
 import { MdLeaderboard } from "react-icons/md";
 import { RiAdminLine } from "react-icons/ri";
 import { SiGoogleads } from "react-icons/si";
+import { IoLogoGoogleplus } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
->>>>>>> 390aa61 (mukti changes in UI)
+import { LuPartyPopper } from "react-icons/lu";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-<<<<<<< HEAD
-  // Get stored user
-  const storedUser = useMemo(() => JSON.parse(localStorage.getItem("UserDetails") || "{}"), []);
-  const { role = "user", name = "Guest", permissions = [] } = storedUser;
-=======
   const storedRole = localStorage.getItem("userRole") || "User";
-  const storedName = localStorage.getItem("userName") || "";
+  const storedName = localStorage.getItem("userName") || "Guest";
 
+  // Navigation Config
   const adminNav = [
-    { icon: <RiAdminLine />, label: "Admin Dashboard", path: "/admin-dashboard" },
+    { icon: <RiAdminLine />, label: "Dashboard", path: "/admin-dashboard" },
+    { icon: <LuPartyPopper />, label: "Oppurtunity", path: "/admin-dashboard/oppurtunity" },
     {
       icon: <FaUsers />,
-      label: "Create Users",
+      label: "Users",
       path: "/admin-dashboard/users",
-      submenu: [{ icon: <FaUsers />, sublabel: "All Users", path: "/admin-dashboard/users" }],
+      submenu: [
+        { icon: <FaUsers />, sublabel: "All Users", path: "/admin-dashboard/users" },
+      ],
     },
     {
       icon: <FaUsers />,
       label: "Leads",
-      path: "/admin-dashboard/users",
-      submenu: [
-        { icon: <FaUsers />, sublabel: "Create Leads", path: "/admin-dashboard/mannual-leads/add" },
-        { icon: <FaUsers />, sublabel: "All New Leads", path: "/admin-dashboard/mannual-leads" },
-      ],
-    },
-    {
-      icon: <SiGoogleads />,
-      label: "Lead Source",
       path: "/admin-dashboard/leads",
       submenu: [
-        { icon: <SiGoogleads />, sublabel: "Meta Leads", path: "/admin-dashboard/meta" },
-        { icon: <SiGoogleads />, sublabel: "Mannual Leads", path: "/admin-dashboard/mannual-leads" },
-        { icon: <FaUsers />, sublabel: "Company Website Leads", path: "/admin-dashboard/contact" },
+        { icon: <FaUsers />, sublabel: "Create Lead", path: "/admin-dashboard/mannual-leads/add" },
+        // { icon: <FaUsers />, sublabel: "All Leads", path: "/admin-dashboard/mannual-leads" },
       ],
     },
+    { icon: <SiGoogleads />, label: "Manual Leads", path: "/admin-dashboard/mannual-leads" },
+    { icon: <FaUsers />, label: "Website Leads", path: "/admin-dashboard/contact" },
     {
       icon: <FaUsers />,
-      label: "All Leads",
-      path: "/admin-dashboard/all-leads",
+      label: "Meta",
+      path: "/admin-dashboard/meta",
       submenu: [
+        { icon: <SiGoogleads />, sublabel: "Meta Leads", path: "/admin-dashboard/meta" },
         { icon: <FaUsers />, sublabel: "CA Leads", path: "/admin-dashboard/ca-leads" },
         { icon: <FaUsers />, sublabel: "Digital Leads", path: "/admin-dashboard/digital-leads" },
-        { icon: <FaUsers />, sublabel: "Web Development Leads", path: "/admin-dashboard/web-development-leads" },
-        { icon: <FaUsers />, sublabel: "Travel Agency Leads", path: "/admin-dashboard/travel-agency-leads" },
+        { icon: <FaUsers />, sublabel: "Web Dev Leads", path: "/admin-dashboard/web-development-leads" },
+        { icon: <FaUsers />, sublabel: "Travel Leads", path: "/admin-dashboard/travel-agency-leads" },
       ],
     },
     {
-      icon: <RiAdminLine />,
-      label: "Stats",
-      path: "/admin-dashboard/stats",
+      icon: <IoLogoGoogleplus />,
+      label: "Google",
+      path: "/admin-dashboard/google",
+      submenu: [
+        { icon: <IoLogoGoogleplus />, sublabel: "Google Ads", path: "/admin-dashboard/google-ads" },
+      ],
     },
-    {
-      icon: <FaUsers />,
-      label: "Contact",
-      path: "/admin-dashboard/contact",
-    },
-        {
-      icon: <RiAdminLine />,
-      label: "Blogs",
-      path: "/admin-dashboard/blogs",
-    },
+    { icon: <RiAdminLine />, label: "Stats", path: "/admin-dashboard/stats" },
+    { icon: <RiAdminLine />, label: "Blogs", path: "/admin-dashboard/blogs" },
+    { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" },
+    { icon: <GrIntegration />, label: "Integrations", path: "/admin-dashboard/integrations" },
   ];
 
   const userNav = [
@@ -106,8 +83,7 @@ export default function Navbar() {
     { icon: <FiLogOut />, label: "Change Password", path: "/user-dashboard/change-password" },
   ];
 
-  const navdata = storedRole === "Admin" ? adminNav : userNav;
->>>>>>> 390aa61 (mukti changes in UI)
+  const navData = storedRole === "Admin" ? adminNav : userNav;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState(null);
@@ -176,85 +152,61 @@ export default function Navbar() {
   const navData = role === "admin" ? adminNav : userNav;
   // console.log(role);
   return (
-<<<<<<< HEAD
-    <nav className="h-screen bg-gradient-to-b from-[#2a1ce7] to-[#1c39bb] text-white fixed top-0 left-0 shadow-xl flex flex-col border-r border-white/10 w-64 transition-all duration-300">
+    <nav className="w-64 h-screen bg-[var(--primary-color)]/95 backdrop-blur-lg text-white fixed top-0 left-0 shadow-xl flex flex-col border-r border-white/10">
 
       {/* Header */}
-      <div className="px-6 py-5 border-b border-white/10">
-        <h1 className="text-2xl font-bold tracking-wide">
-          {role === "admin" ? "Admin Panel" : "User Panel"}
+      <div className="px-5 py-4 border-b border-white/10">
+        <h1 className="text-xl font-bold tracking-wide">
+          {storedRole === "Admin" ? "Admin Panel" : "User Panel"}
         </h1>
       </div>
 
-      {/* Navigation */}
+      {/* Nav Links */}
       <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-white/20">
         <ul className="flex flex-col gap-2">
-          {navData.map((item) => {
+          {navData.map((item, idx) => {
             const isParentActive =
               location.pathname === item.path ||
               (item.submenu && item.submenu.some((sub) => location.pathname === sub.path));
 
             return (
-              <li key={item.label}>
+              <li key={idx}>
                 <div
                   onClick={() =>
                     item.submenu
                       ? setOpenSubmenu(openSubmenu === item.label ? null : item.label)
                       : handleNavigate(item.path)
                   }
-                  className={`flex items-center justify-between px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 ${isParentActive ? "bg-white/20 font-semibold" : "hover:bg-white/10"}`}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 ${isParentActive
+                      ? "bg-white/20 font-semibold"
+                      : "hover:bg-white/10"
+                    }`}
                 >
-                  <div className="flex items-center gap-3 text-sm md:text-base">
+                  <div className="flex items-center gap-3">
                     {item.icon}
                     <span>{item.label}</span>
                   </div>
                   {item.submenu && (
-                    <FiChevronDown className={`text-xs transition-transform ${openSubmenu === item.label ? "rotate-180" : ""}`} />
+                    <FiChevronDown
+                      className={`text-xs transition-transform ${openSubmenu === item.label ? "rotate-180" : ""
+                        }`}
+                    />
                   )}
-=======
-    <nav className="w-64 min-h-screen bg-[var(--primary-color)] text-white fixed top-0 left-0 shadow-md z-50">
-      <div className="flex items-center justify-between px-4 py-4 border-b border-white/20">
-        <h1 className="text-lg font-bold">
-          {storedRole === "Admin" ? "Admin Panel" : "User Panel"}
-        </h1>
-      </div>
-
-      {/* Navigation Links */}
-      <ul className="flex flex-col px-4 py-4 gap-2">
-        {navdata.map((item, idx) => {
-          const isParentActive =
-            location.pathname === item.path ||
-            (item.submenu && item.submenu.some((sub) => location.pathname === sub.path));
-
-          return (
-            <li key={idx}>
-              <div
-                onClick={() =>
-                  item.submenu
-                    ? setOpenSubmenu(openSubmenu === item.label ? null : item.label)
-                    : handleNavigate(item.path)
-                }
-                className={`flex items-center justify-between px-2 py-2 rounded cursor-pointer hover:bg-white/10 ${
-                  isParentActive ? "bg-white/20" : ""
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {item.icon}
-                  <span>{item.label}</span>
->>>>>>> 390aa61 (mukti changes in UI)
                 </div>
 
-<<<<<<< HEAD
                 {/* Submenu */}
                 {item.submenu && openSubmenu === item.label && (
                   <ul className="pl-6 mt-1 space-y-1 border-l border-white/10">
-                    {item.submenu.map((sub) => {
+                    {item.submenu.map((sub, subIdx) => {
                       const isSubActive = location.pathname === sub.path;
                       return (
-                        <li key={sub.sublabel}>
+                        <li key={subIdx}>
                           <div
                             onClick={() => handleNavigate(sub.path)}
-                            className={`flex items-center gap-2 py-2 px-2 text-sm rounded-md cursor-pointer transition-all duration-200 ${isSubActive ? "text-[#dcdc3c] font-semibold" : "hover:text-[#dcdc3c]"}`}
+                            className={`flex items-center gap-2 py-2 px-2 text-sm rounded-md cursor-pointer transition-all duration-200 ${isSubActive
+                                ? "text-[var(--primary-light)] font-semibold"
+                                : "hover:text-[var(--primary-light)]"
+                              }`}
                           >
                             {sub.icon}
                             <span>{sub.sublabel}</span>
@@ -274,85 +226,15 @@ export default function Navbar() {
       <div className="px-4 py-4 border-t border-white/10 relative">
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="w-full flex items-center gap-2 bg-white text-[#141414] px-3 py-2 rounded-lg shadow-md hover:bg-gray-100 transition"
+          className="w-full flex items-center gap-2 bg-white text-[var(--primary-color)] px-3 py-2 rounded-lg shadow-md hover:bg-gray-100 transition"
         >
           <FiUser />
-          <span className="text-sm truncate">Hi, {name}</span>
+          <span className="text-sm truncate">Hi, {storedName}</span>
           <FiChevronDown className={`ml-auto transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
         </button>
 
         {dropdownOpen && (
-          <div className="absolute bottom-16 left-4 right-4 bg-white text-[#141414] rounded-lg shadow-lg overflow-hidden animate-fade-in z-50">
-            <button
-              onClick={() => handleNavigate(role === "admin" ? "/admin-dashboard/admin-profile" : "/admin-dashboard//user-profile")}
-=======
-              {/* Submenu */}
-              {item.submenu && openSubmenu === item.label && (
-                <ul className="pl-4 mt-1">
-                  {item.submenu.map((sub, subIdx) => {
-                    const isSubActive = location.pathname === sub.path;
-                    return (
-                      <li key={subIdx}>
-                        <div
-                          onClick={() =>
-                            sub.children
-                              ? setOpenSubSubmenu(
-                                  openSubSubmenu === sub.sublabel ? null : sub.sublabel
-                                )
-                              : handleNavigate(sub.path)
-                          }
-                          className={`flex items-center justify-between py-2 px-2 text-sm cursor-pointer hover:text-[var(--primary-light)] ${
-                            isSubActive ? "text-[var(--primary-light)] font-semibold" : ""
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {sub.icon}
-                            <span>{sub.sublabel}</span>
-                          </div>
-                          {sub.children && <FiChevronDown className="text-xs" />}
-                        </div>
-
-                        {/* Nested submenu */}
-                        {sub.children && openSubSubmenu === sub.sublabel && (
-                          <ul className="pl-4">
-                            {sub.children.map((child, cIdx) => (
-                              <li
-                                key={cIdx}
-                                onClick={() => handleNavigate(child.path)}
-                                className={`flex items-center gap-2 py-1 text-sm hover:text-[var(--primary-light)] cursor-pointer ${
-                                  location.pathname === child.path
-                                    ? "text-[var(--primary-light)] font-semibold"
-                                    : ""
-                                }`}
-                              >
-                                {child.icon}
-                                {child.sublabel}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-
-      {/* Profile Dropdown */}
-      <div className="absolute bottom-4 left-4 right-4">
-        <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="w-full flex items-center gap-2 bg-white text-[var(--primary-color)] px-3 py-2 rounded hover:bg-gray-100"
-        >
-          <FiUser />
-          <span className="text-sm">Hi, {storedName}</span>
-          <FiChevronDown className="ml-auto" />
-        </button>
-        {dropdownOpen && (
-          <div className="bg-white text-[var(--primary-color)] mt-1 rounded shadow-sm z-50">
+          <div className="absolute bottom-16 left-4 right-4 bg-white text-[var(--primary-color)] rounded-lg shadow-lg overflow-hidden animate-fade-in">
             <button
               onClick={() => alert("View Profile")}
 >>>>>>> 390aa61 (mukti changes in UI)

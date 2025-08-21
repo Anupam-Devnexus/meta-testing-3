@@ -1,25 +1,19 @@
-import { useEffect, useState, useMemo } from "react";
-import { FaUser, FaUsers, FaChartLine, FaFacebook } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { FaUser, FaUsers, FaChartLine } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+
 
 import useMetaLeads from "../../Zustand/MetaLeadsGet";
 import useLeadStore from "../../Zustand/LeadsGet";
-<<<<<<< HEAD
-import useUserStore from "../../Zustand/UsersGet";
-import IntegrationPage from "./Interagtion/IntegrationPage";
 
 import StatCard from "../../Components/Cards/StatCard";
 import SalesFunnel from "../../Components/Charts/SalesFunnel";
-=======
->>>>>>> 390aa61 (mukti changes in UI)
 import SellHistoryChart from "../../Components/SellHistoryChart";
 import SupportTracker from "../../Components/SupportTracker";
 
 export default function Dashboard() {
   const { metaleads, fetchMetaLeads } = useMetaLeads();
-  const { users, loading, error, fetchUser } = useUserStore();
   const { data, fetchData } = useLeadStore();
-
   const [userInfo, setUserInfo] = useState({
     id: "",
     name: "",
@@ -64,18 +58,6 @@ export default function Dashboard() {
 
   // 🔹 Fetch Data on Mount
   useEffect(() => {
-<<<<<<< HEAD
-    const storedUser = localStorage.getItem("User");
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        setUserInfo((prev) => ({ ...prev, ...user }));
-      } catch (err) {
-        console.error("Failed to parse user info:", err);
-      }
-    }
-=======
-    
     const userName = localStorage.getItem("userName") || "User";
     const userEmail = localStorage.getItem("userEmail") || "email@example.com";
     const userRole = localStorage.getItem("userRole") || "Role";
@@ -88,29 +70,28 @@ export default function Dashboard() {
     fetchUser();
   }, []);
 
-  // 🔹 Derived Data
-  const totalLeads = useMemo(() => data?.leads?.length || 0, [data]);
-  const totalMetaLeads = useMemo(() => metaleads?.leads?.length || 0, [metaleads]);
-  const totalUsers = useMemo(() => users?.users?.length || 0, [users]);
+  const metadata = metaleads.leads;
+  const totalLeads = data?.leads?.length;
 
   return (
-    <div className="p-3 bg-gradient-to-tr from-indigo-50 via-white to-indigo-50 min-h-screen">
-      {/* User greeting */}
-      <div className="mb-12 p-8 bg-white rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-gradient-to-tr from-indigo-50 via-white to-indigo-50 p-6">
+      {/* Header Section */}
+      <div className="mb-12 bg-white rounded-2xl shadow-lg p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-indigo-700">
-            Welcome back,{" "}
-            <span className="text-indigo-900">{userInfo.name || "Guest"}</span>!
+          <h1 className="text-xl md:text-2xl font-extrabold text-indigo-700">
+            Welcome back, <span className="text-indigo-900">{userInfo.userName}!</span>
           </h1>
-          <p className="mt-2 text-lg text-indigo-600 font-medium">
-            Role: {userInfo.role || "User"}
-          </p>
+          <p className="mt-2 text-lg text-indigo-600 font-medium">Role: {userInfo.userRole}</p>
         </div>
-        <div className="mt-4 sm:mt-0 text-indigo-500 text-base font-medium select-text">
-          📧 {userInfo.userEmail}
+        <div className="flex gap-4 items-center">
+          <button className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-2xl hover:bg-blue-700 transition duration-300">
+            Connect Facebook
+          </button>
         </div>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
         <StatCard
@@ -121,6 +102,7 @@ export default function Dashboard() {
           iconColor="text-indigo-600"
           onClick={() => navigate("/admin-dashboard/users")}
           hoverEffect
+          hoverEffect
         />
         <StatCard
           icon={FaUsers}
@@ -129,6 +111,7 @@ export default function Dashboard() {
           bgColor="bg-green-100"
           iconColor="text-green-600"
           onClick={() => navigate("/admin-dashboard/meta")}
+          hoverEffect
           hoverEffect
         />
         <StatCard
@@ -139,30 +122,28 @@ export default function Dashboard() {
           iconColor="text-yellow-600"
           onClick={() => navigate("/admin-dashboard/stats")}
           hoverEffect
+          hoverEffect
         />
       </div>
-<<<<<<< HEAD
 
-      {/* Sales & Analytics */}
+      {/* Sales & Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-        <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+        {/* Sales Funnel */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
           <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales Funnel</h2>
           <SalesFunnel />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+        {/* Sales History Chart */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
           <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales History</h2>
           <SellHistoryChart />
         </div>
       </div>
 
       {/* Support Tracker */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-10 hover:shadow-xl transition-shadow duration-300">
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-10">
         <h2 className="text-2xl font-bold mb-4 text-indigo-700">Support Tracker</h2>
-=======
-           <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 pt-20">
-        <SellHistoryChart />
->>>>>>> 390aa61 (mukti changes in UI)
         <SupportTracker />
       </div>
     </div>
