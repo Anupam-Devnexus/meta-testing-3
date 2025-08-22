@@ -37,7 +37,7 @@ import UserLayout from "./Pages/UserDashboard/UserLayout";
 // Edit Mannual Pages
 import EditMannualLeads from "./Pages/AdminDashboard/Leads/EditMannulLeads";
 import EditUser from "./Pages/AdminDashboard/Leads/EditUser";
-import InvoiceTable from "./Pages/AdminDashboard/Caleads/Caleads";
+import Caleads from "./Pages/AdminDashboard/Caleads/Caleads";
 import UserDashboard from "./Components/UserDashboardleads";
 import FollowUpStatus from "./Pages/UserDashboard/Follow-up Status";
 import ForgotPass from "./Pages/UserDashboard/ChangePass";
@@ -93,10 +93,10 @@ function AppContent() {
             path="/admin-dashboard/mannual-leads"
             element={<MannualLeads />}
           />
-          <Route path="/admin-dashboard/ca-leads" element={<InvoiceTable />} />
-          <Route path="/admin-dashboard/digital-leads" element={<InvoiceTable />} />
-          <Route path="/admin-dashboard/web-development-leads" element={<InvoiceTable />} />
-          <Route path="/admin-dashboard/travel-agency-leads" element={<InvoiceTable />} />
+          <Route path="/admin-dashboard/ca-leads" element={<Caleads />} />
+          <Route path="/admin-dashboard/digital-leads" element={<Caleads />} />
+          <Route path="/admin-dashboard/web-development-leads" element={<Caleads />} />
+          <Route path="/admin-dashboard/travel-agency-leads" element={<Caleads />} />
           <Route path="/admin-dashboard/appointments" element={<Appointments />} />
           <Route path="/admin-dashboard/integrations" element={<IntegrationPage />} />
           <Route path="/admin-dashboard/appointment-form" element={<AppointmentForm />} />

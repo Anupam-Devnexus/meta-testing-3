@@ -61,7 +61,7 @@ export default function Navbar() {
       ],
     },
     { icon: <RiAdminLine />, label: "Stats", path: "/admin-dashboard/stats" },
-    { icon: <RiAdminLine />, label: "Blogs", path: "/admin-dashboard/blogs" },
+    // { icon: <RiAdminLine />, label: "Blogs", path: "/admin-dashboard/blogs" },
     { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" },
     { icon: <GrIntegration />, label: "Integrations", path: "/admin-dashboard/integrations" },
   ];

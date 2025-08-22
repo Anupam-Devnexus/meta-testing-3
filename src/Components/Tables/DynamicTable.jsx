@@ -1,66 +1,65 @@
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+import React, { useEffect, useState } from "react";
 
-export default function DynamicTable({ headers = [], keys = [], data = [], onEdit, onDelete }) {
+export default function LeadsTable({ apiResponse }) {
+  const [headers, setHeaders] = useState([]);
+
+  useEffect(() => {
+    if (apiResponse?.leads?.length) {
+      // Collect all unique field names across leads
+      const uniqueFields = new Set();
+      apiResponse.leads.forEach((lead) => {
+        lead.field_data.forEach((field) => {
+          uniqueFields.add(field.name);
+        });
+      });
+      setHeaders([...uniqueFields]);
+    }
+  }, [apiResponse]);
+
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-        <thead className="bg-gray-100">
-          <tr>
-            {headers.map((header, index) => (
-              <th
-                key={index}
-                className="text-left px-4 py-2 border-b font-semibold text-gray-700 whitespace-nowrap"
-              >
-                {header}
-              </th>
-            ))}
-            <th className="text-left px-4 py-2 border-b font-semibold text-gray-700 whitespace-nowrap">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.length === 0 ? (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-2">
+        Total Leads: {apiResponse?.totalLeads}
+      </h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-300 text-sm">
+          <thead className="bg-gray-200">
             <tr>
-              <td
-                colSpan={headers.length + 1}
-                className="px-4 py-4 text-center text-gray-500"
-              >
-                No data available.
-              </td>
+              <th className="border p-2">#</th>
+              {headers.map((head) => (
+                <th key={head} className="border p-2 capitalize">
+                  {head.replace(/_/g, " ")}
+                </th>
+              ))}
+              <th className="border p-2">Status</th>
+              <th className="border p-2">Created At</th>
             </tr>
-          ) : (
-            data.map((row, rowIndex) => (
-              <tr key={rowIndex} className="hover:bg-gray-50 transition">
-                {keys.map((key, colIndex) => (
-                  <td
-                    key={colIndex}
-                    className="px-4 py-2 border-b text-sm text-gray-800 whitespace-nowrap"
-                  >
-                    {row[key] ?? "-"}
+          </thead>
+          <tbody>
+            {apiResponse?.leads?.map((lead, idx) => {
+              const fieldMap = {};
+              lead.field_data.forEach((f) => {
+                fieldMap[f.name] = f.values.join(", ");
+              });
+
+              return (
+                <tr key={lead._id} className="hover:bg-gray-50">
+                  <td className="border p-2">{idx + 1}</td>
+                  {headers.map((head) => (
+                    <td key={head} className="border p-2">
+                      {fieldMap[head] || "-"}
+                    </td>
+                  ))}
+                  <td className="border p-2">{lead.status}</td>
+                  <td className="border p-2">
+                    {new Date(lead.createdAt).toLocaleString()}
                   </td>
-                ))}
-                <td className="px-4 py-2 border-b flex gap-2">
-                  <button
-                    onClick={() => onEdit?.(row)}
-                    className="text-blue-600 hover:text-blue-800"
-                    title="Edit"
-                  >
-                    <FiEdit />
-                  </button>
-                  <button
-                    onClick={() => onDelete?.(row)}
-                    className="text-red-600 hover:text-red-800"
-                    title="Delete"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

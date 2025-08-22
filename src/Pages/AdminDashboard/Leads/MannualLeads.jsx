@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import useLeadStore from "../../../Zustand/LeadsGet";
 import useUserStore from "../../../Zustand/UsersGet";
 import { useNavigate } from "react-router-dom";
-import { FiPlus, FiEdit3, FiCheck, FiMessageSquare } from "react-icons/fi";
-import { MdOutlineAddComment } from "react-icons/md";
+import { FiPlus, FiCheck } from "react-icons/fi";
 import { FaFilter } from "react-icons/fa";
+import { FaWhatsapp } from "react-icons/fa";
+import { SiGmail } from "react-icons/si";
 
 export default function MannualLeads() {
   const { data, loading, error, fetchData } = useLeadStore();
-  const { users, userloading, usererror, fetchUser } = useUserStore();
+  const { users, fetchUser } = useUserStore();
   const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
@@ -17,6 +18,7 @@ export default function MannualLeads() {
   // Global remarks states
   const [enabledRows, setEnabledRows] = useState({});
   const [remarks, setRemarks] = useState({});
+  const [showGlobalRemarks, setShowGlobalRemarks] = useState(false);
   const [globalRemark1, setGlobalRemark1] = useState("");
   const [globalRemark2, setGlobalRemark2] = useState("");
   const [customRemark1, setCustomRemark1] = useState("");
@@ -36,9 +38,9 @@ export default function MannualLeads() {
   }, []);
 
   const leads = data?.leads || [];
-  const edata = users?.users || [];
+  const usersData = users?.users || [];
 
-  // Initialize enabledRows and remarks
+  // Initialize enabledRows and remarks when leads change
   useEffect(() => {
     const initEnabled = {};
     const initRemarks = {};
@@ -50,36 +52,16 @@ export default function MannualLeads() {
     setRemarks(initRemarks);
   }, [leads]);
 
+  const isAnyRowSelected = Object.values(enabledRows).some(Boolean);
+
   const getAssignedUserName = (userId) => {
-    const user = edata.find((e) => e._id === userId);
+    const user = usersData.find((e) => e._id === userId);
     return user ? user.name : "N/A";
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A";
-    return dateStr.slice(0, 10);
-  };
+  const formatDate = (dateStr) => (dateStr ? dateStr.slice(0, 10) : "N/A");
 
-  const getStatus = (status) => {
-    return status && status.trim() !== "" ? status : "N/A";
-  };
-
-  const handleDelete = async (leadId) => {
-    if (window.confirm("Are you sure to delete this lead?")) {
-      console.log("Deleting lead with ID:", leadId);
-      // Add delete logic here
-    }
-  };
-
-  const openModal = (lead) => {
-    setSelectedLead(lead);
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setSelectedLead(null);
-    setShowModal(false);
-  };
+  const getStatus = (status) => (status && status.trim() ? status : "N/A");
 
   const toggleRow = (id) => {
     setEnabledRows((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -113,81 +95,177 @@ export default function MannualLeads() {
     setRemarks(updatedRemarks);
   };
 
+  const openModal = (lead) => {
+    setSelectedLead(lead);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setSelectedLead(null);
+    setShowModal(false);
+  };
+
+  const handleDelete = (leadId) => {
+    if (window.confirm("Are you sure to delete this lead?")) {
+      console.log("Deleting lead:", leadId);
+      // Add delete logic
+    }
+  };
+
+  // inside MannualLeads()
+
+// -----------------------------
+// Send WhatsApp message
+const sendWhatsApp = () => {
+  const selected = leads.filter((lead) => enabledRows[lead._id]);
+  if (selected.length === 0) return;
+
+  selected.forEach((lead) => {
+    const phone = lead.phone;
+    if (!phone) return;
+    const message = encodeURIComponent(
+      `Hello ${lead.name},\n\nRemark 1: ${remarks[lead._id]?.remark1 || globalRemark1}\nRemark 2: ${remarks[lead._id]?.remark2 || globalRemark2}`
+    );
+    window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
+  });
+};
+
+// -----------------------------
+// Send Gmail
+const sendGmail = () => {
+  const selected = leads.filter((lead) => enabledRows[lead._id]);
+  if (selected.length === 0) return;
+
+  selected.forEach((lead) => {
+    const email = lead.email;
+    if (!email) return;
+    const subject = encodeURIComponent("Lead Follow-up");
+    const body = encodeURIComponent(
+      `Hi ${lead.name},\n\nWe wanted to follow up regarding your requirement.\n\nRemark 1: ${remarks[lead._id]?.remark1 || globalRemark1}\nRemark 2: ${remarks[lead._id]?.remark2 || globalRemark2}\n\nThanks,\nYour Company`
+    );
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`, "_blank");
+  });
+};
+
+
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
-<div className="flex items-center justify-between mb-4">
-  <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-    <FaFilter className="text-blue-600" /> Manual Leads
-  </h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          
+          Manual Leads
+        </h1>
+        <div className="flex items-center gap-3">
 
-  <button
-    onClick={() => navigate("/admin-dashboard/mannual-leads/add")}
-    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition"
-  >
-    <FiPlus className="text-lg" /> Add Lead
-  </button>
-</div>
+        <button
+          onClick={() => navigate("/admin-dashboard/mannual-leads/add")}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition"
+        >
+          <FiPlus className="text-lg" /> Add Lead
+        </button>
+        <FaFilter
+            className={`text-blue-600 cursor-pointer transition ${
+              !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={() => isAnyRowSelected && setShowGlobalRemarks((prev) => !prev)}
+            title={
+              !isAnyRowSelected
+                ? "Select at least one row to enable"
+                : showGlobalRemarks
+                ? "Hide Global Remarks"
+                : "Show Global Remarks"
+            }
+          />
+        </div>
 
-{/* Global Remarks Toolbar */}
-<div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-wrap gap-3 items-center">
-  {/* Remark 1 dropdown */}
-  <div className="flex items-center gap-2">
-    <FaFilter className="text-gray-500" />
-    <select
-      value={globalRemark1}
-      onChange={(e) => handleRemark1Change(e.target.value)}
-      className="px-4 py-2 border-b border-gray-300  text-sm 
-      "
-    >
-      <option value="">Select Remark 1</option>
-      {remarkOptions1.map((opt, idx) => (
-        <option key={idx} value={opt}>
-          {opt}
-        </option>
-      ))}
-    </select>
-  </div>
+      </div>
 
-  {/* Custom Remark Input */}
-  {showCustomInput && (
-    <div className="flex gap-2 items-center">
-      <input
-        type="text"
-        placeholder="Enter custom remark"
-        value={customRemark1}
-        onChange={(e) => setCustomRemark1(e.target.value)}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none"
-      />
-      <button
-        onClick={addCustomRemark}
-        className="flex items-center gap-1 px-2 cursor-pointer py-2 bg-green-600 text-white rounded-full shadow-sm hover:bg-green-700 transition"
-      >
-        <FiCheck /> 
-      </button>
-    </div>
-  )}
+      {/* Global Remarks Toolbar */}
+      {showGlobalRemarks && (
+        <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-wrap gap-3 items-center">
+          {/* Remark 1 dropdown */}
+          <div className="flex items-center gap-2 relative">
+            <select
+              value={globalRemark1}
+              onChange={(e) => handleRemark1Change(e.target.value)}
+              disabled={!isAnyRowSelected}
+              className="px-4 py-2 border-b border-gray-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="">Select Remark 1</option>
+              {remarkOptions1.map((opt, idx) => (
+                <option key={idx} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+            {!isAnyRowSelected && (
+              <span className="absolute -top-6 left-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-80">
+                Select a row to enable
+              </span>
+            )}
+          </div>
 
-  {/* Remark 2 input */}
-  <input
-    type="text"
-    placeholder="Enter Remark 2"
-    value={globalRemark2}
-    onChange={(e) => setGlobalRemark2(e.target.value)}
-    className="px-4 py-2 border-b border-gray-300 text-sm outline-none flex-1"
+          {/* Custom Remark Input */}
+          {showCustomInput && (
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                placeholder="Enter custom remark"
+                value={customRemark1}
+                onChange={(e) => setCustomRemark1(e.target.value)}
+                disabled={!isAnyRowSelected}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                onClick={addCustomRemark}
+                disabled={!isAnyRowSelected}
+                className="flex items-center gap-1 px-2 py-2 bg-green-600 text-white rounded-full shadow-sm hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+              >
+                <FiCheck />
+              </button>
+            </div>
+          )}
+
+          {/* Remark 2 input */}
+          <input
+            type="text"
+            placeholder="Enter Remark 2"
+            value={globalRemark2}
+            onChange={(e) => setGlobalRemark2(e.target.value)}
+            disabled={!isAnyRowSelected}
+            className="px-4 py-2 border-b border-gray-300 text-sm outline-none flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+
+          {/* Apply button */}
+          <button
+            onClick={applyGlobalRemarks}
+            disabled={!isAnyRowSelected}
+            className="flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded-full cursor-pointer shadow-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+          >
+            <FiCheck className="text-lg" />
+          </button>
+         <div className="flex items-center gap-2">
+  <FaWhatsapp
+    onClick={sendWhatsApp}
+    className={`p-1 bg-green-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-green-700 transition ${
+      !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+    }`}
+    title="Send WhatsApp Message"
   />
-
-  {/* Apply button */}
-  <button
-    onClick={applyGlobalRemarks}
-    className="flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded-full cursor-pointer shadow-sm hover:bg-blue-700 transition"
-  >
-    <FiCheck className="text-lg" /> 
-  </button>
+  <SiGmail
+    onClick={sendGmail}
+    className={`p-1 bg-red-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-red-700 transition ${
+      !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+    }`}
+    title="Send Email via Gmail"
+  />
 </div>
 
+        </div>
+      )}
 
-
+      {/* Table */}
       {loading && <p className="text-yellow-600">Loading leads...</p>}
       {error && <p className="text-red-500">Error: {error}</p>}
 
@@ -205,8 +283,8 @@ export default function MannualLeads() {
                 <th className="py-2 px-4 border">Assigned To</th>
                 <th className="py-2 px-4 border">Assigned Date</th>
                 <th className="py-2 px-4 border">Status</th>
-                <th className="py-2 px-4 border">Tags</th>
-                <th className="py-2 px-4 border">Remark </th>
+                <th className="py-2 px-4 border">Remark 1</th>
+                <th className="py-2 px-4 border">Remark 2</th>
                 <th className="py-2 px-4 border">Actions</th>
               </tr>
             </thead>
