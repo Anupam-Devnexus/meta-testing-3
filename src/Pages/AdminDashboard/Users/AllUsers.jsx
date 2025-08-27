@@ -1,6 +1,7 @@
 import useUserStore from "../../../Zustand/UsersGet";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
 
 export default function AllUsers() {
   const { users, loading, error, fetchUser } = useUserStore();
@@ -11,7 +12,7 @@ export default function AllUsers() {
   }, []);
 
   const confirmData = users.users || [];
-  console.log("All users",confirmData)
+  // console.log("All users",confirmData)
 
   const handleNavigate = () => {
     navigate("/admin-dashboard/users/add");

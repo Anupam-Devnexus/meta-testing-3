@@ -21,6 +21,49 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
 
+const handleFacebook = async () => {
+  try {
+    // ✅ Get token from localStorage
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token found. Please login first.");
+
+    // ✅ Fetch Facebook app config from backend
+    const res = await fetch("https://dbbackend.devnexussolutions.com/facebook/config", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Failed to fetch config: ${errorText}`);
+    }
+
+    const { appId, redirectUri } = await res.json();
+
+    if (!appId || !redirectUri) {
+      throw new Error("Invalid Facebook config (missing appId or redirectUri)");
+    }
+
+    // ✅ Build FB OAuth URL (with response_type=code)
+    const fbAuthUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&scope=pages_show_list,pages_read_engagement,leads_retrieval&response_type=code`;
+
+    // ✅ Open popup
+    window.open(fbAuthUrl, "fbLogin", "width=600,height=700");
+  } catch (err) {
+    console.error("Facebook Login Error:", err.message);
+  }
+};
+
+// 👇 Trigger function
+const handleFacebookClick = () => {
+  handleFacebook();
+};
+
+
+
+
   useEffect(() => {
     const userName = localStorage.getItem("userName") || "User";
     const userEmail = localStorage.getItem("userEmail") || "email@example.com";
@@ -30,6 +73,7 @@ export default function Dashboard() {
 
     fetchMetaLeads();
     fetchData();
+
   }, []);
 
   const metadata = metaleads.leads;
@@ -46,7 +90,9 @@ export default function Dashboard() {
           <p className="mt-2 text-lg text-indigo-600 font-medium">Role: {userInfo.userRole}</p>
         </div>
         <div className="flex gap-4 items-center">
-          <button className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-2xl hover:bg-blue-700 transition duration-300">
+          <button
+          onClick={()=>handleFacebookClick()}
+          className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-2xl hover:bg-blue-700 transition duration-300">
             Connect Facebook
           </button>
         </div>

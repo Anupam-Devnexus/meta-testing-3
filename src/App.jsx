@@ -5,12 +5,13 @@ import "./App.css";
 import {
   BrowserRouter as Router,
   Routes,
+  Navigate,
   Route,
   useLocation,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectRoute";
-
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Components/Navbar";
 
 // Auth pages
@@ -52,6 +53,7 @@ import GoogleAds from "./Pages/AdminDashboard/Google/GoogleAds";
 
 function AppContent() {
   const location = useLocation();
+  // const navigate = useNavigate()
   const { user } = useAuth();
 
   const hideNavbar =
@@ -65,7 +67,11 @@ function AppContent() {
 
       <Routes>
         {/* Public routes */}
-        <Route index path="/auth/api/signin-users" element={<Login />} />
+      {/* Redirect root to your login route */}
+        <Route path="/" element={<Navigate to="/auth/api/signin-users" replace />} />
+
+        {/* Existing login route */}
+        <Route path="/auth/api/signin-users" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
         {/* Admin Routes */}
