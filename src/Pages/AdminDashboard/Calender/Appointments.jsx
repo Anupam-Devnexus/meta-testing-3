@@ -14,7 +14,7 @@ const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
 const SCOPES =
-  "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
+  "https://dbbackend.devnexussolutions.com/auth/google";
 
 // ----------------------------
 // Main Component
@@ -274,3 +274,4 @@ function InputField({ label, type = "text", value, onChange }) {
     </div>
   );
 }
+
