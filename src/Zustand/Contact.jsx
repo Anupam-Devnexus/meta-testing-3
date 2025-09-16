@@ -1,3 +1,4 @@
+// src/store/useContactStore.js
 import { create } from "zustand";
 import axios from "axios";
 
@@ -8,13 +9,33 @@ const useContactStore = create((set) => ({
 
   fetchContacts: async () => {
     set({ loading: true, error: null });
+
     try {
+      // Get token from localStorage
+      const tokenData = localStorage.getItem("UserDetails");
+      const authToken = tokenData ? JSON.parse(tokenData).token : null;
+
+      if (!authToken) {
+        throw new Error("Unauthorized: No token found");
+      }
+
       const response = await axios.get(
-        "http://ec2-15-206-164-254.ap-south-1.compute.amazonaws.com:3000/auth/api/contact"
+        "https://dbbackend.devnexussolutions.com/auth/api/contact",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
       );
-      set({ data: response.data, loading: false });
+
+      set({ data: response.data || [], loading: false });
     } catch (error) {
-      set({ error: error.message || "Failed to fetch contacts", loading: false });
+      console.error("Fetch Contacts Error:", error);
+      set({
+        error: error.response?.data?.message || error.message || "Failed to fetch contacts",
+        loading: false,
+      });
     }
   },
 }));

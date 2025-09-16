@@ -37,7 +37,7 @@ export default function MetaChart() {
 
     return !isNaN(nums[0]) ? nums[0] : 0;
   };
-console.log( metaleads?.leads)
+// console.log( metaleads?.leads)
   // Transform data
   const chartData =
     metaleads?.leads?.map((lead, index) => {

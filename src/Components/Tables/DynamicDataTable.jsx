@@ -3,8 +3,7 @@ import { FaWhatsapp, FaFilter } from "react-icons/fa";
 import { SiGmail } from "react-icons/si";
 import { FiCheck } from "react-icons/fi";
 
-// Random tag colors
-const tagColors = [
+const TAG_COLORS = [
   "bg-blue-100 text-blue-700",
   "bg-green-100 text-green-700",
   "bg-yellow-100 text-yellow-700",
@@ -12,17 +11,22 @@ const tagColors = [
   "bg-red-100 text-red-700",
 ];
 
-export default function DynamicDataTable({ apiData }) {
-  // normalize leads
-  const leads = useMemo(() => {
+export default function DynamicDataTable({ apiData, patchApi = '' }) {
+  // Normalize API data
+  const rows = useMemo(() => {
     if (!apiData) return [];
-    return Array.isArray(apiData) ? apiData : apiData.leads || [];
+    if (Array.isArray(apiData)) return apiData;
+    return apiData.submissions || apiData.leads || [];
   }, [apiData]);
 
   const [enabledRows, setEnabledRows] = useState({});
   const [remarks, setRemarks] = useState({});
   const [tags, setTags] = useState({});
   const [showGlobalRemarks, setShowGlobalRemarks] = useState(false);
+  const [globalRemark1, setGlobalRemark1] = useState("");
+  const [globalRemark2, setGlobalRemark2] = useState("");
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customRemark1, setCustomRemark1] = useState("");
   const [remarkOptions1, setRemarkOptions1] = useState([
     "New Lead",
     "Appointment Scheduled",
@@ -31,46 +35,17 @@ export default function DynamicDataTable({ apiData }) {
     "Converted",
     "Other",
   ]);
-  const [globalRemark1, setGlobalRemark1] = useState("");
-  const [globalRemark2, setGlobalRemark2] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
-  const [customRemark1, setCustomRemark1] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
+  const isAnyRowSelected = Object.values(enabledRows).some(Boolean);
 
-  const remarkColors = {
-  "New Lead": "text-blue-600",
-  "Appointment Scheduled": "text-green-600",
-  "Called": "text-yellow-600",
-  "Hot Lead": "text-red-600",
-  "Converted": "text-purple-600",
-  "Other": "text-gray-500", // default for "Other"
-};
-  // 🔹 Transform leads for table
-  const transformedData = useMemo(() => {
-    return leads.map((lead) => {
-      const flatFields = {};
-      lead.field_data?.forEach((f) => {
-        flatFields[f.name] = f.values?.[0] || "";
-      });
-
-      return {
-        _id: lead._id,
-        status: lead.status,
-        leadgen_id: lead.leadgen_id,
-        campaign_name: lead.campaign_name,
-        created_time: lead.created_time,
-        ...flatFields,
-      };
-    });
-  }, [leads]);
-
-  // Initialize rows on data change
+  // Initialize rows
   useEffect(() => {
     const initEnabled = {};
     const initRemarks = {};
     const initTags = {};
-    transformedData.forEach((row) => {
-      const id = row._id;
+    rows.forEach((row, idx) => {
+      const id = row.id || row._id || idx;
       initEnabled[id] = false;
       initRemarks[id] = { remark1: "", remark2: "" };
       initTags[id] = [];
@@ -78,11 +53,9 @@ export default function DynamicDataTable({ apiData }) {
     setEnabledRows(initEnabled);
     setRemarks(initRemarks);
     setTags(initTags);
-  }, [transformedData]);
+  }, [rows]);
 
-  const isAnyRowSelected = Object.values(enabledRows).some(Boolean);
-
-  // 🔹 Helpers
+  // Helpers
   const detectEmail = (row) =>
     Object.entries(row).find(([k]) => k.toLowerCase().includes("email"))?.[1] || "";
   const detectPhone = (row) =>
@@ -97,11 +70,12 @@ export default function DynamicDataTable({ apiData }) {
       ...prev,
       [id]: [
         ...prev[id],
-        { text: newTag, color: tagColors[Math.floor(Math.random() * tagColors.length)] },
+        { text: newTag, color: TAG_COLORS[Math.floor(Math.random() * TAG_COLORS.length)] },
       ],
     }));
   };
 
+  // Global Remarks
   const handleRemark1Change = (value) => {
     if (value === "Other") {
       setShowCustomInput(true);
@@ -121,50 +95,120 @@ export default function DynamicDataTable({ apiData }) {
   };
 
   const applyGlobalRemarks = () => {
-    const updated = { ...remarks };
-    Object.keys(enabledRows)
-      .filter((id) => enabledRows[id])
-      .forEach((id) => {
-        updated[id] = { remark1: globalRemark1, remark2: globalRemark2 };
-      });
-    setRemarks(updated);
+    setRemarks((prev) => {
+      const updated = { ...prev };
+      Object.keys(enabledRows)
+        .filter((id) => enabledRows[id])
+        .forEach((id) => {
+          updated[id] = { remark1: globalRemark1, remark2: globalRemark2 };
+        });
+      return updated;
+    });
   };
 
+  // Bulk Communication
   const sendWhatsApp = () => {
-    transformedData
-      .filter((row) => enabledRows[row._id])
-      .forEach((row) => {
-        const phone = detectPhone(row);
-        if (!phone) return;
-        const msg = encodeURIComponent(
-          `Hello ${row.full_name || "Customer"},\nRemark 1: ${remarks[row._id]?.remark1 || globalRemark1}\nRemark 2: ${remarks[row._id]?.remark2 || globalRemark2}`
-        );
-        window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
-      });
+    rows.forEach((row, idx) => {
+      const id = row.id || row._id || idx;
+      if (!enabledRows[id]) return;
+      const phone = detectPhone(row);
+      if (!phone) return;
+      const msg = encodeURIComponent(
+        `Hello ${row.name || row.full_name || "Customer"},\nRemark 1: ${remarks[id]?.remark1 || globalRemark1}\nRemark 2: ${remarks[id]?.remark2 || globalRemark2}`
+      );
+      window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+    });
   };
 
   const sendGmail = () => {
-    transformedData
-      .filter((row) => enabledRows[row._id])
-      .forEach((row) => {
-        const email = detectEmail(row);
-        if (!email) return;
-        const subject = encodeURIComponent("Follow Up");
-        const body = encodeURIComponent(
-          `Hi ${row.full_name || "Customer"},\n\nRemark 1: ${remarks[row._id]?.remark1 || globalRemark1}\nRemark 2: ${remarks[row._id]?.remark2 || globalRemark2}\n\nThanks,\nTeam`
-        );
-        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`, "_blank");
-      });
+    rows.forEach((row, idx) => {
+      const id = row.id || row._id || idx;
+      if (!enabledRows[id]) return;
+      const email = detectEmail(row);
+      if (!email) return;
+      const subject = encodeURIComponent("Follow Up");
+      const body = encodeURIComponent(
+        `Hi ${row.name || row.full_name || "Customer"},\n\nRemark 1: ${remarks[id]?.remark1 || globalRemark1}\nRemark 2: ${remarks[id]?.remark2 || globalRemark2}\n\nThanks,\nTeam`
+      );
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`, "_blank");
+    });
   };
 
-  if (!transformedData.length) return <p className="text-gray-500">No data available</p>;
 
-  const headers = Object.keys(transformedData[0]).filter((k) => k !== "_id");
+  const submitChanges = async () => {
+    if (!patchApi) {
+      alert("Patch API endpoint not provided.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = JSON.parse(localStorage.getItem("UserDetails"));
+
+      // Collect enabled rows
+      const updates = Object.keys(enabledRows)
+        .filter((id) => enabledRows[id])
+        .map((id) => {
+          const row = rows.find((r) => (r._id || r.id) === id);
+          if (!row) return null;
+
+          return {
+            _id: row._id || row.id,
+            remarks1: remarks[id]?.remark1 || row.remarks1 || "",
+            remarks2: remarks[id]?.remark2 || row.remarks2 || "",
+            tags: tags[id]?.length ? tags[id] : row.tags || [],
+          };
+        })
+        .filter(Boolean);
+
+      if (!updates.length) {
+        alert("No rows selected to update.");
+        return;
+      }
+
+      // ❗ Pick first row’s data (backend only supports one updateData)
+      const ids = updates.map((u) => u._id);
+      const updateData = {
+        remarks1: updates[0].remarks1,
+        remarks2: updates[0].remarks2,
+        tags: updates[0].tags,
+      };
+
+      console.log("Payload being sent:", { ids, updateData });
+
+      const res = await fetch(`${patchApi}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token.token}` : "",
+        },
+        body: JSON.stringify({ ids, updateData }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Failed: ${errText}`);
+      }
+
+      const response = await res.json();
+      console.log("Patch response:", response);
+      console.log("Changes submitted successfully!");
+    } catch (err) {
+      console.error("Error submitting:", err);
+      console.log("Error submitting changes! " + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!rows.length) return <p className="text-gray-500">No data available</p>;
+
+  const headers = Object.keys(rows[0]).filter((k) => k !== "_id" && k !== "id");
 
   return (
     <div className="p-4 space-y-4">
       {/* Toolbar */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-2">
         <FaWhatsapp
           onClick={sendWhatsApp}
           className={`p-1 bg-green-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-green-700 transition ${!isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -180,6 +224,13 @@ export default function DynamicDataTable({ apiData }) {
           className={`text-blue-600 text-2xl cursor-pointer ${!isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""}`}
           title="Global Remarks"
         />
+        <button
+          onClick={submitChanges}
+          disabled={!isAnyRowSelected || submitting}
+          className={`ml-auto px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          {submitting ? "Submitting..." : "Submit Changes"}
+        </button>
       </div>
 
       {/* Global Remarks */}
@@ -232,12 +283,12 @@ export default function DynamicDataTable({ apiData }) {
         </div>
       )}
 
-      {/* Data Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-300 text-sm">
+      {/* Table */}
+      <div className="overflow-x-auto bg-white rounded-lg shadow border">
+        <table className="min-w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="py-2 px-4 border">Select</th>
+              <th className="py-2 px-4 border text-center">Select</th>
               {headers.map((h, i) => (
                 <th key={i} className="py-2 px-4 border capitalize">{h}</th>
               ))}
@@ -246,23 +297,29 @@ export default function DynamicDataTable({ apiData }) {
             </tr>
           </thead>
           <tbody>
-            {transformedData.map((row) => {
-              const id = row._id;
+            {rows.map((row, idx) => {
+              const id = row.id || row._id || idx;
               return (
-                <tr key={id} className="hover:bg-gray-50">
+                <tr key={id} className={`hover:bg-gray-50 ${enabledRows[id] ? "bg-gray-100" : ""}`}>
                   <td className="py-2 px-4 border text-center">
-                    <input type="checkbox" checked={enabledRows[id] || false} onChange={() => toggleRow(id)} className="w-5 h-5 accent-blue-500" />
+                    <input
+                      type="checkbox"
+                      checked={enabledRows[id] || false}
+                      onChange={() => toggleRow(id)}
+                      className="w-5 h-5 accent-blue-500"
+                    />
                   </td>
-                  {headers.map((h, i) => <td key={i} className="py-2 px-4 border">{row[h] || "-"}</td>)}
-                  <td className="py-2 px-4 border text-xs">
-                   
-                    <p className="text-gray-600">{remarks[id]?.remark2 || "-"}</p>
-                  </td>
+                  {headers.map((h, i) => (
+                    <td key={i} className="py-2 px-4 border">{row[h] || "-"}</td>
+                  ))}
+                  <td className="py-2 px-4 border text-xs">{remarks[id]?.remark2 || "-"}</td>
                   <td className="py-2 px-4 border">
-                    <div className="flex flex-wrap gap-1 mb-1">{tags[id]?.map((tag, idx) => <span key={idx} className={`px-2 py-1 text-xs rounded ${tag.color}`}>{tag.text}</span>)}</div>
-                    <p className={`${remarkColors[remarks[id]?.remark1] || "text-gray-400"} font-semibold`}>
-    {remarks[id]?.remark1 || "-"}
-  </p>
+                    <div className="flex flex-wrap gap-1 mb-1">
+                      {tags[id]?.map((tag, tIdx) => (
+                        <span key={tIdx} className={`px-2 py-1 text-xs rounded ${tag.color}`}>{tag.text}</span>
+                      ))}
+                    </div>
+                    <p className="font-semibold">{remarks[id]?.remark1 || "-"}</p>
                   </td>
                 </tr>
               );

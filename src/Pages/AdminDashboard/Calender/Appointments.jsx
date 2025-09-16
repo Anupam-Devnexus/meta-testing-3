@@ -1,75 +1,276 @@
-import React, { useState } from "react";
-import AppointmentForm from "./AppointmentForm";
-import Calendar from "./Calender";
-import { useNavigate } from "react-router-dom";
+// CalendarScheduler.jsx
+import React, { useState, useEffect } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { toast } from "react-toastify";
+import { gapi } from "gapi-script";
 
-const Appointments = () => {
-  const [appointments, setAppointments] = useState([]);
-  const navigate = useNavigate();
+// ----------------------------
+// ENV Variables
+// ----------------------------
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
-  // Separate active and cancelled appointments
-  const activeAppointments = appointments.filter(appt => appt.status !== "cancelled");
-  const cancelledAppointments = appointments.filter(appt => appt.status === "cancelled");
+const SCOPES =
+  "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
 
+// ----------------------------
+// Main Component
+// ----------------------------
+export default function CalendarScheduler() {
+  const [events, setEvents] = useState([]);
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    duration: "30",
+    attendees: "",
+  });
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // ----------------------------
+  // Init Google API Client
+  // ----------------------------
+  useEffect(() => {
+    function initClient() {
+      gapi.client
+        .init({
+          apiKey: API_KEY,
+          clientId: CLIENT_ID,
+          discoveryDocs: [
+            "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+          ],
+          scope: SCOPES,
+        })
+        .then(() => {
+          const authInstance = gapi.auth2.getAuthInstance();
+          if (authInstance) {
+            setIsSignedIn(authInstance.isSignedIn.get());
+            authInstance.isSignedIn.listen(setIsSignedIn);
+          }
+        })
+        .catch((err) => console.error("Error init gapi client:", err));
+    }
+
+    gapi.load("client:auth2", initClient);
+  }, []);
+
+
+  // ----------------------------
+  // Fetch Events
+  // ----------------------------
+  const fetchEvents = async () => {
+    try {
+      const response = await gapi.client.calendar.events.list({
+        calendarId: "primary",
+        timeMin: new Date().toISOString(),
+        showDeleted: false,
+        singleEvents: true,
+        orderBy: "startTime",
+      });
+
+      const mapped = response.result.items.map((ev) => ({
+        id: ev.id,
+        title: ev.summary,
+        start: ev.start.dateTime || ev.start.date,
+        end: ev.end.dateTime || ev.end.date,
+        extendedProps: {
+          meetLink: ev.hangoutLink,
+          attendees: ev.attendees || [],
+        },
+      }));
+
+      setEvents(mapped);
+    } catch (err) {
+      toast.error("Failed to load events");
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (isSignedIn) fetchEvents();
+  }, [isSignedIn]);
+
+  // ----------------------------
+  // Handle Create Appointment
+  // ----------------------------
+  const handleDateClick = (info) => {
+    setSelectedDate(info.dateStr);
+    setFormData({ title: "", duration: "30", attendees: "" });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateEvent = async (e) => {
+    e.preventDefault();
+
+    try {
+      const attendeeEmails = formData.attendees
+        .split(/[,;\s]+/)
+        .filter((email) => email.trim() !== "")
+        .map((email) => ({ email }));
+
+      const startTime = new Date(selectedDate);
+      const endTime = new Date(
+        startTime.getTime() + formData.duration * 60000
+      );
+
+      const event = {
+        summary: formData.title,
+        start: { dateTime: startTime.toISOString(), timeZone: "Asia/Kolkata" },
+        end: { dateTime: endTime.toISOString(), timeZone: "Asia/Kolkata" },
+        attendees: attendeeEmails,
+        conferenceData: {
+          createRequest: {
+            requestId: String(Date.now()),
+            conferenceSolutionKey: { type: "hangoutsMeet" },
+          },
+        },
+      };
+
+      const response = await gapi.client.calendar.events.insert({
+        calendarId: "primary",
+        resource: event,
+        conferenceDataVersion: 1,
+      });
+
+      const created = response.result;
+
+      setEvents((prev) => [
+        ...prev,
+        {
+          id: created.id,
+          title: created.summary,
+          start: created.start.dateTime,
+          end: created.end.dateTime,
+          extendedProps: {
+            meetLink: created.hangoutLink,
+            attendees: created.attendees || [],
+          },
+        },
+      ]);
+
+      toast.success("Meeting scheduled!");
+      setIsCreateModalOpen(false);
+    } catch (err) {
+      toast.error("Failed to create event");
+      console.error(err);
+    }
+  };
+
+  // ----------------------------
+  // Render
+  // ----------------------------
   return (
-    <div className="p-2 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 mb-4">
-        <h1 className="text-3xl font-bold text-gray-800">Appointments</h1>
-        <button
-          onClick={() => navigate("/admin-dashboard/appointment-form")}
-          className="bg-blue-600 hover:bg-blue-700 transition-colors px-4 py-2 rounded-full text-white font-semibold shadow-md"
+    <div className="p-6 bg-white shadow-md rounded-lg">
+
+      <div className="flex items-center justify-between">
+
+        <h2 className="text-xl font-semibold mb-4">
+          📅 Google Calendar Scheduler
+        </h2>
+
+        {!isSignedIn ? (
+          <button
+            onClick={() => gapi.auth2.getAuthInstance()?.signIn()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
+            Sign in with Google
+          </button>
+        ) : (
+          <button
+            onClick={() => gapi.auth2.getAuthInstance()?.signOut()}
+            className="px-4 py-2 bg-red-600 text-white rounded-md"
+          >
+            Logout
+          </button>
+        )}
+      </div>
+
+
+
+      {/* Create Modal */}
+      {isCreateModalOpen && (
+        <Modal
+          title="New Google Meet Appointment"
+          onClose={() => setIsCreateModalOpen(false)}
         >
-          + New Appointment
-        </button>
-      </div>
+          <form onSubmit={handleCreateEvent} className="space-y-4">
+            <InputField
+              label="Title"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, title: e.target.value }))
+              }
+            />
+            <InputField
+              type="number"
+              label="Duration (minutes)"
+              value={formData.duration}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, duration: e.target.value }))
+              }
+            />
+            <InputField
+              label="Attendees (comma separated emails)"
+              value={formData.attendees}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, attendees: e.target.value }))
+              }
+            />
 
-      {/* Calendar Container */}
-      <div className="mb-6">
-        <Calendar appointments={appointments} />
-      </div>
-
-      {/* Active Appointments */}
-      {activeAppointments.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Upcoming Appointments</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activeAppointments.map((appt, index) => (
-              <div
-                key={index}
-                className="bg-blue-50 p-4 rounded-lg shadow hover:shadow-md transition"
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
               >
-                <h3 className="text-lg font-semibold text-blue-700">{appt.title}</h3>
-                <p className="text-gray-600 mt-1">
-                  {appt.date} {appt.time ? `at ${appt.time}` : ""}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Cancelled Appointments */}
-      {cancelledAppointments.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-red-700 mb-2">Cancelled Appointments</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cancelledAppointments.map((appt, index) => (
-              <div
-                key={index}
-                className="bg-red-50 p-4 rounded-lg shadow-inner border-l-4 border-red-400"
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
-                <h3 className="text-lg font-semibold text-red-700">{appt.title}</h3>
-                <p className="text-gray-600 mt-1">
-                  {appt.date} {appt.time ? `at ${appt.time}` : ""}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+                Schedule
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );
-};
+}
 
-export default Appointments;
+// ----------------------------
+// Reusable Components
+// ----------------------------
+function Modal({ title, children, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            ✖
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function InputField({ label, type = "text", value, onChange }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        className="w-full border rounded-md p-2"
+      />
+    </div>
+  );
+}

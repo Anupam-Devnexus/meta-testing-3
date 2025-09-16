@@ -7,7 +7,8 @@ const Caleads = () => {
 
   useEffect(() => {
     fetchCaleads();
-  }, [fetchCaleads]);
+  }, []);
+  console.log(data)
 
   const apiResponse = useMemo(() => data || { message: "", totalLeads: 0, leads: [] }, [data]);
 

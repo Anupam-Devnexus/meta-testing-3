@@ -6,14 +6,14 @@ export default function EditUser() {
   const { userId } = useParams();
   const navigate = useNavigate();
 
-  const { users, loading, error, fetchUser, updateUser } = useUserStore();
+  const { users, loading, error, fetchUser } = useUserStore();
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     role: "",
     lastLogin: "",
-    loginHistory: [], // add loginHistory here
+    loginHistory: [],
   });
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function EditUser() {
           email: user.email || "",
           role: user.role || "",
           lastLogin: user.lastLogin || "",
-          loginHistory: user.loginHistory || [], // load login history
+          loginHistory: user.loginHistory || [],
         });
       }
     }
@@ -43,11 +43,32 @@ export default function EditUser() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // 🔹 Inline update API call
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateUser(userId, formData);
-    alert("User updated successfully!");
-    navigate("/admin-dashboard/users");
+
+    try {
+      const tokenData = localStorage.getItem("User");
+      const authToken = tokenData ? JSON.parse(tokenData).token : null;
+      if (!authToken) throw new Error("No auth token found. Please login first.");
+      const id = userId; // Ensure the correct ID is used
+      const res = await fetch(`https://dbbackend.devnexussolutions.com/auth/api/update-user/${id}`, {
+        method: "PATCH", // or "PATCH" depending on backend
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) throw new Error("Failed to update user");
+
+      alert("User updated successfully ✅");
+      navigate("/admin-dashboard/users");
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("Error updating user ❌");
+    }
   };
 
   if (loading) return <p className="text-center mt-10">Loading user data...</p>;
@@ -58,7 +79,6 @@ export default function EditUser() {
       </p>
     );
 
-  // Helper to format ISO date string to readable format
   const formatDate = (isoString) => {
     if (!isoString) return "";
     return new Date(isoString).toLocaleString();
@@ -132,10 +152,9 @@ export default function EditUser() {
         </button>
       </form>
 
-      {/* Login History Section */}
+      {/* Login History */}
       <section className="mt-10">
         <h2 className="text-xl font-semibold mb-4">Login History</h2>
-
         {formData.loginHistory.length === 0 ? (
           <p className="text-gray-500">No login history available.</p>
         ) : (
@@ -143,9 +162,15 @@ export default function EditUser() {
             <table className="min-w-full border-collapse border border-gray-300">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Login At</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">IP Address</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">User Agent</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    Login At
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    IP Address
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left">
+                    User Agent
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -154,8 +179,12 @@ export default function EditUser() {
                     <td className="border border-gray-300 px-4 py-2">
                       {formatDate(login.loginAt)}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2">{login.ip}</td>
-                    <td className="border border-gray-300 px-4 py-2">{login.userAgent}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {login.ip}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {login.userAgent}
+                    </td>
                   </tr>
                 ))}
               </tbody>

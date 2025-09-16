@@ -1,68 +1,103 @@
-import React from "react";
-import { FaFacebook, FaWhatsapp, FaGoogle, FaSlack } from "react-icons/fa";
+// src/Pages/Dashboard/Integrations/IntegrationPage.jsx
+import React, { useState, useEffect } from "react";
+import { FaFacebook } from "react-icons/fa";
 import IntegrationCard from "../../../Components/Cards/IntigrationCard";
 
 const IntegrationPage = () => {
+  const [loadingId, setLoadingId] = useState(null);
+
+  useEffect(() => {
+    if (!window.FB) {
+      window.fbAsyncInit = function () {
+        window.FB.init({
+          appId: import.meta.env.VITE_FACEBOOK_APP_ID,
+          cookie: true,
+          xfbml: true,
+          version: "v19.0",
+        });
+      };
+
+      (function (d, s, id) {
+        let js,
+          fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+      })(document, "script", "facebook-jssdk");
+    }
+  }, []);
+
+
+  const statusChangeCallback = (response) => {
+    console.log("FB login status:", response);
+
+    if (response.status === "connected") {
+      const { accessToken } = response.authResponse;
+      console.log("User is logged in. AccessToken:", accessToken);
+      localStorage.setItem("fb_access_token", accessToken);
+    } else {
+      console.log("User not authenticated with Facebook.");
+    }
+  };
+
+
+  const checkLoginState = () => {
+    window.FB.getLoginStatus((response) => {
+      statusChangeCallback(response);
+    });
+  };
+
+  const handleFacebook = async () => {
+    try {
+      setLoadingId(1);
+
+      window.FB.login(
+        (response) => {
+          if (response.authResponse) {
+            console.log("FB login success:", response);
+            statusChangeCallback(response);
+          } else {
+            console.log("FB login cancelled or failed.");
+          }
+          setLoadingId(null);
+        },
+        { scope: "public_profile,email,pages_show_list,pages_read_engagement,leads_retrieval" }
+      );
+    } catch (err) {
+      console.error("Facebook Login Error:", err.message);
+      setLoadingId(null);
+    }
+  };
+
   const integrationsData = [
     {
       id: 1,
-      title: "Facebook Integration",
-      description: "Connect your Facebook account to fetch leads and ads data.",
+   
       icon: FaFacebook,
       bgColor: "bg-blue-50",
       textColor: "text-blue-800",
       borderColor: "border-blue-200",
       buttonText: "Connect Facebook",
       buttonColor: "bg-blue-600",
-      status: "Not Connected",
-    },
-    {
-      id: 2,
-      title: "WhatsApp Integration",
-      description: "Connect your WhatsApp account to send automated messages.",
-      icon: FaWhatsapp,
-      bgColor: "bg-green-50",
-      textColor: "text-green-800",
-      borderColor: "border-green-200",
-      buttonText: "Connect WhatsApp",
-      buttonColor: "bg-green-600",
-      status: "Connected",
-    },
-    {
-      id: 3,
-      title: "Google Integration",
-      description: "Sync your Google account to manage calendar and contacts.",
-      icon: FaGoogle,
-      bgColor: "bg-red-50",
-      textColor: "text-red-800",
-      borderColor: "border-red-200",
-      buttonText: "Connect Google",
-      buttonColor: "bg-red-600",
-      status: "Not Connected",
-    },
-    {
-      id: 4,
-      title: "Slack Integration",
-      description: "Integrate Slack to receive notifications and alerts.",
-      icon: FaSlack,
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-800",
-      borderColor: "border-purple-200",
-      buttonText: "Connect Slack",
-      buttonColor: "bg-purple-600",
-      status: "Connected",
+      onClick: handleFacebook,
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Integrations</h1>
+    <div className="">
+     
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      
         {integrationsData.map((integration) => (
-          <IntegrationCard key={integration.id} {...integration} />
+          <IntegrationCard
+            key={integration.id}
+            {...integration}
+            isLoading={loadingId === integration.id}
+          />
         ))}
-      </div>
+      
     </div>
   );
 };

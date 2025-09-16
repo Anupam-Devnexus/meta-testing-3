@@ -1,36 +1,31 @@
 import React from "react";
 
 const IntegrationCard = ({
-  title = "Integration",
-  description = "",
-  icon: Icon = null,
-  bgColor = "bg-white",
-  textColor = "text-gray-800",
-  borderColor = "border-gray-200",
-  buttonText = "Connect",
-  buttonColor = "bg-blue-600",
-  buttonTextColor = "text-white",
-  onButtonClick = () => {},
+  buttonText,
+  buttonColor,
+  onClick,
+  isLoading, // ✅ accept loading prop
 }) => {
   return (
     <div
-      className={`max-w-sm w-full p-4 rounded-lg shadow-md border ${borderColor} ${bgColor} flex flex-col items-start gap-3`}
+      className={` flex flex-col justify-between`}
     >
-      {/* Icon + Title */}
-      <div className="flex items-center gap-3 w-full">
-        {Icon && <Icon size={30} className={textColor} />}
-        <h3 className={`text-lg font-bold ${textColor}`}>{title}</h3>
+      <div className="flex items-center gap-3">
+
       </div>
 
-      {/* Description */}
-      {description && <p className={`text-sm ${textColor}`}>{description}</p>}
 
-      {/* Button */}
       <button
-        onClick={onButtonClick}
-        className={`mt-auto px-2 py-1 rounded-md font-medium ${buttonColor} ${buttonTextColor} hover:opacity-90 transition`}
+        onClick={!isLoading ? onClick : undefined}
+        disabled={isLoading}
+        className={`mt-4 cursor-pointer px-2 w-full py-2 text-white rounded-lg flex items-center justify-center ${buttonColor} ${isLoading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
       >
-        {buttonText}
+        {isLoading ? (
+          <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+        ) : (
+          buttonText
+        )}
       </button>
     </div>
   );

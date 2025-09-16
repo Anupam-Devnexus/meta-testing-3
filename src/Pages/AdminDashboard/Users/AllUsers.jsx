@@ -1,7 +1,6 @@
 import useUserStore from "../../../Zustand/UsersGet";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
 
 export default function AllUsers() {
   const { users, loading, error, fetchUser } = useUserStore();
@@ -12,7 +11,39 @@ export default function AllUsers() {
   }, []);
 
   const confirmData = users.users || [];
-  // console.log("All users",confirmData)
+  console.log("All users", confirmData);
+
+  // 🔹 Function to delete user
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure to delete this user?")) return;
+
+    try {
+      const tokenData = localStorage.getItem("User");
+      const authToken = tokenData ? JSON.parse(tokenData).token : null;
+      if (!authToken) throw new Error("No auth token found. Please login first.");
+
+      // API call to delete user
+      const _id = id; // Ensure the correct ID is used
+      const res = await fetch(`https://dbbackend.devnexussolutions.com/auth/api/delete-user/${_id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete user");
+      }
+
+      // Refresh users list after delete
+      fetchUser();
+      alert("User deleted successfully ✅");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Error deleting user ❌");
+    }
+  };
 
   const handleNavigate = () => {
     navigate("/admin-dashboard/users/add");
@@ -50,35 +81,33 @@ export default function AllUsers() {
           <table className="min-w-full border border-gray-300">
             <thead className="bg-gray-200">
               <tr>
+                <th className="py-2 px-4 border">ID</th>
                 <th className="py-2 px-4 border">Name</th>
                 <th className="py-2 px-4 border">Email</th>
                 <th className="py-2 px-4 border">lastLogin</th>
                 <th className="py-2 px-4 border">role</th>
-           
                 <th className="py-2 px-4 border">Actions</th>
               </tr>
             </thead>
             <tbody>
               {confirmData.map((user) => (
                 <tr key={user._id} className="hover:bg-gray-50">
+                  <td className="py-2 px-4 border">{user._id}</td>
                   <td className="py-2 px-4 border">{user.name}</td>
                   <td className="py-2 px-4 border">{user.email}</td>
                   <td className="py-2 px-4 border">{user.lastLogin}</td>
                   <td className="py-2 px-4 border">{user.role}</td>
-                 
-                  <td className="py-2 px-4 border space-x-2">
+                  <td className="py-2 px-2 border space-x-2">
                     <button
-                      onClick={() => navigate(`/admin-dashboard/users/edit/${user._id}`)}
+                      onClick={() =>
+                        navigate(`/admin-dashboard/users/edit/${user._id}`)
+                      }
                       className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => {
-                        if (window.confirm("Are you sure to delete this user?")) {
-                          // Add delete logic here
-                        }
-                      }}
+                      onClick={() => handleDelete(user._id)}
                       className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                     >
                       Delete

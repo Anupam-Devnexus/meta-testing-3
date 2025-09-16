@@ -6,9 +6,10 @@ export default function Login() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
-  const [formData, setFormData] = useState({ id: "", password: "", role: "Admin" });
-  const [errors, setErrors] = useState({ id: "", password: "", login: "", role: "" });
+  const [formData, setFormData] = useState({ username: "", password: "", role: "" });
+  const [errors, setErrors] = useState({ username: "", password: "", login: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,23 +19,18 @@ export default function Login() {
 
   const validate = () => {
     let valid = true;
-    const tempErrors = { id: "", password: "", login: "", role: "" };
+    const tempErrors = { username: "", password: "", login: "" };
 
-    if (!formData.id.trim()) {
-      tempErrors.id = "Email is required.";
+    if (!formData.username.trim()) {
+      tempErrors.username = "Email or phone is required.";
       valid = false;
-    } else if (!/\S+@\S+\.\S+/.test(formData.id)) {
-      tempErrors.id = "Enter a valid email.";
+    } else if (!/\S+@\S+\.\S+/.test(formData.username) && isNaN(formData.username)) {
+      tempErrors.username = "Enter a valid email or phone number.";
       valid = false;
     }
 
     if (!formData.password.trim()) {
       tempErrors.password = "Password is required.";
-      valid = false;
-    }
-
-    if (!formData.role) {
-      tempErrors.role = "Select a role.";
       valid = false;
     }
 
@@ -46,42 +42,54 @@ export default function Login() {
     e.preventDefault();
     if (!validate()) return;
 
+    setLoading(true);
     try {
-      const response = await fetch("https://dbbackend.devnexussolutions.com/auth/api/signin-users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: formData.id,
-          password: formData.password,
-        }),
-        // Uncomment below if backend requires cookies (only if CORS is properly configured)
-        // credentials: 'include'
-      });
+      const response = await fetch(
+        "https://dbbackend.devnexussolutions.com/auth/api/signin-users",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: formData.username?.trim(),
+            password: formData.password?.trim(),
+
+          }),
+        }
+      );
+   
+
 
       const data = await response.json();
+      console.log("Backend response:", data);
 
-      if (response.ok && data.token) {
-        // Save user and token in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userEmail", formData.id);
-        localStorage.setItem("userRole", formData.role);
-        localStorage.setItem("userName", data.name || formData.id);
+      if (response.ok && data.token && data.user) {
+        const role = data.user.role || "User"; // default role
+        const userDetails = {
+          id: data.user._id,
+          name: data.user.name || "Unknown",
+          email: data.user.email || "",
+          role: role,
+          token: data.token,
+        };
 
-        setUser &&
-          setUser({
-            id: formData.id,
-            role: formData.role,
-            name: data.name || formData.id,
-          });
-
-        const route = formData.role.toLowerCase();
-        navigate(`/${route}-dashboard`);
-      } else {
+        localStorage.setItem("UserDetails", JSON.stringify(userDetails));
+        setUser(userDetails);
+        console.log(userDetails)
+        // Normalize role for routing
+        const normalizedRole = role.toLowerCase();
+        if (normalizedRole === "admin") {
+          navigate("/admin-dashboard"); // match first admin route
+        } else if(normalizedRole === "user") {
+          navigate("/user-dashboard"); // match first user route
+        }
+        else{
+          navigate("/")
+        }
+      }
+      else {
         setErrors((prev) => ({
           ...prev,
-          login: data.message || "Invalid credentials. Please try again.",
+          login: data.msg || data.message || "Invalid credentials",
         }));
       }
     } catch (error) {
@@ -90,6 +98,8 @@ export default function Login() {
         ...prev,
         login: "Something went wrong. Please try again later.",
       }));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -99,27 +109,26 @@ export default function Login() {
 
         {/* Logo Section */}
         <div className="flex items-center justify-center w-full md:w-1/3">
-          <img src="/logo.png" alt="logo" className="h-auto max-h-32 object-contain" />
+          <img src="/vite.svg" alt="logo" className="h-auto max-h-32 object-contain" />
         </div>
 
         {/* Form Section */}
         <form onSubmit={handleSubmit} className="w-full md:w-2/3 space-y-6">
-          <h2 className="text-2xl font-semibold text-[#141414]">Login to Dashboard</h2>
+          <h2 className="text-2xl font-semibold text-[#141414]">Login</h2>
 
-          {/* Email */}
+          {/* Username */}
           <div className="flex flex-col gap-1">
-            <label htmlFor="id" className="text-sm font-medium text-gray-700">Email</label>
+            <label htmlFor="username" className="text-sm font-medium text-gray-700">Email or Phone</label>
             <input
               type="text"
-              name="id"
-              id="id"
-              value={formData.id}
+              name="username"
+              id="username"
+              value={formData.username}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border-b outline-none ${
-                errors.id ? "border-red-500" : "border-[#dcdc3c]"
-              }`}
+              className={`w-full px-4 py-2 border-b outline-none ${errors.username ? "border-red-500" : "border-[#dcdc3c]"}`}
+              placeholder="Enter your email or phone"
             />
-            {errors.id && <span className="text-red-500 text-sm">{errors.id}</span>}
+            {errors.username && <span className="text-red-500 text-sm">{errors.username}</span>}
           </div>
 
           {/* Password */}
@@ -131,9 +140,7 @@ export default function Login() {
               id="password"
               value={formData.password}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border-b outline-none ${
-                errors.password ? "border-red-500" : "border-[#dcdc3c]"
-              }`}
+              className={`w-full px-4 py-2 border-b outline-none ${errors.password ? "border-red-500" : "border-[#dcdc3c]"}`}
             />
             <span
               onClick={() => setShowPassword((prev) => !prev)}
@@ -144,41 +151,25 @@ export default function Login() {
             {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
           </div>
 
-          {/* Role Dropdown */}
-          <div className="flex flex-col gap-1">
-            <label htmlFor="role" className="text-sm font-medium text-gray-700">Role</label>
-            <select
-              name="role"
-              id="role"
-              value={formData.role}
-              onChange={handleChange}
-              className={`w-full px-4 py-2 border-b outline-none ${
-                errors.role ? "border-red-500" : "border-[#dcdc3c]"
-              }`}
-            >
-              <option value="">Select Role</option>
-              <option value="Admin">Admin</option>
-              <option value="User">User</option>
-            </select>
-            {errors.role && <span className="text-red-500 text-sm">{errors.role}</span>}
-          </div>
-
           {/* Submit Button */}
           <div>
             <button
               type="submit"
-              className="w-full bg-[#141414] text-white py-2 rounded-md hover:bg-[#dcdc3c] hover:text-black transition duration-300"
+              disabled={loading}
+              className={`w-full py-2 rounded-md transition duration-300 ${loading ? "bg-gray-400 text-white" : "bg-[#141414] text-white hover:bg-[#dcdc3c] hover:text-black"}`}
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
           </div>
+          <span
+      className="text-blue-600 cursor-pointer hover:underline font-medium"
+          
+          onClick={()=> navigate('/forgot-password')}>Forget Passowrd</span>
+
+          {/* Login error */}
+          {errors.login && <div className="text-red-500 text-sm mt-2">{errors.login}</div>}
         </form>
       </div>
-
-      {/* Login error message */}
-      {errors.login && (
-        <div className="text-red-500 text-sm mt-4">{errors.login}</div>
-      )}
     </div>
   );
 }

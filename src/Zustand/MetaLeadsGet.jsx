@@ -7,12 +7,23 @@ const useMetaLeads = create((set) => ({
 
   fetchMetaLeads: async () => {
     set({ loading: true, error: null });
+    
     try {
+
+        // Get token from localStorage
+      const tokenData = localStorage.getItem("UserDetails");
+      const authToken = tokenData ? JSON.parse(tokenData).token : null;
+      // console.log(authToken)
+
+        if (!authToken) {
+        throw new Error("Unauthorized: No token found");
+      }
+
       const response = await fetch('https://dbbackend.devnexussolutions.com/user/leads',{
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`, // 🔑 token storage
+          "Authorization": `Bearer ${authToken}`, // 🔑 token storage
           // "Cookie": "connect.sid=...",  // rarely needed in SPA if using JWT
         },
         credentials: "include", // needed if backend uses cookies/sessions

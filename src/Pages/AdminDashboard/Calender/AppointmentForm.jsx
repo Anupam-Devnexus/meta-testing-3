@@ -1,17 +1,34 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import useAppointments from "../../../Zustand/GetAppointment";
 
-const AppointmentForm = ({ addAppointment }) => {
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [duration, setDuration] = useState("30"); // default 30 mins
-  const [description, setDescription] = useState("");
-  const [emails, setEmails] = useState(""); // New field for multiple emails
+const AppointmentForm = () => {
+  const navigate = useNavigate();
+  const { addAppointment } = useAppointments();
+  const [formData, setFormData] = useState({
+    title: "",
+    date: "",
+    time: "",
+    duration: "30",
+    description: "",
+    emails: "",
+  });
   const [meetLink, setMeetLink] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const api = "https://dbbackend.devnexussolutions.com/auth/api/appointment";
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const { title, date, time, duration, description, emails } = formData;
 
     // Validate required fields
     if (!title || !date || !time) {
@@ -19,7 +36,7 @@ const AppointmentForm = ({ addAppointment }) => {
       return;
     }
 
-    // Optional: validate email format
+    // Validate emails
     const emailList = emails
       .split(/[,;\s]+/)
       .filter((email) => email.trim() !== "");
@@ -38,7 +55,7 @@ const AppointmentForm = ({ addAppointment }) => {
       .toString(36)
       .substring(2, 11)}`;
 
-    const newAppointment = {
+    const appointmentPayload = {
       title,
       date,
       time,
@@ -48,48 +65,95 @@ const AppointmentForm = ({ addAppointment }) => {
       meetLink: generatedLink,
     };
 
-    addAppointment(newAppointment);
+    // Console log payload before posting
+    console.log("Posting appointment:", appointmentPayload);
 
-    // Reset form
-    setMeetLink(generatedLink);
-    setTitle("");
-    setDate("");
-    setTime("");
-    setDuration("30");
-    setDescription("");
-    setEmails("");
+    try {
+      const tokenData = localStorage.getItem("userDetails");
+      const authToken = tokenData ? JSON.parse(tokenData).token : null;
+
+      // Post to API
+      const response = await fetch(api, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authToken ? `Bearer ${authToken}` : "",
+        },
+        body: JSON.stringify(appointmentPayload),
+      });
+
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create appointment");
+      }
+
+      // Update Zustand store
+      addAppointment(data);
+
+      // Show success toast
+      toast.success("Appointment booked successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      // Redirect to appointments page
+      navigate("/admin-dashboard/appointments");
+
+      // Reset form
+      setMeetLink(generatedLink);
+      setFormData({
+        title: "",
+        date: "",
+        time: "",
+        duration: "30",
+        description: "",
+        emails: "",
+      });
+    } catch (err) {
+      console.error("Error posting appointment:", err);
+      setError(err.message || "Something went wrong");
+      toast.error(err.message || "Failed to book appointment", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white shadow-md rounded-lg p-6 w-full max-w-6xl mx-auto flex flex-col gap-4"
+      className="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl mx-auto flex flex-col gap-4"
     >
       <h2 className="text-xl font-semibold text-gray-800 mb-2">
-        Book Appointment
+        Schedule Appointment
       </h2>
 
       {error && <p className="text-red-500">{error}</p>}
 
       <input
         type="text"
+        name="title"
         placeholder="Appointment Title *"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        value={formData.title}
+        onChange={handleChange}
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
 
       <div className="flex gap-2">
         <input
           type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
+          name="date"
+          value={formData.date}
+          onChange={handleChange}
           className="border p-2 rounded-md flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <input
           type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
+          name="time"
+          value={formData.time}
+          onChange={handleChange}
           className="border p-2 rounded-md flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </div>
@@ -97,25 +161,27 @@ const AppointmentForm = ({ addAppointment }) => {
       <input
         type="number"
         min="5"
+        name="duration"
         placeholder="Duration (minutes)"
-        value={duration}
-        onChange={(e) => setDuration(e.target.value)}
+        value={formData.duration}
+        onChange={handleChange}
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
 
       <textarea
+        name="description"
         placeholder="Description (optional)"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        value={formData.description}
+        onChange={handleChange}
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
 
-      {/* New Field: Multiple Email Input */}
       <input
         type="text"
+        name="emails"
         placeholder="Invite Emails (comma, semicolon, or space separated)"
-        value={emails}
-        onChange={(e) => setEmails(e.target.value)}
+        value={formData.emails}
+        onChange={handleChange}
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
 
@@ -123,29 +189,8 @@ const AppointmentForm = ({ addAppointment }) => {
         type="submit"
         className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition"
       >
-        Book Appointment
+        Schedule Appointment
       </button>
-
-      {meetLink && (
-        <div className="mt-4 p-3 bg-green-50 border-l-4 border-green-400 rounded-md">
-          <p className="text-green-700">
-            Appointment booked! Meet link:{" "}
-            <a
-              href={meetLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              {meetLink}
-            </a>
-          </p>
-          {emails && (
-            <p className="text-green-700 mt-1">
-              Link will be sent to: {emails.split(/[,;\s]+/).join(", ")}
-            </p>
-          )}
-        </div>
-      )}
     </form>
   );
 };
