@@ -1,134 +1,105 @@
-// CalendarScheduler.jsx
-import React, { useState, useEffect, useCallback } from "react";
+// Appointments.jsx
+import React, { useEffect, useState } from "react";
+import { gapi } from "gapi-script";
+import axios from "axios";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { toast } from "react-toastify";
-import { gapi } from "gapi-script";
 
-// ----------------------------
-// ENV Variables
-// ----------------------------
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const SCOPES =
-  "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
+  "https://www.googleapis.com/auth/calendar.eventshttps://www.googleapis.com/auth/calendar";
 
 const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 
-// ----------------------------
-// Main Component
-// ----------------------------
-export default function CalendarScheduler() {
-  const [events, setEvents] = useState([]);
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    duration: "30",
-    attendees: "",
-  });
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+const Appointments = () => {
+  const [signedIn, setSignedIn] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // ----------------------------
-  // Init Google API Client
-  // ----------------------------
-  const initClient = useCallback(async () => {
-    try {
-      await gapi.client.init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        discoveryDocs: [
-          "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
-        ],
-        scope: SCOPES,
-      });
+  // Load client
+  useEffect(() => {
+    function initClient() {
+      gapi.client
+        .init({
+          apiKey: API_KEY,
+          clientId: CLIENT_ID,
+          discoveryDocs: [
+            "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+          ],
+          scope: SCOPES,
+        })
+        .then(() => {
+          const authInstance = gapi.auth2.getAuthInstance();
+          setSignedIn(authInstance.isSignedIn.get());
 
-      // Load stored token from backend login
-      const token = localStorage.getItem("googleToken");
-      if (token) {
-        gapi.client.setToken({ access_token: token });
-        setIsSignedIn(true);
-      }
-    } catch (err) {
-      console.error("Error initializing gapi client:", err);
+          if (authInstance.isSignedIn.get()) {
+            const googleUser = authInstance.currentUser.get();
+            saveUserDetails(googleUser);
+          }
+
+          authInstance.isSignedIn.listen((status) => {
+            setSignedIn(status);
+            if (!status) {
+              setUser(null);
+              localStorage.removeItem("userDetails");
+            }
+          });
+        });
     }
+
+    gapi.load("client:auth2", initClient);
   }, []);
 
-  useEffect(() => {
-    gapi.load("client", initClient);
-  }, [initClient]);
+  const saveUserDetails = async (googleUser) => {
+    const profile = googleUser.getBasicProfile();
+    const idToken = googleUser.getAuthResponse().id_token;
 
-  // ----------------------------
-  // Fetch Events
-  // ----------------------------
-  const fetchEvents = useCallback(async () => {
+    const userDetails = {
+      name: profile.getName(),
+      email: profile.getEmail(),
+      image: profile.getImageUrl(),
+      token: idToken,
+    };
+    localStorage.setItem("userDetails", JSON.stringify(userDetails));
+    setUser(userDetails);
+
+    // send token to backend
     try {
-      const response = await gapi.client.calendar.events.list({
-        calendarId: "primary",
-        timeMin: new Date().toISOString(),
-        showDeleted: false,
-        singleEvents: true,
-        orderBy: "startTime",
-      });
-
-      const mapped = response.result.items.map((ev) => ({
-        id: ev.id,
-        title: ev.summary,
-        start: ev.start.dateTime || ev.start.date,
-        end: ev.end.dateTime || ev.end.date,
-        extendedProps: {
-          meetLink: ev.hangoutLink,
-          attendees: ev.attendees || [],
-        },
-      }));
-
-      setEvents(mapped);
+      await axios.post(BACKEND_AUTH_URL, { token: idToken });
     } catch (err) {
-      toast.error("Failed to load events");
-      console.error(err);
+      console.error("Backend auth failed", err);
     }
-  }, []);
-
-  useEffect(() => {
-    if (isSignedIn) fetchEvents();
-  }, [isSignedIn, fetchEvents]);
-
-  // ----------------------------
-  // Handle Create Appointment
-  // ----------------------------
-  const handleDateClick = (info) => {
-    setSelectedDate(info.dateStr);
-    setFormData({ title: "", duration: "30", attendees: "" });
-    setIsCreateModalOpen(true);
   };
 
-  const handleCreateEvent = async (e) => {
-    e.preventDefault();
+  const handleLogin = async () => {
+    const GoogleAuth = gapi.auth2.getAuthInstance();
+    try {
+      const user = await GoogleAuth.signIn();
+      saveUserDetails(user);
+      setSignedIn(true);
+    } catch (err) {
+      console.error("Login error", err);
+    }
+  };
+
+  const handleLogout = () => {
+    gapi.auth2.getAuthInstance().signOut();
+    localStorage.removeItem("userDetails");
+    setSignedIn(false);
+    setUser(null);
+  };
+
+  const handleDateClick = async (info) => {
+    if (!signedIn) return;
 
     try {
-      const attendeeEmails = formData.attendees
-        .split(/[,;\s]+/)
-        .filter((email) => email.trim() !== "")
-        .map((email) => ({ email }));
-
-      const startTime = new Date(selectedDate);
-      const endTime = new Date(
-        startTime.getTime() + formData.duration * 60000
-      );
-
       const event = {
-        summary: formData.title,
-        start: { dateTime: startTime.toISOString(), timeZone: "Asia/Kolkata" },
-        end: { dateTime: endTime.toISOString(), timeZone: "Asia/Kolkata" },
-        attendees: attendeeEmails,
-        conferenceData: {
-          createRequest: {
-            requestId: String(Date.now()),
-            conferenceSolutionKey: { type: "hangoutsMeet" },
-          },
-        },
+        summary: "Devnexus Meeting",
+        description: "Scheduled via Devnexus App",
+        start: { dateTime: info.dateStr + "T10:00:00", timeZone: "Asia/Kolkata" },
+        end: { dateTime: info.dateStr + "T11:00:00", timeZone: "Asia/Kolkata" },
+        conferenceData: { createRequest: { requestId: "meet-" + Date.now() } },
       };
 
       const response = await gapi.client.calendar.events.insert({
@@ -137,165 +108,65 @@ export default function CalendarScheduler() {
         conferenceDataVersion: 1,
       });
 
-      const created = response.result;
-
-      setEvents((prev) => [
-        ...prev,
-        {
-          id: created.id,
-          title: created.summary,
-          start: created.start.dateTime,
-          end: created.end.dateTime,
-          extendedProps: {
-            meetLink: created.hangoutLink,
-            attendees: created.attendees || [],
-          },
-        },
-      ]);
-
-      toast.success("Meeting scheduled!");
-      setIsCreateModalOpen(false);
+      alert("Meeting created: " + response.result.hangoutLink);
     } catch (err) {
-      toast.error("Failed to create event");
-      console.error(err);
+      console.error("Meeting creation failed", err);
     }
   };
 
-  // ----------------------------
-  // Auth Handlers
-  // ----------------------------
-  const handleLogin = () => {
-    window.location.href = BACKEND_AUTH_URL;
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("googleToken");
-    setIsSignedIn(false);
-    setEvents([]);
-  };
-
-  // ----------------------------
-  // Render
-  // ----------------------------
   return (
-    <div className="p-6 bg-white shadow-md rounded-lg">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold mb-4">
-          Google Calendar Scheduler
-        </h2>
+    <div className="p-2 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Appointments</h1>
 
-        {!isSignedIn ? (
+        {!signedIn ? (
           <button
             onClick={handleLogin}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Sign in with Google
+            Login with Google
           </button>
         ) : (
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-md"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <img
+                src={user?.image}
+                alt="profile"
+                className="w-10 h-10 rounded-full border"
+              />
+              <div>
+                <p className="font-semibold">{user?.name}</p>
+                <p className="text-sm text-gray-500">{user?.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Calendar */}
-      {isSignedIn && (
+      <div className="relative">
         <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
-          events={events}
           dateClick={handleDateClick}
-          height="auto"
+          height="80vh"
         />
-      )}
 
-      {/* Create Modal */}
-      {isCreateModalOpen && (
-        <Modal
-          title="New Google Meet Appointment"
-          onClose={() => setIsCreateModalOpen(false)}
-        >
-          <form onSubmit={handleCreateEvent} className="space-y-4">
-            <InputField
-              label="Title"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, title: e.target.value }))
-              }
-            />
-            <InputField
-              type="number"
-              label="Duration (minutes)"
-              value={formData.duration}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, duration: e.target.value }))
-              }
-            />
-            <InputField
-              label="Attendees (comma separated emails)"
-              value={formData.attendees}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  attendees: e.target.value,
-                }))
-              }
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Schedule
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-// ----------------------------
-// Reusable Components
-// ----------------------------
-function Modal({ title, children, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            ✖
-          </button>
-        </div>
-        {children}
+        {!signedIn && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded">
+            <p className="text-lg font-semibold text-gray-600">
+              Please login to schedule meetings
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
 
-function InputField({ label, type = "text", value, onChange }) {
-  return (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        className="w-full border rounded-md p-2"
-      />
-    </div>
-  );
-}
+export default Appointments;
