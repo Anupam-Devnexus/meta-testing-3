@@ -1,5 +1,5 @@
 // CalendarScheduler.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -12,9 +12,10 @@ import { gapi } from "gapi-script";
 // ----------------------------
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-
 const SCOPES =
-  "https://dbbackend.devnexussolutions.com/auth/google";
+  "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
+
+const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 
 // ----------------------------
 // Main Component
@@ -33,35 +34,36 @@ export default function CalendarScheduler() {
   // ----------------------------
   // Init Google API Client
   // ----------------------------
-  useEffect(() => {
-    function initClient() {
-      gapi.client
-        .init({
-          apiKey: API_KEY,
-          clientId: CLIENT_ID,
-          discoveryDocs: [
-            "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
-          ],
-          scope: SCOPES,
-        })
-        .then(() => {
-          const authInstance = gapi.auth2.getAuthInstance();
-          if (authInstance) {
-            setIsSignedIn(authInstance.isSignedIn.get());
-            authInstance.isSignedIn.listen(setIsSignedIn);
-          }
-        })
-        .catch((err) => console.error("Error init gapi client:", err));
-    }
+  const initClient = useCallback(async () => {
+    try {
+      await gapi.client.init({
+        apiKey: API_KEY,
+        clientId: CLIENT_ID,
+        discoveryDocs: [
+          "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+        ],
+        scope: SCOPES,
+      });
 
-    gapi.load("client:auth2", initClient);
+      // Load stored token from backend login
+      const token = localStorage.getItem("googleToken");
+      if (token) {
+        gapi.client.setToken({ access_token: token });
+        setIsSignedIn(true);
+      }
+    } catch (err) {
+      console.error("Error initializing gapi client:", err);
+    }
   }, []);
 
+  useEffect(() => {
+    gapi.load("client", initClient);
+  }, [initClient]);
 
   // ----------------------------
   // Fetch Events
   // ----------------------------
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const response = await gapi.client.calendar.events.list({
         calendarId: "primary",
@@ -87,11 +89,11 @@ export default function CalendarScheduler() {
       toast.error("Failed to load events");
       console.error(err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isSignedIn) fetchEvents();
-  }, [isSignedIn]);
+  }, [isSignedIn, fetchEvents]);
 
   // ----------------------------
   // Handle Create Appointment
@@ -160,27 +162,38 @@ export default function CalendarScheduler() {
   };
 
   // ----------------------------
+  // Auth Handlers
+  // ----------------------------
+  const handleLogin = () => {
+    window.location.href = BACKEND_AUTH_URL;
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("googleToken");
+    setIsSignedIn(false);
+    setEvents([]);
+  };
+
+  // ----------------------------
   // Render
   // ----------------------------
   return (
     <div className="p-6 bg-white shadow-md rounded-lg">
-
       <div className="flex items-center justify-between">
-
         <h2 className="text-xl font-semibold mb-4">
-          📅 Google Calendar Scheduler
+          Google Calendar Scheduler
         </h2>
 
         {!isSignedIn ? (
           <button
-            onClick={() => gapi.auth2.getAuthInstance()?.signIn()}
+            onClick={handleLogin}
             className="px-4 py-2 bg-blue-600 text-white rounded-md"
           >
             Sign in with Google
           </button>
         ) : (
           <button
-            onClick={() => gapi.auth2.getAuthInstance()?.signOut()}
+            onClick={handleLogout}
             className="px-4 py-2 bg-red-600 text-white rounded-md"
           >
             Logout
@@ -188,7 +201,16 @@ export default function CalendarScheduler() {
         )}
       </div>
 
-
+      {/* Calendar */}
+      {isSignedIn && (
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          events={events}
+          dateClick={handleDateClick}
+          height="auto"
+        />
+      )}
 
       {/* Create Modal */}
       {isCreateModalOpen && (
@@ -216,7 +238,10 @@ export default function CalendarScheduler() {
               label="Attendees (comma separated emails)"
               value={formData.attendees}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, attendees: e.target.value }))
+                setFormData((prev) => ({
+                  ...prev,
+                  attendees: e.target.value,
+                }))
               }
             />
 
@@ -274,4 +299,3 @@ function InputField({ label, type = "text", value, onChange }) {
     </div>
   );
 }
-
