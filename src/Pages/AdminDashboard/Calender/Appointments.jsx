@@ -57,15 +57,6 @@ const Appointments = () => {
 
     gapi.load("client:auth2", initClient);
 
-    useEffect(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get("token");
-  if (token) {
-    localStorage.setItem("crm_token", token);
-    // now you can fetch data using this JWT
-  }
-}, []);
-
     // Rehydrate from localStorage
     const saved = localStorage.getItem("userDetails");
     console.log(saved)
@@ -255,4 +246,5 @@ const Appointments = () => {
 };
 
 export default Appointments;
+
 
