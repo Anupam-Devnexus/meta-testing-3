@@ -59,6 +59,7 @@ const Appointments = () => {
 
     // Rehydrate from localStorage
     const saved = localStorage.getItem("userDetails");
+    console.log(saved)
     if (saved) {
       setUser(JSON.parse(saved));
       setSignedIn(true);
