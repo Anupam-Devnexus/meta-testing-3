@@ -65,28 +65,33 @@ const Appointments = () => {
     }
   }, []);
 
-  const saveUserDetails = async (googleUser) => {
-    const profile = googleUser.getBasicProfile();
-    const authResponse = googleUser.getAuthResponse(true);
+   const saveUserDetails = (googleUser) => {
+  try {
+    // Get the full auth response
+    const authResponse = googleUser.getAuthResponse(true); 
 
+    // This contains both id_token (for identity) and access_token (for APIs)
+    console.log("Google Auth Response:", authResponse);
+
+    // Extract what we need
+    const userProfile = googleUser.getBasicProfile();
     const userDetails = {
-      name: profile.getName(),
-      email: profile.getEmail(),
-      image: profile.getImageUrl(),
-      token: authResponse.id_token,
+      id: userProfile.getId(),
+      name: userProfile.getName(),
+      email: userProfile.getEmail(),
+      image: userProfile.getImageUrl(),
+      idToken: authResponse.id_token,        // useful for backend auth
+      accessToken: authResponse.access_token // REQUIRED for Calendar + Meet
     };
 
+    // Save to localStorage
     localStorage.setItem("userDetails", JSON.stringify(userDetails));
-    setUser(userDetails);
+    console.log("User details saved:", userDetails);
 
-    // send token to backend
-    try {
-      await axios.post(BACKEND_AUTH_URL, { token: authResponse.id_token });
-    } catch (err) {
-      console.error("Backend auth failed", err);
-      toast.error("Backend authentication failed");
-    }
-  };
+  } catch (err) {
+    console.error("Failed to save user details:", err);
+  }
+};
 
   const refreshToken = async () => {
     const GoogleAuth = gapi.auth2.getAuthInstance();
@@ -245,4 +250,5 @@ const Appointments = () => {
 };
 
 export default Appointments;
+
 
