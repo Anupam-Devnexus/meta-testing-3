@@ -5,17 +5,20 @@ import axios from "axios";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import { toast } from "react-toastify";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const SCOPES =
-  "https://www.googleapis.com/auth/calendar.eventshttps://www.googleapis.com/auth/calendar";
+  "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
 
 const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 
 const Appointments = () => {
   const [signedIn, setSignedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState([]);
 
   // Load client
   useEffect(() => {
@@ -31,17 +34,21 @@ const Appointments = () => {
         })
         .then(() => {
           const authInstance = gapi.auth2.getAuthInstance();
-          setSignedIn(authInstance.isSignedIn.get());
+          const isSignedIn = authInstance.isSignedIn.get();
+          setSignedIn(isSignedIn);
 
-          if (authInstance.isSignedIn.get()) {
+          if (isSignedIn) {
             const googleUser = authInstance.currentUser.get();
             saveUserDetails(googleUser);
+            fetchEvents();
           }
 
+          // Listen for login/logout
           authInstance.isSignedIn.listen((status) => {
             setSignedIn(status);
             if (!status) {
               setUser(null);
+              setEvents([]);
               localStorage.removeItem("userDetails");
             }
           });
@@ -49,27 +56,51 @@ const Appointments = () => {
     }
 
     gapi.load("client:auth2", initClient);
+
+    // Rehydrate from localStorage
+    const saved = localStorage.getItem("userDetails");
+    if (saved) {
+      setUser(JSON.parse(saved));
+      setSignedIn(true);
+    }
   }, []);
 
   const saveUserDetails = async (googleUser) => {
     const profile = googleUser.getBasicProfile();
-    const idToken = googleUser.getAuthResponse().id_token;
+    const authResponse = googleUser.getAuthResponse(true);
 
     const userDetails = {
       name: profile.getName(),
       email: profile.getEmail(),
       image: profile.getImageUrl(),
-      token: idToken,
+      token: authResponse.id_token,
     };
+
     localStorage.setItem("userDetails", JSON.stringify(userDetails));
     setUser(userDetails);
 
     // send token to backend
     try {
-      await axios.post(BACKEND_AUTH_URL, { token: idToken });
+      await axios.post(BACKEND_AUTH_URL, { token: authResponse.id_token });
     } catch (err) {
       console.error("Backend auth failed", err);
+      toast.error("Backend authentication failed");
     }
+  };
+
+  const refreshToken = async () => {
+    const GoogleAuth = gapi.auth2.getAuthInstance();
+    const user = GoogleAuth.currentUser.get();
+    if (user) {
+      const newAuth = await user.reloadAuthResponse();
+      const updatedUser = {
+        ...user,
+        token: newAuth.id_token,
+      };
+      localStorage.setItem("userDetails", JSON.stringify(updatedUser));
+      return newAuth.id_token;
+    }
+    return null;
   };
 
   const handleLogin = async () => {
@@ -78,8 +109,11 @@ const Appointments = () => {
       const user = await GoogleAuth.signIn();
       saveUserDetails(user);
       setSignedIn(true);
+      fetchEvents();
+      toast.success("Logged in successfully");
     } catch (err) {
       console.error("Login error", err);
+      toast.error("Login failed");
     }
   };
 
@@ -88,11 +122,14 @@ const Appointments = () => {
     localStorage.removeItem("userDetails");
     setSignedIn(false);
     setUser(null);
+    setEvents([]);
+    toast.info("Logged out");
   };
 
   const handleDateClick = async (info) => {
-    if (!signedIn) return;
+    if (!signedIn) return toast.warn("Please login first");
 
+    setLoading(true);
     try {
       const event = {
         summary: "Devnexus Meeting",
@@ -108,14 +145,45 @@ const Appointments = () => {
         conferenceDataVersion: 1,
       });
 
-      alert("Meeting created: " + response.result.hangoutLink);
+      const link = response.result.hangoutLink || "No Meet link available";
+      toast.success(`Meeting created! Link: ${link}`);
+
+      // Refresh events
+      fetchEvents();
     } catch (err) {
       console.error("Meeting creation failed", err);
+      toast.error("Failed to create meeting");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const response = await gapi.client.calendar.events.list({
+        calendarId: "primary",
+        timeMin: new Date().toISOString(),
+        showDeleted: false,
+        singleEvents: true,
+        orderBy: "startTime",
+      });
+
+      const mappedEvents = response.result.items.map((event) => ({
+        id: event.id,
+        title: event.summary,
+        start: event.start.dateTime || event.start.date,
+        end: event.end.dateTime || event.end.date,
+      }));
+
+      setEvents(mappedEvents);
+    } catch (err) {
+      console.error("Failed to fetch events", err);
+      toast.error("Could not load calendar events");
     }
   };
 
   return (
-    <div className="p-2 max-w-6xl mx-auto">
+    <div className="p-2 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Appointments</h1>
 
@@ -153,6 +221,7 @@ const Appointments = () => {
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
+          events={events}
           dateClick={handleDateClick}
           height="80vh"
         />
@@ -162,6 +231,12 @@ const Appointments = () => {
             <p className="text-lg font-semibold text-gray-600">
               Please login to schedule meetings
             </p>
+          </div>
+        )}
+
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-lg font-semibold rounded">
+            Creating meeting...
           </div>
         )}
       </div>
