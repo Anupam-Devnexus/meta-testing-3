@@ -1,38 +1,26 @@
-// CalendarScheduler.jsx
-import React, { useState, useEffect } from "react";
+// Appointments.jsx
+import React, { useEffect, useState } from "react";
+import { gapi } from "gapi-script";
+import axios from "axios";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { toast } from "react-toastify";
-import { gapi } from "gapi-script";
 
-// ----------------------------
-// ENV Variables
-// ----------------------------
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-
 const SCOPES =
   "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
 
-// ----------------------------
-// Main Component
-// ----------------------------
-export default function CalendarScheduler() {
-  const [events, setEvents] = useState([]);
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    duration: "30",
-    attendees: "",
-  });
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 
-  // ----------------------------
-  // Init Google API Client
-  // ----------------------------
+const Appointments = () => {
+  const [signedIn, setSignedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState([]);
+
+  // Load client
   useEffect(() => {
     function initClient() {
       gapi.client
@@ -46,21 +34,138 @@ export default function CalendarScheduler() {
         })
         .then(() => {
           const authInstance = gapi.auth2.getAuthInstance();
-          if (authInstance) {
-            setIsSignedIn(authInstance.isSignedIn.get());
-            authInstance.isSignedIn.listen(setIsSignedIn);
+          const isSignedIn = authInstance.isSignedIn.get();
+          setSignedIn(isSignedIn);
+
+          if (isSignedIn) {
+            const googleUser = authInstance.currentUser.get();
+            saveUserDetails(googleUser);
+            fetchEvents();
           }
-        })
-        .catch((err) => console.error("Error init gapi client:", err));
+
+          // Listen for login/logout
+          authInstance.isSignedIn.listen((status) => {
+            setSignedIn(status);
+            if (!status) {
+              setUser(null);
+              setEvents([]);
+              localStorage.removeItem("userDetails");
+            }
+          });
+        });
     }
 
     gapi.load("client:auth2", initClient);
+
+    // Rehydrate from localStorage
+    const saved = localStorage.getItem("userDetails");
+    console.log(saved)
+    if (saved) {
+      setUser(JSON.parse(saved));
+      setSignedIn(true);
+    }
   }, []);
 
+  const saveUserDetails = async (googleUser) => {
+    const profile = googleUser.getBasicProfile();
+    const authResponse = googleUser.getAuthResponse(true);
 
-  // ----------------------------
-  // Fetch Events
-  // ----------------------------
+    const userDetails = {
+      name: profile.getName(),
+      email: profile.getEmail(),
+      image: profile.getImageUrl(),
+      token: authResponse.id_token,
+    };
+
+    localStorage.setItem("userDetails", JSON.stringify(userDetails));
+    setUser(userDetails);
+
+    // send token to backend
+    try {
+      await axios.post(BACKEND_AUTH_URL, { token: authResponse.id_token });
+    } catch (err) {
+      console.error("Backend auth failed", err);
+      toast.error("Backend authentication failed");
+    }
+  };
+
+  const refreshToken = async () => {
+    const GoogleAuth = gapi.auth2.getAuthInstance();
+    const user = GoogleAuth.currentUser.get();
+    if (user) {
+      const newAuth = await user.reloadAuthResponse();
+      const updatedUser = {
+        ...user,
+        token: newAuth.id_token,
+      };
+      localStorage.setItem("userDetails", JSON.stringify(updatedUser));
+      return newAuth.id_token;
+    }
+    return null;
+  };
+
+  const handleLogin = async () => {
+    const GoogleAuth = gapi.auth2.getAuthInstance();
+    try {
+      const user = await GoogleAuth.signIn();
+      saveUserDetails(user);
+      setSignedIn(true);
+      fetchEvents();
+      toast.success("Logged in successfully");
+    } catch (err) {
+      console.error("Login error", err);
+      toast.error("Login failed");
+    }
+  };
+useEffect(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+  if (token) {
+    localStorage.setItem("crm_token", token);
+    // now you can fetch data using this JWT
+  }
+}, []);
+  const handleLogout = () => {
+    gapi.auth2.getAuthInstance().signOut();
+    localStorage.removeItem("userDetails");
+    setSignedIn(false);
+    setUser(null);
+    setEvents([]);
+    toast.info("Logged out");
+  };
+
+  const handleDateClick = async (info) => {
+    if (!signedIn) return toast.warn("Please login first");
+
+    setLoading(true);
+    try {
+      const event = {
+        summary: "Devnexus Meeting",
+        description: "Scheduled via Devnexus App",
+        start: { dateTime: info.dateStr + "T10:00:00", timeZone: "Asia/Kolkata" },
+        end: { dateTime: info.dateStr + "T11:00:00", timeZone: "Asia/Kolkata" },
+        conferenceData: { createRequest: { requestId: "meet-" + Date.now() } },
+      };
+
+      const response = await gapi.client.calendar.events.insert({
+        calendarId: "primary",
+        resource: event,
+        conferenceDataVersion: 1,
+      });
+
+      const link = response.result.hangoutLink || "No Meet link available";
+      toast.success(`Meeting created! Link: ${link}`);
+
+      // Refresh events
+      fetchEvents();
+    } catch (err) {
+      console.error("Meeting creation failed", err);
+      toast.error("Failed to create meeting");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchEvents = async () => {
     try {
       const response = await gapi.client.calendar.events.list({
@@ -71,206 +176,80 @@ export default function CalendarScheduler() {
         orderBy: "startTime",
       });
 
-      const mapped = response.result.items.map((ev) => ({
-        id: ev.id,
-        title: ev.summary,
-        start: ev.start.dateTime || ev.start.date,
-        end: ev.end.dateTime || ev.end.date,
-        extendedProps: {
-          meetLink: ev.hangoutLink,
-          attendees: ev.attendees || [],
-        },
+      const mappedEvents = response.result.items.map((event) => ({
+        id: event.id,
+        title: event.summary,
+        start: event.start.dateTime || event.start.date,
+        end: event.end.dateTime || event.end.date,
       }));
 
-      setEvents(mapped);
+      setEvents(mappedEvents);
     } catch (err) {
-      toast.error("Failed to load events");
-      console.error(err);
+      console.error("Failed to fetch events", err);
+      toast.error("Could not load calendar events");
     }
   };
 
-  useEffect(() => {
-    if (isSignedIn) fetchEvents();
-  }, [isSignedIn]);
-
-  // ----------------------------
-  // Handle Create Appointment
-  // ----------------------------
-  const handleDateClick = (info) => {
-    setSelectedDate(info.dateStr);
-    setFormData({ title: "", duration: "30", attendees: "" });
-    setIsCreateModalOpen(true);
-  };
-
-  const handleCreateEvent = async (e) => {
-    e.preventDefault();
-
-    try {
-      const attendeeEmails = formData.attendees
-        .split(/[,;\s]+/)
-        .filter((email) => email.trim() !== "")
-        .map((email) => ({ email }));
-
-      const startTime = new Date(selectedDate);
-      const endTime = new Date(
-        startTime.getTime() + formData.duration * 60000
-      );
-
-      const event = {
-        summary: formData.title,
-        start: { dateTime: startTime.toISOString(), timeZone: "Asia/Kolkata" },
-        end: { dateTime: endTime.toISOString(), timeZone: "Asia/Kolkata" },
-        attendees: attendeeEmails,
-        conferenceData: {
-          createRequest: {
-            requestId: String(Date.now()),
-            conferenceSolutionKey: { type: "hangoutsMeet" },
-          },
-        },
-      };
-
-      const response = await gapi.client.calendar.events.insert({
-        calendarId: "primary",
-        resource: event,
-        conferenceDataVersion: 1,
-      });
-
-      const created = response.result;
-
-      setEvents((prev) => [
-        ...prev,
-        {
-          id: created.id,
-          title: created.summary,
-          start: created.start.dateTime,
-          end: created.end.dateTime,
-          extendedProps: {
-            meetLink: created.hangoutLink,
-            attendees: created.attendees || [],
-          },
-        },
-      ]);
-
-      toast.success("Meeting scheduled!");
-      setIsCreateModalOpen(false);
-    } catch (err) {
-      toast.error("Failed to create event");
-      console.error(err);
-    }
-  };
-
-  // ----------------------------
-  // Render
-  // ----------------------------
   return (
-    <div className="p-6 bg-white shadow-md rounded-lg">
+    <div className="p-2 max-w-4xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Appointments</h1>
 
-      <div className="flex items-center justify-between">
-
-        <h2 className="text-xl font-semibold mb-4">
-          📅 Google Calendar Scheduler
-        </h2>
-
-        {!isSignedIn ? (
+        {!signedIn ? (
           <button
-            onClick={() => gapi.auth2.getAuthInstance()?.signIn()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+            onClick={handleLogin}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Sign in with Google
+            Login with Google
           </button>
         ) : (
-          <button
-            onClick={() => gapi.auth2.getAuthInstance()?.signOut()}
-            className="px-4 py-2 bg-red-600 text-white rounded-md"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <img
+                src={user?.image}
+                alt="profile"
+                className="w-10 h-10 rounded-full border"
+              />
+              <div>
+                <p className="font-semibold">{user?.name}</p>
+                <p className="text-sm text-gray-500">{user?.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </div>
         )}
       </div>
 
+      <div className="relative">
+        <FullCalendar
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          events={events}
+          dateClick={handleDateClick}
+          height="80vh"
+        />
 
+        {!signedIn && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded">
+            <p className="text-lg font-semibold text-gray-600">
+              Please login to schedule meetings
+            </p>
+          </div>
+        )}
 
-      {/* Create Modal */}
-      {isCreateModalOpen && (
-        <Modal
-          title="New Google Meet Appointment"
-          onClose={() => setIsCreateModalOpen(false)}
-        >
-          <form onSubmit={handleCreateEvent} className="space-y-4">
-            <InputField
-              label="Title"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, title: e.target.value }))
-              }
-            />
-            <InputField
-              type="number"
-              label="Duration (minutes)"
-              value={formData.duration}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, duration: e.target.value }))
-              }
-            />
-            <InputField
-              label="Attendees (comma separated emails)"
-              value={formData.attendees}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, attendees: e.target.value }))
-              }
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Schedule
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-// ----------------------------
-// Reusable Components
-// ----------------------------
-function Modal({ title, children, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            ✖
-          </button>
-        </div>
-        {children}
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-lg font-semibold rounded">
+            Creating meeting...
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
 
-function InputField({ label, type = "text", value, onChange }) {
-  return (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        className="w-full border rounded-md p-2"
-      />
-    </div>
-  );
-}
+export default Appointments;
