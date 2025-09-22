@@ -8,7 +8,8 @@ import { toast } from "react-toastify";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-const SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
+const SCOPES =
+  "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
 const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 
 const Appointments = () => {
@@ -16,6 +17,7 @@ const Appointments = () => {
   const [signedIn, setSignedIn] = useState(false);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const gapiLoaded = useRef(false);
   const tokenClient = useRef(null);
 
@@ -23,17 +25,13 @@ const Appointments = () => {
   // Load gapi script
   // -------------------------
   useEffect(() => {
-    const loadGapi = () => {
-      const script = document.createElement("script");
-      script.src = "https://apis.google.com/js/api.js";
-      script.onload = () => {
-        console.log("[Init] gapi loaded");
-        gapi.load("client", initGapiClient);
-      };
-      document.body.appendChild(script);
+    const script = document.createElement("script");
+    script.src = "https://apis.google.com/js/api.js";
+    script.onload = () => {
+      console.log("[Init] gapi loaded");
+      gapi.load("client", initGapiClient);
     };
-
-    loadGapi();
+    document.body.appendChild(script);
   }, []);
 
   // -------------------------
@@ -64,7 +62,6 @@ const Appointments = () => {
       scope: SCOPES,
       callback: handleTokenResponse,
     });
-
     console.log("[Init] Token client ready");
   };
 
@@ -74,20 +71,20 @@ const Appointments = () => {
   const handleTokenResponse = async (tokenResponse) => {
     console.log("[Auth] Token response:", tokenResponse);
     if (tokenResponse.access_token) {
-      setSignedIn(true);
       localStorage.setItem("accessToken", tokenResponse.access_token);
+      setSignedIn(true);
       await fetchUserProfile(tokenResponse.access_token);
       fetchEvents(tokenResponse.access_token);
     }
   };
 
   // -------------------------
-  // Fetch user profile
+  // Fetch user profile (from People API)
   // -------------------------
   const fetchUserProfile = async (accessToken) => {
     try {
       const res = await gapi.client.request({
-        path: "https://www.googleapis.com/oauth2/v2/userinfo",
+        path: "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,photos",
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
@@ -95,9 +92,9 @@ const Appointments = () => {
       console.log("[User] Profile fetched:", profile);
 
       const userDetails = {
-        name: profile.name,
-        email: profile.email,
-        image: profile.picture,
+        name: profile.names?.[0]?.displayName || "User",
+        email: profile.emailAddresses?.[0]?.value || "",
+        image: profile.photos?.[0]?.url || "",
         token: accessToken,
       };
 
@@ -113,6 +110,7 @@ const Appointments = () => {
       }
     } catch (err) {
       console.error("[User] Failed to fetch profile:", err);
+      toast.error("Failed to fetch user profile");
     }
   };
 
@@ -122,7 +120,7 @@ const Appointments = () => {
   const handleLogin = () => {
     if (!tokenClient.current) return toast.error("Token client not initialized");
     console.log("[Auth] Requesting access token...");
-    tokenClient.current.requestAccessToken();
+    tokenClient.current.requestAccessToken({ prompt: "" });
   };
 
   // -------------------------
@@ -133,6 +131,7 @@ const Appointments = () => {
     console.log("[Fetch] Fetching events...");
 
     try {
+      gapi.client.setToken({ access_token: accessToken });
       const response = await gapi.client.calendar.events.list({
         calendarId: "primary",
         timeMin: new Date().toISOString(),
@@ -150,7 +149,6 @@ const Appointments = () => {
         end: event.end.dateTime || event.end.date,
       }));
 
-      console.log("[Fetch] Mapped events:", mappedEvents);
       setEvents(mappedEvents);
     } catch (err) {
       console.error("[Fetch] Failed to fetch events:", err);
@@ -166,6 +164,8 @@ const Appointments = () => {
     setLoading(true);
 
     const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) return toast.warning("Please login first");
+
     const event = {
       summary: "Devnexus Meeting",
       description: "Scheduled via Devnexus App",
@@ -174,10 +174,12 @@ const Appointments = () => {
     };
 
     try {
+      gapi.client.setToken({ access_token: accessToken });
       const response = await gapi.client.calendar.events.insert({
         calendarId: "primary",
         resource: event,
       });
+
       console.log("[Event] Created:", response);
       toast.success("Meeting created!");
       fetchEvents();
@@ -195,9 +197,11 @@ const Appointments = () => {
   useEffect(() => {
     const saved = localStorage.getItem("userDetails");
     if (saved) {
-      console.log("[App] Restoring session:", saved);
-      setUser(JSON.parse(saved));
+      const userDetails = JSON.parse(saved);
+      console.log("[App] Restoring session:", userDetails);
+      setUser(userDetails);
       setSignedIn(true);
+      fetchEvents(userDetails.token);
     }
   }, []);
 
