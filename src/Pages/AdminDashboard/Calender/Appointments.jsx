@@ -1,6 +1,5 @@
 // Appointments.jsx
-import React, { useEffect, useState } from "react";
-import { gapi } from "gapi-script";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -9,151 +8,130 @@ import { toast } from "react-toastify";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-const SCOPES =
-  "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
-
+const SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar";
 const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 
 const Appointments = () => {
-  const [signedIn, setSignedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const gapiLoaded = useRef(false);
+  const tokenClient = useRef(null);
 
-  // ======================
-  // GOOGLE INIT
-  // ======================
-  const initGoogleClient = () => {
-    console.log("[Init] Initializing Google API client...");
-    gapi.client
-      .init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        discoveryDocs: [
-          "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
-        ],
-        scope: SCOPES,
-      })
-      .then(() => {
-        console.log("[Init] Google API client initialized successfully");
-
-        const authInstance = gapi.auth2.getAuthInstance();
-        const isSignedIn = authInstance.isSignedIn.get();
-        console.log("[Init] User signed in status:", isSignedIn);
-
-        setSignedIn(isSignedIn);
-
-        if (isSignedIn) {
-          const googleUser = authInstance.currentUser.get();
-          console.log("[Init] Found signed-in user:", googleUser);
-          saveUserDetails(googleUser);
-          fetchEvents();
-        }
-      })
-      .catch((err) => {
-        console.error("[Init] Failed to initialize Google API:", err);
-        toast.error("Google client initialization failed");
-      });
-  };
-
-  // ======================
-  // SAVE USER
-  // ======================
-  const saveUserDetails = async (googleUser) => {
-    console.log("[User] Saving user details...");
-    const profile = googleUser.getBasicProfile();
-    const authResponse = googleUser.getAuthResponse(true);
-
-    const userDetails = {
-      name: profile.getName(),
-      email: profile.getEmail(),
-      image: profile.getImageUrl(),
-      token: authResponse.id_token,
+  // -------------------------
+  // Load gapi script
+  // -------------------------
+  useEffect(() => {
+    const loadGapi = () => {
+      const script = document.createElement("script");
+      script.src = "https://apis.google.com/js/api.js";
+      script.onload = () => {
+        console.log("[Init] gapi loaded");
+        gapi.load("client", initGapiClient);
+      };
+      document.body.appendChild(script);
     };
 
-    console.log("[User] User profile:", userDetails);
+    loadGapi();
+  }, []);
 
-    localStorage.setItem("userDetails", JSON.stringify(userDetails));
-    setUser(userDetails);
-
+  // -------------------------
+  // Initialize Google API client
+  // -------------------------
+  const initGapiClient = async () => {
     try {
-      console.log("[User] Sending token to backend...");
-      await axios.post(BACKEND_AUTH_URL, { token: authResponse.id_token });
-      console.log("[User] Backend authentication successful");
+      console.log("[Init] Initializing gapi client...");
+      await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+      });
+      console.log("[Init] gapi client initialized");
+      gapiLoaded.current = true;
+      initTokenClient();
     } catch (err) {
-      console.error("[User] Backend authentication failed:", err);
-      toast.error("Backend authentication failed");
+      console.error("[Init] Failed to init gapi client:", err);
+      toast.error("Google client initialization failed");
     }
   };
 
-  // ======================
-  // LOGIN
-  // ======================
-  const handleLogin = async () => {
-    console.log("[Auth] Attempting login...");
-    const GoogleAuth = gapi.auth2.getAuthInstance();
-    try {
-      const user = await GoogleAuth.signIn();
-      console.log("[Auth] Login successful:", user);
-      saveUserDetails(user);
+  // -------------------------
+  // Initialize Token Client (GIS)
+  // -------------------------
+  const initTokenClient = () => {
+    tokenClient.current = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: handleTokenResponse,
+    });
+
+    console.log("[Init] Token client ready");
+  };
+
+  // -------------------------
+  // Handle token response
+  // -------------------------
+  const handleTokenResponse = async (tokenResponse) => {
+    console.log("[Auth] Token response:", tokenResponse);
+    if (tokenResponse.access_token) {
       setSignedIn(true);
-      fetchEvents();
-      toast.success("Logged in successfully");
-    } catch (err) {
-      console.error("[Auth] Login failed:", err);
-      toast.error("Login failed");
+      localStorage.setItem("accessToken", tokenResponse.access_token);
+      await fetchUserProfile(tokenResponse.access_token);
+      fetchEvents(tokenResponse.access_token);
     }
   };
 
-  // ======================
-  // CREATE MEETING
-  // ======================
-  const handleCreateMeeting = async (info) => {
-    console.log("[Event] Attempting to create meeting on date:", info.dateStr);
-
-    if (!signedIn) {
-      toast.log("Please login first");
-      console.log("[Event] User not signed in, meeting creation blocked");
-      return;
-    }
-
-    setLoading(true);
+  // -------------------------
+  // Fetch user profile
+  // -------------------------
+  const fetchUserProfile = async (accessToken) => {
     try {
-      const event = {
-        summary: "Devnexus Meeting",
-        description: "Scheduled via Devnexus App",
-        start: { dateTime: info.dateStr + "T10:00:00", timeZone: "Asia/Kolkata" },
-        end: { dateTime: info.dateStr + "T11:00:00", timeZone: "Asia/Kolkata" },
-        conferenceData: { createRequest: { requestId: "meet-" + Date.now() } },
-      };
-
-      console.log("[Event] Sending event to Google Calendar:", event);
-
-      const response = await gapi.client.calendar.events.insert({
-        calendarId: "primary",
-        resource: event,
-        conferenceDataVersion: 1,
+      const res = await gapi.client.request({
+        path: "https://www.googleapis.com/oauth2/v2/userinfo",
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
 
-      console.log("[Event] Meeting created successfully:", response);
+      const profile = res.result;
+      console.log("[User] Profile fetched:", profile);
 
-      const link = response.result.hangoutLink || "No Meet link available";
-      toast.success(`Meeting created! Link: ${link}`);
+      const userDetails = {
+        name: profile.name,
+        email: profile.email,
+        image: profile.picture,
+        token: accessToken,
+      };
 
-      fetchEvents();
+      setUser(userDetails);
+      localStorage.setItem("userDetails", JSON.stringify(userDetails));
+
+      // Optional: send token to backend
+      try {
+        await axios.post(BACKEND_AUTH_URL, { token: accessToken });
+        console.log("[User] Backend auth successful");
+      } catch (err) {
+        console.error("[User] Backend auth failed:", err);
+      }
     } catch (err) {
-      console.error("[Event] Meeting creation failed:", err);
-      toast.error("Failed to create meeting");
-    } finally {
-      setLoading(false);
+      console.error("[User] Failed to fetch profile:", err);
     }
   };
 
-  // ======================
-  // FETCH EVENTS
-  // ======================
-  const fetchEvents = async () => {
-    console.log("[Fetch] Fetching events from Google Calendar...");
+  // -------------------------
+  // Login
+  // -------------------------
+  const handleLogin = () => {
+    if (!tokenClient.current) return toast.error("Token client not initialized");
+    console.log("[Auth] Requesting access token...");
+    tokenClient.current.requestAccessToken();
+  };
+
+  // -------------------------
+  // Fetch events
+  // -------------------------
+  const fetchEvents = async (accessToken = localStorage.getItem("accessToken")) => {
+    if (!accessToken) return console.log("[Fetch] No access token, skipping events fetch");
+    console.log("[Fetch] Fetching events...");
+
     try {
       const response = await gapi.client.calendar.events.list({
         calendarId: "primary",
@@ -163,7 +141,7 @@ const Appointments = () => {
         orderBy: "startTime",
       });
 
-      console.log("[Fetch] Raw response:", response);
+      console.log("[Fetch] Raw events response:", response);
 
       const mappedEvents = response.result.items.map((event) => ({
         id: event.id,
@@ -180,31 +158,57 @@ const Appointments = () => {
     }
   };
 
-  // ======================
-  // USE EFFECT: INIT
-  // ======================
-  useEffect(() => {
-    console.log("[App] Loading Google client...");
-    gapi.load("client:auth2", initGoogleClient);
+  // -------------------------
+  // Create event
+  // -------------------------
+  const handleCreateMeeting = async (info) => {
+    if (!signedIn) return toast.warning("Please login first");
+    setLoading(true);
 
-    // Restore session
+    const accessToken = localStorage.getItem("accessToken");
+    const event = {
+      summary: "Devnexus Meeting",
+      description: "Scheduled via Devnexus App",
+      start: { dateTime: info.dateStr + "T10:00:00", timeZone: "Asia/Kolkata" },
+      end: { dateTime: info.dateStr + "T11:00:00", timeZone: "Asia/Kolkata" },
+    };
+
+    try {
+      const response = await gapi.client.calendar.events.insert({
+        calendarId: "primary",
+        resource: event,
+      });
+      console.log("[Event] Created:", response);
+      toast.success("Meeting created!");
+      fetchEvents();
+    } catch (err) {
+      console.error("[Event] Creation failed:", err);
+      toast.error("Failed to create meeting");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------------------------
+  // Restore session
+  // -------------------------
+  useEffect(() => {
     const saved = localStorage.getItem("userDetails");
     if (saved) {
-      console.log("[App] Restoring user session from localStorage:", saved);
+      console.log("[App] Restoring session:", saved);
       setUser(JSON.parse(saved));
       setSignedIn(true);
     }
   }, []);
 
-  // ======================
-  // UI
-  // ======================
+  // -------------------------
+  // Render
+  // -------------------------
   return (
     <div className="p-2 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Appointments</h1>
-
         {!signedIn ? (
           <button
             onClick={handleLogin}
@@ -214,11 +218,7 @@ const Appointments = () => {
           </button>
         ) : (
           <div className="flex items-center gap-2">
-            <img
-              src={user?.image}
-              alt="profile"
-              className="w-10 h-10 rounded-full border"
-            />
+            <img src={user?.image} alt="profile" className="w-10 h-10 rounded-full border" />
             <div>
               <p className="font-semibold">{user?.name}</p>
               <p className="text-sm text-gray-500">{user?.email}</p>
@@ -239,9 +239,7 @@ const Appointments = () => {
 
         {!signedIn && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded">
-            <p className="text-lg font-semibold text-gray-600">
-              Please login to schedule meetings
-            </p>
+            <p className="text-lg font-semibold text-gray-600">Please login to schedule meetings</p>
           </div>
         )}
 
