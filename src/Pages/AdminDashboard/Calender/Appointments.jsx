@@ -13,6 +13,8 @@ const SCOPES =
 const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 
 const Appointments = () => {
+  console.log("[App] Render start");
+
   const [user, setUser] = useState(null);
   const [signedIn, setSignedIn] = useState(false);
   const [events, setEvents] = useState([]);
@@ -45,9 +47,14 @@ const Appointments = () => {
   // Load gapi & GIS scripts
   // -------------------------
   useEffect(() => {
+    console.log("[Init] Loading gapi & GIS scripts...");
+
     const gapiScript = document.createElement("script");
     gapiScript.src = "https://apis.google.com/js/api.js";
-    gapiScript.onload = () => gapi.load("client", initGapiClient);
+    gapiScript.onload = () => {
+      console.log("[Init] gapi script loaded");
+      gapi.load("client", initGapiClient);
+    };
     gapiScript.onerror = () => logError("Init", "Failed to load gapi script");
     document.body.appendChild(gapiScript);
 
@@ -55,7 +62,10 @@ const Appointments = () => {
     gisScript.src = "https://accounts.google.com/gsi/client";
     gisScript.async = true;
     gisScript.defer = true;
-    gisScript.onload = initTokenClient;
+    gisScript.onload = () => {
+      console.log("[Init] GIS script loaded");
+      initTokenClient();
+    };
     gisScript.onerror = () => logError("Init", "Failed to load GIS script");
     document.body.appendChild(gisScript);
   }, []);
@@ -64,6 +74,7 @@ const Appointments = () => {
   // Initialize gapi client
   // -------------------------
   const initGapiClient = useCallback(async () => {
+    console.log("[Init] Initializing gapi client...");
     try {
       await gapi.client.init({
         apiKey: API_KEY,
@@ -71,6 +82,7 @@ const Appointments = () => {
           "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
         ],
       });
+      console.log("[Init] gapi client initialized successfully");
       setGapiReady(true);
     } catch (err) {
       logError("Init", "Failed to init gapi", err);
@@ -81,31 +93,40 @@ const Appointments = () => {
   // Initialize GIS token client
   // -------------------------
   const initTokenClient = useCallback(() => {
+    console.log("[Init] Initializing GIS token client...");
     if (!window.google) return logError("Init", "GIS not available yet");
-    tokenClientRef.current = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: SCOPES,
-      callback: handleTokenResponse,
-      error_callback: (err) => logError("Auth", "Token client error", err),
-    });
+    try {
+      tokenClientRef.current = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: handleTokenResponse,
+        error_callback: (err) => logError("Auth", "Token client error", err),
+      });
+      console.log("[Init] GIS token client initialized");
+    } catch (err) {
+      logError("Init", "Failed to initialize GIS token client", err);
+    }
   }, []);
 
   // -------------------------
   // Token response handler
   // -------------------------
   const handleTokenResponse = useCallback(async (tokenResponse) => {
+    console.log("[Auth] Token response received:", tokenResponse);
     if (!tokenResponse?.access_token)
       return logError("Auth", "No access token received");
 
     const accessToken = tokenResponse.access_token;
     localStorage.setItem("accessToken", accessToken);
     setSignedIn(true);
+    console.log("[Auth] User signed in, access token saved");
 
     await fetchUserProfile(accessToken);
     fetchEvents(accessToken);
 
     try {
       await axios.post(BACKEND_AUTH_URL, { token: accessToken });
+      console.log("[Backend] Token sent successfully");
       toast.success("Logged in successfully!");
     } catch (err) {
       logError("Backend", "Backend auth failed", err);
@@ -116,6 +137,7 @@ const Appointments = () => {
   // Fetch user profile
   // -------------------------
   const fetchUserProfile = useCallback(async (accessToken) => {
+    console.log("[User] Fetching user profile...");
     try {
       const res = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -127,6 +149,7 @@ const Appointments = () => {
       };
       setUser(userDetails);
       localStorage.setItem("userDetails", JSON.stringify(userDetails));
+      console.log("[User] Profile fetched:", userDetails);
     } catch (err) {
       logError("User", "Failed to fetch profile", err);
     }
@@ -136,19 +159,25 @@ const Appointments = () => {
   // Login & Logout
   // -------------------------
   const handleLogin = () => {
+    console.log("[Auth] Login button clicked");
     if (!tokenClientRef.current) return logError("Auth", "Token client not initialized");
     tokenClientRef.current.requestAccessToken({ prompt: "consent" });
+    console.log("[Auth] Requesting access token...");
   };
 
   const handleLogout = () => {
+    console.log("[Auth] Logging out...");
     const token = localStorage.getItem("accessToken");
-    if (token) google.accounts.oauth2.revoke(token, () => {});
+    if (token) {
+      google.accounts.oauth2.revoke(token, () => console.log("[Auth] Token revoked"));
+    }
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userDetails");
     setUser(null);
     setSignedIn(false);
     setEvents([]);
     setMeetLink("");
+    console.log("[Auth] User logged out, local storage cleared");
     toast.info("Logged out");
   };
 
@@ -156,7 +185,9 @@ const Appointments = () => {
   // Fetch events
   // -------------------------
   const fetchEvents = useCallback(async (accessToken = localStorage.getItem("accessToken")) => {
-    if (!accessToken) return;
+    console.log("[Events] Fetching events...");
+    if (!accessToken) return logError("Events", "No access token");
+
     try {
       gapi.client.setToken({ access_token: accessToken });
       const res = await gapi.client.calendar.events.list({
@@ -167,12 +198,14 @@ const Appointments = () => {
         maxResults: 50,
         orderBy: "startTime",
       });
+      console.log("[Events] Raw events fetched:", res.result.items);
       const mapped = res.result.items.map((event) => ({
         id: event.id,
         title: event.summary || "No Title",
         start: event.start.dateTime || event.start.date,
         end: event.end.dateTime || event.end.date,
       }));
+      console.log("[Events] Mapped events:", mapped);
       setEvents(mapped);
     } catch (err) {
       logError("Events", "Failed to fetch events", err);
@@ -183,12 +216,14 @@ const Appointments = () => {
   // Restore session
   // -------------------------
   useEffect(() => {
+    console.log("[App] Restoring session if available...");
     const savedUser = localStorage.getItem("userDetails");
     const accessToken = localStorage.getItem("accessToken");
     if (savedUser && accessToken && gapiReady) {
       setUser(JSON.parse(savedUser));
       setSignedIn(true);
       fetchEvents(accessToken);
+      console.log("[App] Session restored", savedUser);
     }
   }, [gapiReady, fetchEvents]);
 
@@ -196,16 +231,20 @@ const Appointments = () => {
   // Modal handlers
   // -------------------------
   const handleDateClick = (info) => {
+    console.log("[UI] Date clicked:", info.dateStr);
     if (!signedIn) return toast.info("Please login first");
     setNewEvent((prev) => ({ ...prev, date: info.dateStr }));
     setModalOpen(true);
     setMeetLink("");
   };
 
-  const handleAddAttendee = () =>
+  const handleAddAttendee = () => {
+    console.log("[UI] Adding new attendee");
     setNewEvent((prev) => ({ ...prev, attendees: [...prev.attendees, ""] }));
+  };
 
   const handleAttendeeChange = (i, value) => {
+    console.log(`[UI] Attendee ${i} changed to:`, value);
     setNewEvent((prev) => {
       const attendees = [...prev.attendees];
       attendees[i] = value;
@@ -213,18 +252,22 @@ const Appointments = () => {
     });
   };
 
-  const handleRemoveAttendee = (i) =>
+  const handleRemoveAttendee = (i) => {
+    console.log(`[UI] Removing attendee at index: ${i}`);
     setNewEvent((prev) => ({
       ...prev,
       attendees: prev.attendees.filter((_, idx) => idx !== i),
     }));
+  };
 
   // -------------------------
   // Create meeting
   // -------------------------
   const handleCreateMeeting = async () => {
+    console.log("[Event] Creating meeting...");
     if (!signedIn) return logError("Event", "Not signed in");
     setLoading(true);
+
     try {
       const accessToken = localStorage.getItem("accessToken");
       const startDateTime = new Date(`${newEvent.date}T${newEvent.startTime}`).toISOString();
@@ -238,6 +281,7 @@ const Appointments = () => {
         attendees: newEvent.attendees.filter(a => a.trim() !== "").map(email => ({ email })),
         conferenceData: { createRequest: { requestId: String(Date.now()), conferenceSolutionKey: { type: "hangoutsMeet" } } },
       };
+      console.log("[Event] Event payload:", event);
 
       gapi.client.setToken({ access_token: accessToken });
       const res = await gapi.client.calendar.events.insert({
@@ -246,15 +290,18 @@ const Appointments = () => {
         conferenceDataVersion: 1,
         sendUpdates: "all",
       });
+      console.log("[Event] Event created successfully:", res.result);
 
       const link = res.result.conferenceData?.entryPoints?.[0]?.uri || "";
       setMeetLink(link);
+      console.log("[Event] Meet link generated:", link);
       toast.success(`Meeting created! ${link}`);
 
       setEvents((prev) => [
         ...prev,
         { id: res.result.id, title: res.result.summary, start: res.result.start.dateTime, end: res.result.end.dateTime },
       ]);
+
       setModalOpen(false);
       setNewEvent({ title: "", description: "", date: "", startTime: "09:00", endTime: "10:00", attendees: [""] });
     } catch (err) {
@@ -267,14 +314,13 @@ const Appointments = () => {
   // -------------------------
   // Render
   // -------------------------
+  console.log("[App] Rendering component...");
   return (
     <div className="p-4 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Appointments</h1>
         {!signedIn ? (
-          <button onClick={handleLogin} className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-            Login with Google
-          </button>
+          <button onClick={handleLogin} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Login with Google</button>
         ) : (
           <div className="flex items-center gap-4">
             <img src={user?.image} alt="profile" className="w-10 h-10 rounded-full border" />
@@ -282,9 +328,7 @@ const Appointments = () => {
               <p>{user?.name}</p>
               <p className="text-sm text-gray-500">{user?.email}</p>
             </div>
-            <button onClick={handleLogout} className="px-3 py-1 bg-red-500 text-white rounded-lg">
-              Logout
-            </button>
+            <button onClick={handleLogout} className="px-3 py-1 bg-red-500 text-white rounded-lg">Logout</button>
           </div>
         )}
       </div>
@@ -295,7 +339,10 @@ const Appointments = () => {
           initialView="dayGridMonth"
           events={events}
           dateClick={handleDateClick}
-          eventClick={(info) => toast.info(`Event: ${info.event.title}`)}
+          eventClick={(info) => {
+            console.log("[UI] Event clicked:", info.event.title);
+            toast.info(`Event: ${info.event.title}`);
+          }}
           height="80vh"
         />
         {!signedIn && (
@@ -327,18 +374,8 @@ const Appointments = () => {
             />
 
             <div className="flex gap-2 mb-2">
-              <input
-                type="time"
-                value={newEvent.startTime}
-                onChange={(e) => setNewEvent(prev => ({ ...prev, startTime: e.target.value }))}
-                className="border p-2 rounded w-1/2"
-              />
-              <input
-                type="time"
-                value={newEvent.endTime}
-                onChange={(e) => setNewEvent(prev => ({ ...prev, endTime: e.target.value }))}
-                className="border p-2 rounded w-1/2"
-              />
+              <input type="time" value={newEvent.startTime} onChange={(e) => setNewEvent(prev => ({ ...prev, startTime: e.target.value }))} className="border p-2 rounded w-1/2" />
+              <input type="time" value={newEvent.endTime} onChange={(e) => setNewEvent(prev => ({ ...prev, endTime: e.target.value }))} className="border p-2 rounded w-1/2" />
             </div>
 
             <div className="mb-2">
@@ -352,11 +389,7 @@ const Appointments = () => {
                     onChange={(e) => handleAttendeeChange(i, e.target.value)}
                     className="border p-2 rounded flex-1"
                   />
-                  {i > 0 && (
-                    <button onClick={() => handleRemoveAttendee(i)} className="text-red-500">
-                      ✕
-                    </button>
-                  )}
+                  {i > 0 && <button onClick={() => handleRemoveAttendee(i)} className="text-red-500">✕</button>}
                 </div>
               ))}
               <button onClick={handleAddAttendee} className="text-sm text-blue-600 mt-1">+ Add attendee</button>
@@ -365,20 +398,13 @@ const Appointments = () => {
             {meetLink && (
               <div className="mb-2 p-2 bg-green-100 rounded text-green-800 text-sm">
                 Meet Link: <a href={meetLink} target="_blank" rel="noopener noreferrer" className="underline">{meetLink}</a>
-                <button
-                  onClick={() => navigator.clipboard.writeText(meetLink)}
-                  className="ml-2 px-2 py-1 bg-green-600 text-white rounded text-xs"
-                >
-                  Copy
-                </button>
+                <button onClick={() => navigator.clipboard.writeText(meetLink)} className="ml-2 px-2 py-1 bg-green-600 text-white rounded text-xs">Copy</button>
               </div>
             )}
 
             <div className="flex justify-end gap-2 mt-4">
               <button onClick={() => setModalOpen(false)} className="px-3 py-1 bg-gray-300 rounded">Cancel</button>
-              <button onClick={handleCreateMeeting} className="px-3 py-1 bg-green-600 text-white rounded">
-                {loading ? "Creating..." : "Create"}
-              </button>
+              <button onClick={handleCreateMeeting} className="px-3 py-1 bg-green-600 text-white rounded">{loading ? "Creating..." : "Create"}</button>
             </div>
           </div>
         </div>
