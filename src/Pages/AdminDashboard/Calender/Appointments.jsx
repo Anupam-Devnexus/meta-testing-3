@@ -228,7 +228,6 @@ const Appointments = () => {
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
     };
-
     try {
       gapi.client.setToken({ access_token: accessToken });
       await gapi.client.calendar.events.insert({
@@ -243,7 +242,6 @@ const Appointments = () => {
       setLoading(false);
     }
   };
-
   // -------------------------
   // Restore session
   // -------------------------
