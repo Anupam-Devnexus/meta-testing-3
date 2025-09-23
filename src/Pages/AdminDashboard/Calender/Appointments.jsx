@@ -20,6 +20,17 @@ const Appointments = () => {
   const [loading, setLoading] = useState(false);
   const [gapiReady, setGapiReady] = useState(false);
 
+  // Meeting modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    description: "",
+    date: "",
+    startTime: "09:00",
+    endTime: "10:00",
+    attendees: [""],
+  });
+
   const tokenClientRef = useRef(null);
 
   // -------------------------
@@ -127,16 +138,17 @@ const Appointments = () => {
   const fetchUserProfile = async (accessToken) => {
     try {
       log("User", "Fetching user profile...");
-      const res = await gapi.client.request({
-        path: "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,photos",
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const res = await axios.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
 
-      const profile = res.result;
       const userDetails = {
-        name: profile.names?.[0]?.displayName || "User",
-        email: profile.emailAddresses?.[0]?.value || "",
-        image: profile.photos?.[0]?.url || "",
+        name: res.data.name,
+        email: res.data.email,
+        image: res.data.picture,
       };
 
       setUser(userDetails);
@@ -207,41 +219,78 @@ const Appointments = () => {
   };
 
   // -------------------------
+  // Open modal to create meeting
+  // -------------------------
+  const handleDateClick = (info) => {
+    if (!signedIn) return toast.info("Please login first");
+    setNewEvent({
+      ...newEvent,
+      date: info.dateStr,
+    });
+    setModalOpen(true);
+  };
+
+  const handleAddAttendee = () => {
+    setNewEvent((prev) => ({
+      ...prev,
+      attendees: [...prev.attendees, ""],
+    }));
+  };
+
+  const handleAttendeeChange = (i, value) => {
+    const updated = [...newEvent.attendees];
+    updated[i] = value;
+    setNewEvent((prev) => ({ ...prev, attendees: updated }));
+  };
+
+  // -------------------------
   // Create meeting
   // -------------------------
-  const handleCreateMeeting = async (info) => {
+  const handleCreateMeeting = async () => {
     if (!signedIn) return logError("Event", "Not signed in");
     setLoading(true);
 
     const accessToken = localStorage.getItem("accessToken");
+    const startDateTime = new Date(
+      `${newEvent.date}T${newEvent.startTime}`
+    ).toISOString();
+    const endDateTime = new Date(
+      `${newEvent.date}T${newEvent.endTime}`
+    ).toISOString();
+
     const event = {
-      summary: "Devnexus Meeting",
-      description: "Scheduled via Devnexus App",
+      summary: newEvent.title || "Untitled Meeting",
+      description: newEvent.description,
       start: {
-        dateTime: new Date(info.date).toISOString(),
+        dateTime: startDateTime,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       end: {
-        dateTime: new Date(
-          new Date(info.date).getTime() + 60 * 60 * 1000
-        ).toISOString(),
+        dateTime: endDateTime,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
+      attendees: newEvent.attendees
+        .filter((a) => a.trim() !== "")
+        .map((email) => ({ email })),
     };
+
     try {
       gapi.client.setToken({ access_token: accessToken });
       await gapi.client.calendar.events.insert({
         calendarId: "primary",
         resource: event,
+        sendUpdates: "all",
       });
       toast.success("Meeting created!");
       fetchEvents(accessToken);
+      setModalOpen(false);
     } catch (err) {
       logError("Event", "Failed to create meeting", err);
     } finally {
       setLoading(false);
     }
   };
+
   // -------------------------
   // Restore session
   // -------------------------
@@ -296,7 +345,7 @@ const Appointments = () => {
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           events={events}
-          dateClick={signedIn ? handleCreateMeeting : null}
+          dateClick={handleDateClick}
           eventClick={(info) => toast.info(`Event: ${info.event.title}`)}
           height="80vh"
         />
@@ -313,6 +362,87 @@ const Appointments = () => {
           </div>
         )}
       </div>
+
+      {/* Modal for meeting creation */}
+      {modalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">
+              Create Meeting on {newEvent.date}
+            </h2>
+            <input
+              type="text"
+              placeholder="Title"
+              value={newEvent.title}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, title: e.target.value })
+              }
+              className="border p-2 rounded w-full mb-2"
+            />
+            <textarea
+              placeholder="Description"
+              value={newEvent.description}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, description: e.target.value })
+              }
+              className="border p-2 rounded w-full mb-2"
+            />
+            <div className="flex gap-2 mb-2">
+              <input
+                type="time"
+                value={newEvent.startTime}
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, startTime: e.target.value })
+                }
+                className="border p-2 rounded w-1/2"
+              />
+              <input
+                type="time"
+                value={newEvent.endTime}
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, endTime: e.target.value })
+                }
+                className="border p-2 rounded w-1/2"
+              />
+            </div>
+
+            <div className="mb-2">
+              <p className="font-medium">Attendees:</p>
+              {newEvent.attendees.map((att, i) => (
+                <input
+                  key={i}
+                  type="email"
+                  placeholder="Enter email"
+                  value={att}
+                  onChange={(e) => handleAttendeeChange(i, e.target.value)}
+                  className="border p-2 rounded w-full mb-1"
+                />
+              ))}
+              <button
+                onClick={handleAddAttendee}
+                className="text-sm text-blue-600 mt-1"
+              >
+                + Add another attendee
+              </button>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="px-3 py-1 bg-gray-300 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateMeeting}
+                className="px-3 py-1 bg-green-600 text-white rounded"
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
