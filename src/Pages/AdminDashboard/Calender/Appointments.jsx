@@ -20,7 +20,7 @@ const Appointments = () => {
   const [loading, setLoading] = useState(false);
   const [gapiReady, setGapiReady] = useState(false);
 
-  // Meeting modal state
+  // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -49,7 +49,7 @@ const Appointments = () => {
   useEffect(() => {
     log("Init", "Loading gapi & GIS scripts...");
 
-    // gapi
+    // gapi script
     const gapiScript = document.createElement("script");
     gapiScript.src = "https://apis.google.com/js/api.js";
     gapiScript.onload = () => {
@@ -59,7 +59,7 @@ const Appointments = () => {
     gapiScript.onerror = () => logError("Init", "Failed to load gapi script");
     document.body.appendChild(gapiScript);
 
-    // GIS
+    // GIS script
     const gisScript = document.createElement("script");
     gisScript.src = "https://accounts.google.com/gsi/client";
     gisScript.async = true;
@@ -244,7 +244,7 @@ const Appointments = () => {
   };
 
   // -------------------------
-  // Create meeting
+  // Create meeting with Google Meet
   // -------------------------
   const handleCreateMeeting = async () => {
     if (!signedIn) return logError("Event", "Not signed in");
@@ -272,16 +272,30 @@ const Appointments = () => {
       attendees: newEvent.attendees
         .filter((a) => a.trim() !== "")
         .map((email) => ({ email })),
+      conferenceData: {
+        createRequest: {
+          requestId: String(Date.now()),
+          conferenceSolutionKey: { type: "hangoutsMeet" },
+        },
+      },
     };
 
     try {
+      log("Event", "Creating event...", event);
       gapi.client.setToken({ access_token: accessToken });
-      await gapi.client.calendar.events.insert({
+      const res = await gapi.client.calendar.events.insert({
         calendarId: "primary",
         resource: event,
+        conferenceDataVersion: 1,
         sendUpdates: "all",
       });
-      toast.success("Meeting created!");
+
+      log("Event", "Event created", res.result);
+      const meetLink =
+        res.result.conferenceData?.entryPoints?.[0]?.uri || "No Meet link";
+      log("Event", "Meet link generated", meetLink);
+      toast.success(`Meeting created! Link: ${meetLink}`);
+
       fetchEvents(accessToken);
       setModalOpen(false);
     } catch (err) {
@@ -448,5 +462,3 @@ const Appointments = () => {
 };
 
 export default Appointments;
-
-
