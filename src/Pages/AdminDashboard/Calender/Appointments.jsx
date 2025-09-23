@@ -365,7 +365,7 @@ const Appointments = () => {
 
       {/* Modal for meeting creation */}
       {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 flex items-center z-10 justify-center bg-black/60">
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h2 className="text-xl font-semibold mb-4">
               Create Meeting on {newEvent.date}
@@ -448,3 +448,5 @@ const Appointments = () => {
 };
 
 export default Appointments;
+
+
