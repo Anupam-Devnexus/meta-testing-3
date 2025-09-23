@@ -11,6 +11,7 @@ const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const SCOPES =
   "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email";
 const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
+const BACKEND_EVENT_URL = "https://dbbackend.devnexussolutions.com/auth/api/appointment";
 
 const Appointments = () => {
   console.log("[App] Render start");
@@ -21,6 +22,8 @@ const Appointments = () => {
   const [loading, setLoading] = useState(false);
   const [gapiReady, setGapiReady] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [meetLink, setMeetLink] = useState("");
+
   const [newEvent, setNewEvent] = useState({
     title: "",
     description: "",
@@ -29,7 +32,6 @@ const Appointments = () => {
     endTime: "10:00",
     attendees: [""],
   });
-  const [meetLink, setMeetLink] = useState("");
 
   const tokenClientRef = useRef(null);
 
@@ -48,11 +50,10 @@ const Appointments = () => {
   // -------------------------
   useEffect(() => {
     console.log("[Init] Loading gapi & GIS scripts...");
-
     const gapiScript = document.createElement("script");
     gapiScript.src = "https://apis.google.com/js/api.js";
     gapiScript.onload = () => {
-      console.log("[Init] gapi script loaded");
+      console.log("[Init] gapi loaded");
       gapi.load("client", initGapiClient);
     };
     gapiScript.onerror = () => logError("Init", "Failed to load gapi script");
@@ -62,10 +63,7 @@ const Appointments = () => {
     gisScript.src = "https://accounts.google.com/gsi/client";
     gisScript.async = true;
     gisScript.defer = true;
-    gisScript.onload = () => {
-      console.log("[Init] GIS script loaded");
-      initTokenClient();
-    };
+    gisScript.onload = initTokenClient;
     gisScript.onerror = () => logError("Init", "Failed to load GIS script");
     document.body.appendChild(gisScript);
   }, []);
@@ -82,7 +80,7 @@ const Appointments = () => {
           "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
         ],
       });
-      console.log("[Init] gapi client initialized successfully");
+      console.log("[Init] gapi client ready");
       setGapiReady(true);
     } catch (err) {
       logError("Init", "Failed to init gapi", err);
@@ -119,7 +117,7 @@ const Appointments = () => {
     const accessToken = tokenResponse.access_token;
     localStorage.setItem("accessToken", accessToken);
     setSignedIn(true);
-    console.log("[Auth] User signed in, access token saved");
+    console.log("[Auth] User signed in");
 
     await fetchUserProfile(accessToken);
     fetchEvents(accessToken);
@@ -142,11 +140,7 @@ const Appointments = () => {
       const res = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      const userDetails = {
-        name: res.data.name,
-        email: res.data.email,
-        image: res.data.picture,
-      };
+      const userDetails = { name: res.data.name, email: res.data.email, image: res.data.picture };
       setUser(userDetails);
       localStorage.setItem("userDetails", JSON.stringify(userDetails));
       console.log("[User] Profile fetched:", userDetails);
@@ -159,25 +153,23 @@ const Appointments = () => {
   // Login & Logout
   // -------------------------
   const handleLogin = () => {
-    console.log("[Auth] Login button clicked");
+    console.log("[Auth] Login clicked");
     if (!tokenClientRef.current) return logError("Auth", "Token client not initialized");
     tokenClientRef.current.requestAccessToken({ prompt: "consent" });
-    console.log("[Auth] Requesting access token...");
+    console.log("[Auth] Requesting token...");
   };
 
   const handleLogout = () => {
     console.log("[Auth] Logging out...");
     const token = localStorage.getItem("accessToken");
-    if (token) {
-      google.accounts.oauth2.revoke(token, () => console.log("[Auth] Token revoked"));
-    }
+    if (token) google.accounts.oauth2.revoke(token, () => console.log("[Auth] Token revoked"));
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userDetails");
     setUser(null);
     setSignedIn(false);
     setEvents([]);
     setMeetLink("");
-    console.log("[Auth] User logged out, local storage cleared");
+    console.log("[Auth] User logged out");
     toast.info("Logged out");
   };
 
@@ -198,8 +190,8 @@ const Appointments = () => {
         maxResults: 50,
         orderBy: "startTime",
       });
-      console.log("[Events] Raw events fetched:", res.result.items);
-      const mapped = res.result.items.map((event) => ({
+      console.log("[Events] Raw events:", res.result.items);
+      const mapped = res.result.items.map(event => ({
         id: event.id,
         title: event.summary || "No Title",
         start: event.start.dateTime || event.start.date,
@@ -216,7 +208,7 @@ const Appointments = () => {
   // Restore session
   // -------------------------
   useEffect(() => {
-    console.log("[App] Restoring session if available...");
+    console.log("[App] Restoring session...");
     const savedUser = localStorage.getItem("userDetails");
     const accessToken = localStorage.getItem("accessToken");
     if (savedUser && accessToken && gapiReady) {
@@ -233,19 +225,19 @@ const Appointments = () => {
   const handleDateClick = (info) => {
     console.log("[UI] Date clicked:", info.dateStr);
     if (!signedIn) return toast.info("Please login first");
-    setNewEvent((prev) => ({ ...prev, date: info.dateStr }));
+    setNewEvent(prev => ({ ...prev, date: info.dateStr }));
     setModalOpen(true);
     setMeetLink("");
   };
 
   const handleAddAttendee = () => {
-    console.log("[UI] Adding new attendee");
-    setNewEvent((prev) => ({ ...prev, attendees: [...prev.attendees, ""] }));
+    console.log("[UI] Adding attendee");
+    setNewEvent(prev => ({ ...prev, attendees: [...prev.attendees, ""] }));
   };
 
   const handleAttendeeChange = (i, value) => {
-    console.log(`[UI] Attendee ${i} changed to:`, value);
-    setNewEvent((prev) => {
+    console.log(`[UI] Attendee ${i} changed to: ${value}`);
+    setNewEvent(prev => {
       const attendees = [...prev.attendees];
       attendees[i] = value;
       return { ...prev, attendees };
@@ -253,15 +245,12 @@ const Appointments = () => {
   };
 
   const handleRemoveAttendee = (i) => {
-    console.log(`[UI] Removing attendee at index: ${i}`);
-    setNewEvent((prev) => ({
-      ...prev,
-      attendees: prev.attendees.filter((_, idx) => idx !== i),
-    }));
+    console.log(`[UI] Removing attendee ${i}`);
+    setNewEvent(prev => ({ ...prev, attendees: prev.attendees.filter((_, idx) => idx !== i) }));
   };
 
   // -------------------------
-  // Create meeting
+  // Create meeting and post to backend
   // -------------------------
   const handleCreateMeeting = async () => {
     console.log("[Event] Creating meeting...");
@@ -273,7 +262,7 @@ const Appointments = () => {
       const startDateTime = new Date(`${newEvent.date}T${newEvent.startTime}`).toISOString();
       const endDateTime = new Date(`${newEvent.date}T${newEvent.endTime}`).toISOString();
 
-      const event = {
+      const eventPayload = {
         summary: newEvent.title || "Untitled Meeting",
         description: newEvent.description,
         start: { dateTime: startDateTime, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
@@ -281,27 +270,35 @@ const Appointments = () => {
         attendees: newEvent.attendees.filter(a => a.trim() !== "").map(email => ({ email })),
         conferenceData: { createRequest: { requestId: String(Date.now()), conferenceSolutionKey: { type: "hangoutsMeet" } } },
       };
-      console.log("[Event] Event payload:", event);
+      console.log("[Event] Event payload:", eventPayload);
 
       gapi.client.setToken({ access_token: accessToken });
       const res = await gapi.client.calendar.events.insert({
         calendarId: "primary",
-        resource: event,
+        resource: eventPayload,
         conferenceDataVersion: 1,
         sendUpdates: "all",
       });
-      console.log("[Event] Event created successfully:", res.result);
+      console.log("[Event] Event created in Google Calendar:", res.result);
 
       const link = res.result.conferenceData?.entryPoints?.[0]?.uri || "";
       setMeetLink(link);
-      console.log("[Event] Meet link generated:", link);
-      toast.success(`Meeting created! ${link}`);
+      console.log("[Event] Meet link:", link);
 
-      setEvents((prev) => [
-        ...prev,
-        { id: res.result.id, title: res.result.summary, start: res.result.start.dateTime, end: res.result.end.dateTime },
-      ]);
+      // -------------------------
+      // Post to backend
+      // -------------------------
+      try {
+        await axios.post(BACKEND_EVENT_URL, {
+          event: { ...eventPayload, meetLink: link, gcalId: res.result.id },
+        });
+        console.log("[Backend] Event posted successfully");
+        toast.success("Event posted to backend successfully!");
+      } catch (err) {
+        logError("Backend", "Failed to post event", err);
+      }
 
+      setEvents(prev => [...prev, { id: res.result.id, title: res.result.summary, start: res.result.start.dateTime, end: res.result.end.dateTime }]);
       setModalOpen(false);
       setNewEvent({ title: "", description: "", date: "", startTime: "09:00", endTime: "10:00", attendees: [""] });
     } catch (err) {
@@ -314,7 +311,7 @@ const Appointments = () => {
   // -------------------------
   // Render
   // -------------------------
-  console.log("[App] Rendering component...");
+  console.log("[App] Rendering...");
   return (
     <div className="p-4 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -340,19 +337,14 @@ const Appointments = () => {
           events={events}
           dateClick={handleDateClick}
           eventClick={(info) => {
-            console.log("[UI] Event clicked:", info.event.title);
+            console.log("[UI] Event clicked:", info.event);
             toast.info(`Event: ${info.event.title}`);
           }}
           height="80vh"
         />
-        {!signedIn && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded">
-            <p>Please login to schedule meetings</p>
-          </div>
-        )}
+        {!signedIn && <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded"><p>Please login to schedule meetings</p></div>}
       </div>
 
-      {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-20 bg-black/50">
           <div className="bg-white rounded-lg w-96 p-6 shadow-lg">
