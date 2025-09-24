@@ -3,12 +3,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import { FaFacebook } from "react-icons/fa";
 import IntegrationCard from "../../../Components/Cards/IntigrationCard";
 
-// Custom hook to load FB SDK
+// 🔹 Hook: Load Facebook SDK
 const useFacebookSDK = (appId) => {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
 
   useEffect(() => {
     console.log("[FB SDK] Checking if SDK is already loaded...");
+
     if (window.FB) {
       console.log("[FB SDK] Already loaded ✅");
       setIsSDKLoaded(true);
@@ -45,13 +46,15 @@ const IntegrationPage = () => {
 
   const isSDKLoaded = useFacebookSDK(import.meta.env.VITE_FACEBOOK_APP_ID);
 
+  // 🔹 Handle login status change
   const statusChangeCallback = useCallback((response) => {
     console.log("[FB Login Status Callback]:", response);
 
     if (response.status === "connected") {
       const { accessToken, userID } = response.authResponse;
       console.log("[FB] Connected ✅", { userID, accessToken });
-      localStorage.setItem("fb_access_token", accessToken);
+
+      localStorage.setItem("fb_user_token", accessToken);
       setFbStatus("connected");
     } else if (response.status === "not_authorized") {
       console.warn("[FB] User logged in but not authorized ❌");
@@ -62,6 +65,7 @@ const IntegrationPage = () => {
     }
   }, []);
 
+  // 🔹 Check login state on demand
   const checkLoginState = useCallback(() => {
     console.log("[FB] Checking login state...");
     if (!window.FB) {
@@ -71,82 +75,85 @@ const IntegrationPage = () => {
     window.FB.getLoginStatus(statusChangeCallback);
   }, [statusChangeCallback]);
 
-const handleFacebook = useCallback(async () => {
-  console.log("[FB] Connect button clicked 🚀");
+  // 🔹 Handle Facebook Connect
+  const handleFacebook = useCallback(async () => {
+    console.log("[FB] Connect button clicked 🚀");
 
-  if (!isSDKLoaded) {
-    console.error("[FB] SDK not loaded yet ❌");
-    return;
-  }
+    if (!isSDKLoaded) {
+      console.error("[FB] SDK not loaded yet ❌");
+      return;
+    }
 
-  try {
-    setLoadingId(1);
-    console.log("[FB] Triggering FB.login...");
+    try {
+      setLoadingId(1);
+      console.log("[FB] Triggering FB.login...");
 
-    window.FB.login(
-      (response) => {
-        console.log("[FB] Login response received:", response);
+      window.FB.login(
+        (response) => {
+          console.log("[FB] Login response received:", response);
 
-        if (response.authResponse) {
-          console.log("[FB] Login success ✅");
-          const { accessToken, userID } = response.authResponse;
+          if (response.authResponse) {
+            console.log("[FB] Login success ✅");
+            const { accessToken, userID } = response.authResponse;
 
-          // Step 1: Save user access token
-          localStorage.setItem("fb_user_token", accessToken);
+            // Save user token
+            localStorage.setItem("fb_user_token", accessToken);
 
-          // Step 2: Fetch pages connected to this user
-          window.FB.api(
-            "/me/accounts",
-            "GET",
-            {},
-            function (pageResponse) {
-              console.log("[FB] Pages API response:", pageResponse);
+            // Fetch pages connected to the user
+            console.log("[FB] Fetching pages connected to user...");
+            window.FB.api(
+              "/me/accounts",
+              "GET",
+              {},
+              (pageResponse) => {
+                console.log("[FB] Pages API response:", pageResponse);
 
-              if (pageResponse && !pageResponse.error) {
-                const pages = pageResponse.data || [];
-                if (pages.length > 0) {
-                  // Example: pick first page for now
-                  const page = pages[0];
-                  console.log("[FB] Connected Page ✅", page);
+                if (pageResponse && !pageResponse.error) {
+                  const pages = pageResponse.data || [];
 
-                  // Save page token
-                  localStorage.setItem("fb_page_token", page.access_token);
-                  localStorage.setItem("fb_page_id", page.id);
+                  if (pages.length > 0) {
+                    // For demo: pick the first page
+                    const page = pages[0];
+                    console.log("[FB] Connected Page ✅", page);
 
-                  // Fetch page details
-                  window.FB.api(
-                    `/${page.id}?fields=id,name,fan_count,category`,
-                    "GET",
-                    { access_token: page.access_token },
-                    (details) => {
-                      console.log("[FB] Page details:", details);
-                    }
-                  );
+                    localStorage.setItem("fb_page_token", page.access_token);
+                    localStorage.setItem("fb_page_id", page.id);
+
+                    // Fetch details of that page
+                    window.FB.api(
+                      `/${page.id}?fields=id,name,fan_count,category`,
+                      "GET",
+                      { access_token: page.access_token },
+                      (details) => {
+                        console.log("[FB] Page details:", details);
+                      }
+                    );
+                  } else {
+                    console.warn("[FB] No pages found for this user ❌");
+                  }
                 } else {
-                  console.warn("[FB] No pages found for this user ❌");
+                  console.error("[FB] Error fetching pages:", pageResponse.error);
                 }
-              } else {
-                console.error("[FB] Error fetching pages:", pageResponse.error);
               }
-            }
-          );
-        } else {
-          console.warn("[FB] Login cancelled or failed ❌");
+            );
+          } else {
+            console.warn("[FB] Login cancelled or failed ❌");
+          }
+
+          setLoadingId(null);
+        },
+        {
+          scope:
+            "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval",
         }
-        setLoadingId(null);
-      },
-      {
-        scope:
-          "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval",
-      }
-    );
-  } catch (err) {
-    console.error("[FB Login Error]:", err.message);
-    setLoadingId(null);
-  }
-}, [isSDKLoaded, statusChangeCallback]);
+      );
+    } catch (err) {
+      console.error("[FB Login Error]:", err.message);
+      setLoadingId(null);
+    }
+  }, [isSDKLoaded, statusChangeCallback]);
 
-
+  // 🔹 Integrations data
   const integrationsData = [
     {
       id: 1,
@@ -161,13 +168,12 @@ const handleFacebook = useCallback(async () => {
         fbStatus === "connected" ? "bg-green-600" : "bg-blue-600",
       onClick: handleFacebook,
     },
-    // 🔮 Future integrations can be added here (Google, LinkedIn, etc.)
   ];
 
   console.log("[IntegrationPage] Rendering integrations:", integrationsData);
 
   return (
-    <div className="">
+    <div className="space-y-4">
       {integrationsData.map((integration) => (
         <IntegrationCard
           key={integration.id}
