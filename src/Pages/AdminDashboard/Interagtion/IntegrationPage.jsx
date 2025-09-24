@@ -108,7 +108,7 @@ const IntegrationPage = () => {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 p-4">
+    <div className="">
       {integrationsData.map((integration) => (
         <IntegrationCard
           key={integration.id}
@@ -121,3 +121,4 @@ const IntegrationPage = () => {
 };
 
 export default IntegrationPage;
+
