@@ -8,6 +8,7 @@ const useFacebookSDK = (appId) => {
 
   useEffect(() => {
     console.log("[FB SDK] Checking SDK load...");
+
     if (window.FB) {
       console.log("[FB SDK] Already loaded ✅");
       setIsSDKLoaded(true);
@@ -41,7 +42,7 @@ const useFacebookSDK = (appId) => {
 
 const IntegrationPage = () => {
   const [loadingId, setLoadingId] = useState(null);
-  const [fbStatus, setFbStatus] = useState("idle");
+  const [fbStatus, setFbStatus] = useState("idle"); // idle | connected
   const [pages, setPages] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
@@ -49,10 +50,13 @@ const IntegrationPage = () => {
 
   const handlePageSelect = (page) => {
     console.log("[FB] Page selected ✅", page);
+
+    // Store selected page info
     localStorage.setItem("fb_page_token", page.access_token);
     localStorage.setItem("fb_page_id", page.id);
     setShowModal(false);
 
+    // Fetch selected page details
     window.FB.api(
       `/${page.id}?fields=id,name,fan_count,category,picture{url}`,
       "GET",
@@ -88,23 +92,62 @@ const IntegrationPage = () => {
         localStorage.setItem("fb_user_token", accessToken);
         setFbStatus("connected");
 
-        window.FB.api("/me/accounts", "GET", {}, (pageResponse) => {
-          if (pageResponse && !pageResponse.error) {
-            const allPages = pageResponse.data || [];
-            console.log("[FB] All Pages fetched:", allPages);
+        // Check granted permissions
+        window.FB.api("/me/permissions", (permResponse) => {
+          console.log("[FB] Granted permissions:", permResponse.data);
 
-            if (allPages.length === 0) {
-              console.warn("[FB] No pages found ❌");
-            } else if (allPages.length === 1) {
-              handlePageSelect(allPages[0]);
-            } else {
-              setPages(allPages);
-              setShowModal(true);
-            }
-          } else {
-            console.error("[FB] Error fetching pages:", pageResponse?.error);
+          const requiredPermissions = [
+            "pages_show_list",
+            "pages_read_engagement",
+            "pages_manage_posts",
+            "leads_retrieval",
+          ];
+
+          const granted = permResponse.data
+            .filter((p) => p.status === "granted")
+            .map((p) => p.permission);
+
+          const missing = requiredPermissions.filter(
+            (perm) => !granted.includes(perm)
+          );
+
+          if (missing.length > 0) {
+            console.warn(
+              "[FB] Missing permissions, user needs to grant:",
+              missing
+            );
+            alert(
+              `Missing permissions: ${missing.join(
+                ", "
+              )}. Please allow these permissions to proceed.`
+            );
+            setLoadingId(null);
+            return;
           }
-          setLoadingId(null);
+
+          // Fetch all pages
+          window.FB.api("/me/accounts", "GET", {}, (pageResponse) => {
+            console.log("[FB] /me/accounts response:", pageResponse);
+
+            if (pageResponse && !pageResponse.error) {
+              const allPages = pageResponse.data || [];
+              console.log("[FB] All Pages fetched:", allPages);
+
+              if (allPages.length === 0) {
+                console.warn("[FB] No pages found ❌");
+              } else if (allPages.length === 1) {
+                console.log("[FB] Single page found, auto-selecting");
+                handlePageSelect(allPages[0]);
+              } else {
+                console.log("[FB] Multiple pages found, showing modal");
+                setPages(allPages);
+                setShowModal(true);
+              }
+            } else {
+              console.error("[FB] Error fetching pages:", pageResponse?.error);
+            }
+            setLoadingId(null);
+          });
         });
       },
       {
@@ -126,8 +169,7 @@ const IntegrationPage = () => {
       borderColor: "border-blue-200",
       buttonText:
         fbStatus === "connected" ? "Connected to Facebook" : "Connect Facebook",
-      buttonColor:
-        fbStatus === "connected" ? "bg-green-600" : "bg-blue-600",
+      buttonColor: fbStatus === "connected" ? "bg-green-600" : "bg-blue-600",
       onClick: handleFacebook,
     },
   ];
