@@ -24,11 +24,6 @@ const useFacebookSDK = (appId) => {
       });
 
       console.log("[FB SDK] Initialized ✅");
-
-      window.FB.getLoginStatus((response) => {
-        console.log("[FB SDK] Initial login status:", response);
-      });
-
       setIsSDKLoaded(true);
     };
 
@@ -47,36 +42,28 @@ const useFacebookSDK = (appId) => {
 const IntegrationPage = () => {
   const [loadingId, setLoadingId] = useState(null);
   const [fbStatus, setFbStatus] = useState("idle");
+  const [pages, setPages] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
   const isSDKLoaded = useFacebookSDK(import.meta.env.VITE_FACEBOOK_APP_ID);
 
-  const statusChangeCallback = useCallback((response) => {
-    console.log("[FB Status Callback]:", response);
+  const handlePageSelect = (page) => {
+    console.log("[FB] Page selected ✅", page);
+    localStorage.setItem("fb_page_token", page.access_token);
+    localStorage.setItem("fb_page_id", page.id);
+    setShowModal(false);
 
-    if (response.status === "connected") {
-      const { accessToken, userID } = response.authResponse;
-      console.log("[FB] Connected", { userID, accessToken });
-      localStorage.setItem("fb_access_token", accessToken);
-      setFbStatus("connected");
-    } else if (response.status === "not_authorized") {
-      console.warn("[FB] Logged in but not authorized ❌");
-      setFbStatus("not_authorized");
-    } else {
-      console.warn("[FB] Not authenticated ❌");
-      setFbStatus("not_authenticated");
-    }
-  }, []);
+    window.FB.api(
+      `/${page.id}?fields=id,name,fan_count,category,picture{url}`,
+      "GET",
+      { access_token: page.access_token },
+      (details) => {
+        console.log("[FB] Selected Page details:", details);
+      }
+    );
+  };
 
-  const checkLoginState = useCallback(() => {
-    console.log("[FB] Checking login state...");
-    if (!window.FB) {
-      console.error("[FB] SDK not available ❌");
-      return;
-    }
-    window.FB.getLoginStatus(statusChangeCallback);
-  }, [statusChangeCallback]);
-
-  const handleFacebook = useCallback(async () => {
+  const handleFacebook = useCallback(() => {
     console.log("[FB] Connect button clicked 🚀");
 
     if (!isSDKLoaded) {
@@ -86,61 +73,47 @@ const IntegrationPage = () => {
 
     setLoadingId(1);
 
-    try {
-      window.FB.login(
-        (response) => {
-          console.log("[FB] Login response:", response);
+    window.FB.login(
+      (response) => {
+        console.log("[FB] Login response:", response);
 
-          if (!response.authResponse) {
-            console.warn("[FB] Login cancelled or failed ❌");
-            setLoadingId(null);
-            return;
-          }
-
-          const { accessToken, userID } = response.authResponse;
-          console.log("[FB] Login success ✅", { userID, accessToken });
-          localStorage.setItem("fb_user_token", accessToken);
-          setFbStatus("connected");
-
-          // Fetch pages connected to the user
-          window.FB.api("/me/accounts", "GET", {}, (pageResponse) => {
-            if (pageResponse && !pageResponse.error) {
-              const pages = pageResponse.data || [];
-              if (pages.length > 0) {
-                const page = pages[0];
-                console.log("[FB] Connected Page ✅", page);
-
-                localStorage.setItem("fb_page_token", page.access_token);
-                localStorage.setItem("fb_page_id", page.id);
-
-                window.FB.api(
-                  `/${page.id}?fields=id,name,fan_count,category`,
-                  "GET",
-                  { access_token: page.access_token },
-                  (details) => {
-                    console.log("[FB] Page details:", details);
-                  }
-                );
-              } else {
-                console.warn("[FB] No pages found ❌");
-              }
-            } else {
-              console.error("[FB] Error fetching pages:", pageResponse?.error);
-            }
-            setLoadingId(null);
-          });
-        },
-        {
-          scope:
-            "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval",
-          auth_type: "rerequest",
-          return_scopes: true,
+        if (!response.authResponse) {
+          console.warn("[FB] Login cancelled or failed ❌");
+          setLoadingId(null);
+          return;
         }
-      );
-    } catch (err) {
-      console.error("[FB Login Error]:", err.message);
-      setLoadingId(null);
-    }
+
+        const { accessToken, userID } = response.authResponse;
+        console.log("[FB] Login success ✅", { userID, accessToken });
+        localStorage.setItem("fb_user_token", accessToken);
+        setFbStatus("connected");
+
+        window.FB.api("/me/accounts", "GET", {}, (pageResponse) => {
+          if (pageResponse && !pageResponse.error) {
+            const allPages = pageResponse.data || [];
+            console.log("[FB] All Pages fetched:", allPages);
+
+            if (allPages.length === 0) {
+              console.warn("[FB] No pages found ❌");
+            } else if (allPages.length === 1) {
+              handlePageSelect(allPages[0]);
+            } else {
+              setPages(allPages);
+              setShowModal(true);
+            }
+          } else {
+            console.error("[FB] Error fetching pages:", pageResponse?.error);
+          }
+          setLoadingId(null);
+        });
+      },
+      {
+        scope:
+          "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval",
+        auth_type: "rerequest",
+        return_scopes: true,
+      }
+    );
   }, [isSDKLoaded]);
 
   const integrationsData = [
@@ -159,8 +132,6 @@ const IntegrationPage = () => {
     },
   ];
 
-  console.log("[IntegrationPage] Rendering integrations:", integrationsData);
-
   return (
     <div className="grid gap-4">
       {integrationsData.map((integration) => (
@@ -170,6 +141,45 @@ const IntegrationPage = () => {
           isLoading={loadingId === integration.id}
         />
       ))}
+
+      {/* Modal for multiple pages */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-96 shadow-lg">
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Select a Facebook Page
+            </h2>
+            <ul className="space-y-3 max-h-96 overflow-y-auto">
+              {pages.map((page) => (
+                <li key={page.id}>
+                  <button
+                    onClick={() => handlePageSelect(page)}
+                    className="flex items-center p-2 w-full border rounded-lg hover:bg-blue-50 transition"
+                  >
+                    <img
+                      src={`https://graph.facebook.com/${page.id}/picture?type=square`}
+                      alt={page.name}
+                      className="w-12 h-12 rounded mr-3 object-cover"
+                    />
+                    <div className="text-left">
+                      <p className="font-semibold text-gray-800">{page.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {page.category} • Fans: {page.fan_count}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button
+              className="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+              onClick={() => setShowModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
