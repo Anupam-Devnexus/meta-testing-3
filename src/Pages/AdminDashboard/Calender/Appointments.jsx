@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 // Appointments.jsx
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios from "axios";
-=======
-// CalendarScheduler.jsx
-import React, { useState, useEffect, useCallback } from "react";
->>>>>>> a32954dc6553e3388aa9828bbc2a9571487847d4
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -18,22 +13,11 @@ const SCOPES =
 const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 const BACKEND_EVENT_URL = "https://dbbackend.devnexussolutions.com/auth/api/appointment";
 
-<<<<<<< HEAD
-const CLIENT_SECRET = import.meta.env.VITE_GOOGLE_CLIENT_SECRET;
-
 const Appointments = () => {
   console.log("[App] Render start");
 
   const [user, setUser] = useState(null);
   const [signedIn, setSignedIn] = useState(false);
-=======
-const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
-
-// ----------------------------
-// Main Component
-// ----------------------------
-export default function CalendarScheduler() {
->>>>>>> a32954dc6553e3388aa9828bbc2a9571487847d4
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [gapiReady, setGapiReady] = useState(false);
@@ -49,7 +33,6 @@ export default function CalendarScheduler() {
     attendees: [""],
   });
 
-<<<<<<< HEAD
   const tokenClientRef = useRef(null);
 
   // -------------------------
@@ -90,41 +73,6 @@ export default function CalendarScheduler() {
   // -------------------------
   const initGapiClient = useCallback(async () => {
     console.log("[Init] Initializing gapi client...");
-=======
-  // ----------------------------
-  // Init Google API Client
-  // ----------------------------
-  const initClient = useCallback(async () => {
-    try {
-      await gapi.client.init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        discoveryDocs: [
-          "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
-        ],
-        scope: SCOPES,
-      });
-
-      // Load stored token from backend login
-      const token = localStorage.getItem("googleToken");
-      if (token) {
-        gapi.client.setToken({ access_token: token });
-        setIsSignedIn(true);
-      }
-    } catch (err) {
-      console.error("Error initializing gapi client:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    gapi.load("client", initClient);
-  }, [initClient]);
-
-  // ----------------------------
-  // Fetch Events
-  // ----------------------------
-  const fetchEvents = useCallback(async () => {
->>>>>>> a32954dc6553e3388aa9828bbc2a9571487847d4
     try {
       await gapi.client.init({
         apiKey: API_KEY,
@@ -260,7 +208,6 @@ export default function CalendarScheduler() {
   // Restore session
   // -------------------------
   useEffect(() => {
-<<<<<<< HEAD
     console.log("[App] Restoring session...");
     const savedUser = localStorage.getItem("userDetails");
     const accessToken = localStorage.getItem("accessToken");
@@ -271,10 +218,6 @@ export default function CalendarScheduler() {
       console.log("[App] Session restored", savedUser);
     }
   }, [gapiReady, fetchEvents]);
-=======
-    if (isSignedIn) fetchEvents();
-  }, [isSignedIn, fetchEvents]);
->>>>>>> a32954dc6553e3388aa9828bbc2a9571487847d4
 
   // -------------------------
   // Modal handlers
@@ -365,29 +308,11 @@ export default function CalendarScheduler() {
     }
   };
 
-<<<<<<< HEAD
   // -------------------------
-=======
-  // ----------------------------
-  // Auth Handlers
-  // ----------------------------
-  const handleLogin = () => {
-    window.location.href = BACKEND_AUTH_URL;
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("googleToken");
-    setIsSignedIn(false);
-    setEvents([]);
-  };
-
-  // ----------------------------
->>>>>>> a32954dc6553e3388aa9828bbc2a9571487847d4
   // Render
   // -------------------------
   console.log("[App] Rendering...");
   return (
-<<<<<<< HEAD
     <div className="p-4 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Appointments</h1>
@@ -431,73 +356,6 @@ export default function CalendarScheduler() {
               value={newEvent.title}
               onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
               className="border p-2 rounded w-full mb-2"
-=======
-    <div className="p-6 bg-white shadow-md rounded-lg">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold mb-4">
-          Google Calendar Scheduler
-        </h2>
-
-        {!isSignedIn ? (
-          <button
-            onClick={handleLogin}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md"
-          >
-            Sign in with Google
-          </button>
-        ) : (
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-md"
-          >
-            Logout
-          </button>
-        )}
-      </div>
-
-      {/* Calendar */}
-      {isSignedIn && (
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          events={events}
-          dateClick={handleDateClick}
-          height="auto"
-        />
-      )}
-
-      {/* Create Modal */}
-      {isCreateModalOpen && (
-        <Modal
-          title="New Google Meet Appointment"
-          onClose={() => setIsCreateModalOpen(false)}
-        >
-          <form onSubmit={handleCreateEvent} className="space-y-4">
-            <InputField
-              label="Title"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, title: e.target.value }))
-              }
-            />
-            <InputField
-              type="number"
-              label="Duration (minutes)"
-              value={formData.duration}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, duration: e.target.value }))
-              }
-            />
-            <InputField
-              label="Attendees (comma separated emails)"
-              value={formData.attendees}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  attendees: e.target.value,
-                }))
-              }
->>>>>>> a32954dc6553e3388aa9828bbc2a9571487847d4
             />
 
             <textarea
