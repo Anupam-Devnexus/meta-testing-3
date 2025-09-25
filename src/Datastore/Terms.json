@@ -1,0 +1,135 @@
+{
+  "privacyPolicy": {
+    "effectiveDate": "[Insert Date]",
+    "company": "[Company Name]",
+    "introduction": "[Company Name] (“we”, “our”, or “us”) values your privacy. This Privacy Policy explains how we collect, use, and protect your personal information. By using our services, you agree to the practices described in this policy.",
+    "sections": [
+      {
+        "title": "Information We Collect",
+        "content": [
+          "Personal Information: Name, email, phone number, address.",
+          "Usage Information: IP address, browser type, pages visited, and interaction data.",
+          "Payment Information: Payment details collected through secure payment gateways (we do not store card information directly)."
+        ]
+      },
+      {
+        "title": "How We Use Your Information",
+        "content": [
+          "To provide and improve our services.",
+          "To process payments and transactions.",
+          "To communicate updates, offers, or service-related notifications.",
+          "To comply with legal obligations."
+        ]
+      },
+      {
+        "title": "Sharing Your Information",
+        "content": [
+          "We do not sell or rent your personal information.",
+          "We may share your information with service providers assisting in operations.",
+          "We may share information as required by law or legal processes."
+        ]
+      },
+      {
+        "title": "Data Security",
+        "content": [
+          "We implement reasonable technical and organizational measures to protect your data.",
+          "However, no method of transmission over the Internet is 100% secure."
+        ]
+      },
+      {
+        "title": "Your Rights",
+        "content": [
+          "You may access, correct, or delete your personal data. Contact us at [email/contact]."
+        ]
+      },
+      {
+        "title": "Cookies & Tracking",
+        "content": [
+          "We use cookies and similar technologies to enhance your experience.",
+          "You may disable cookies in your browser settings, but some features may not function properly."
+        ]
+      },
+      {
+        "title": "Changes to This Policy",
+        "content": [
+          "We may update this Privacy Policy. Updated versions will be posted with a new effective date."
+        ]
+      },
+      {
+        "title": "Contact",
+        "content": [
+          "[Company Name]",
+          "[Address]",
+          "[Email]"
+        ]
+      }
+    ]
+  },
+  "termsAndConditions": {
+    "effectiveDate": "[Insert Date]",
+    "company": "[Company Name]",
+    "introduction": "Welcome to [Company Name]. By accessing or using our services, you agree to the following terms.",
+    "sections": [
+      {
+        "title": "Use of Services",
+        "content": [
+          "You agree to use our services only for lawful purposes and in compliance with all applicable laws."
+        ]
+      },
+      {
+        "title": "Account Responsibility",
+        "content": [
+          "You are responsible for maintaining the confidentiality of your account and password.",
+          "Any activity under your account is your responsibility."
+        ]
+      },
+      {
+        "title": "Payment & Fees",
+        "content": [
+          "Fees for services, if any, must be paid according to our pricing structure.",
+          "All payments are non-refundable unless explicitly stated."
+        ]
+      },
+      {
+        "title": "Intellectual Property",
+        "content": [
+          "All content, trademarks, logos, and materials are the property of [Company Name].",
+          "You may not reproduce or distribute them without permission."
+        ]
+      },
+      {
+        "title": "Limitation of Liability",
+        "content": [
+          "[Company Name] is not liable for any indirect, incidental, or consequential damages arising from the use of our services."
+        ]
+      },
+      {
+        "title": "Termination",
+        "content": [
+          "We may suspend or terminate your account if you violate these terms."
+        ]
+      },
+      {
+        "title": "Governing Law",
+        "content": [
+          "These Terms are governed by the laws of [Country/State].",
+          "Disputes will be resolved under the jurisdiction of [City/Court]."
+        ]
+      },
+      {
+        "title": "Changes to Terms",
+        "content": [
+          "We may update these Terms. Updated versions will be effective upon posting."
+        ]
+      },
+      {
+        "title": "Contact",
+        "content": [
+          "Devnexus Solutions",
+          "Spaze it park",
+          "contactdevnexus.in"
+        ]
+      }
+    ]
+  }
+}

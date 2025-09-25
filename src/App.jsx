@@ -36,6 +36,7 @@ import IntegrationPage from "./Pages/AdminDashboard/Interagtion/IntegrationPage"
 import GoogleAds from "./Pages/AdminDashboard/Google/GoogleAds";
 import { Oppur } from "./Pages/AdminDashboard/Oppur";
 import Proflie from "./Pages/AdminDashboard/Proflie";
+import Privacy from "./Pages/Privacy";
 
 
 // User Pages
@@ -49,6 +50,7 @@ import Unauthorized from "./Pages/Unauthorized";
 import Website from "./Pages/AdminDashboard/Website/Website";
 
 import { elements } from "chart.js";
+import Terms from "./Pages/Terms";
 
 // ================= Route Configurations =================
 const adminRoutes = [
@@ -99,7 +101,7 @@ function AppContent() {
   const { user } = useAuth();
 
   // Hide navbar on auth pages
-  const hideNavbar = ["/login", "/signup", "/forgot-password", "/confirm-otp"].includes(
+  const hideNavbar = ["/login", "/signup", "/forgot-password","/terms","/privacy", "/confirm-otp"].includes(
     location.pathname
   );
   const mainMarginClass = hideNavbar ? "ml-0" : "ml-64";
@@ -120,6 +122,8 @@ function AppContent() {
           <Route path="/forgot-password" element={<ForgetPass />} />
           <Route path="/confirm-otp" element={<ConfirmOtp />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/terms" element={<Terms/>}/>
+          <Route path="/privacy" element={<Privacy/>}/>
 
           {/* Admin Routes */}
           <Route
