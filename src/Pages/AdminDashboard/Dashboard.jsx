@@ -12,7 +12,6 @@ import SalesFunnel from "../../Components/Charts/SalesFunnel";
 import SellHistoryChart from "../../Components/SellHistoryChart";
 import SupportTracker from "../../Components/SupportTracker";
 
-
 export default function Dashboard() {
   const { metaleads, fetchMetaLeads } = useMetaLeads();
   const { users, loading, error, fetchUser } = useUserStore();

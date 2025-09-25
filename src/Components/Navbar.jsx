@@ -78,7 +78,11 @@ export default function Navbar() {
     },
     { icon: <RiAdminLine />, label: "Stats", path: "/admin-dashboard/stats" },
     { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" },
+<<<<<<< HEAD
     // { icon: <GrIntegration />, label: "Proflie", path: "/admin-dashboard/admin-profile" },
+=======
+    // { icon: <GrIntegration />, label: "Integrations", path: "/admin-dashboard/integrations" },
+>>>>>>> 06b573bde6b3dd1f40cc020f320420a0d4ef3a9c
   ];
 
   // User navigation dynamically from permissions
@@ -89,7 +93,11 @@ export default function Navbar() {
   }));
 
   const navData = role === "admin" ? adminNav : userNav;
+<<<<<<< HEAD
   // console.log(role);
+=======
+
+>>>>>>> 06b573bde6b3dd1f40cc020f320420a0d4ef3a9c
   return (
     <nav className="h-screen bg-gradient-to-b from-[#2a1ce7] to-[#1c39bb] text-white fixed top-0 left-0 shadow-xl flex flex-col border-r border-white/10 w-64 transition-all duration-300">
 
@@ -166,7 +174,11 @@ export default function Navbar() {
         {dropdownOpen && (
           <div className="absolute bottom-16 left-4 right-4 bg-white text-[#141414] rounded-lg shadow-lg overflow-hidden animate-fade-in z-50">
             <button
+<<<<<<< HEAD
               onClick={() => handleNavigate(role === "admin" ? "/admin-dashboard/admin-profile" : "/admin-dashboard//user-profile")}
+=======
+              onClick={() => handleNavigate(role === "admin" ? "/admin-profile" : "/user-profile")}
+>>>>>>> 06b573bde6b3dd1f40cc020f320420a0d4ef3a9c
               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
             >
               View Profile
