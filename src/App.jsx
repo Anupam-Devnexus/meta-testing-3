@@ -48,6 +48,8 @@ import UserProfile from "./Pages/User/UserProfile";
 import Unauthorized from "./Pages/Unauthorized";
 import Website from "./Pages/AdminDashboard/Website/Website";
 
+import { elements } from "chart.js";
+
 // ================= Route Configurations =================
 const adminRoutes = [
   { path: "", element: <AdminDashboard /> },
@@ -65,7 +67,7 @@ const adminRoutes = [
   { path: "web-development-leads", element: <Caleads /> },
   { path: "travel-agency-leads", element: <Caleads /> },
   { path: "appointments", element: <Appointments /> },
-  { path: "appointment-form", element: <AppointmentForm /> }, 
+  { path: "appointment-form", element: <AppointmentForm /> },
   { path: "google-ads", element: <GoogleAds /> },
   { path: "oppurtunity", element: <Oppur /> },
   { path: "stats", element: <Stats /> },

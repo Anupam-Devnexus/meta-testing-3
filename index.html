@@ -5,34 +5,41 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meta</title>
-  <link href="/src/style.css" rel="stylesheet">
+  <title>Meta Integrations</title>
+  <link href="/src/style.css" rel="stylesheet" />
+
+  <!-- Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
   <div id="root"></div>
+
+  <!-- React entrypoint -->
   <script type="module" src="/src/main.jsx"></script>
 
+  <!-- Facebook SDK -->
   <script>
     window.fbAsyncInit = function () {
       FB.init({
-        appId: 3174037866091141,
+        appId: 1312250540909733, // Replace with import.meta.env.VITE_FACEBOOK_APP_ID in React code
         cookie: true,
         xfbml: true,
-        version: 'v19.0'
+        version: "v19.0",
       });
 
       FB.AppEvents.logPageView();
-
+      console.log("[FB SDK] Initialized ✅");
     };
 
     (function (d, s, id) {
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) { return; }
-      js = d.createElement(s); js.id = id;
+      if (d.getElementById(id)) return;
+      const js = d.createElement(s);
+      js.id = id;
       js.src = "https://connect.facebook.net/en_US/sdk.js";
+      const fjs = d.getElementsByTagName(s)[0];
       fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));
+    })(document, "script", "facebook-jssdk");
   </script>
 </body>
 
