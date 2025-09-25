@@ -9,7 +9,6 @@ export default function ManualLeads() {
     fetchData();
   }, []);
 
-
   const leads = data?.leads || [];
   const api = "https://dbbackend.devnexussolutions.com/User/leads"
   console.log("Leads Data:", leads);

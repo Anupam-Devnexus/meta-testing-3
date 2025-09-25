@@ -93,7 +93,7 @@ export default function AllUsers() {
               {confirmData.map((user) => (
                 <tr key={user._id} className="hover:bg-gray-50">
                   <td className="py-2 px-4 border">{user._id}</td>
-                  <td className="py-2 px-4 border">{user.name}</td>
+                  <td className="py-2 px-4 border">{user.EmpUsername}</td>
                   <td className="py-2 px-4 border">{user.email}</td>
                   <td className="py-2 px-4 border">{user.lastLogin}</td>
                   <td className="py-2 px-4 border">{user.role}</td>
