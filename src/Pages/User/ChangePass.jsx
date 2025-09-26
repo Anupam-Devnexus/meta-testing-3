@@ -1,4 +1,7 @@
+<<<<<<< HEAD:src/Pages/User/ChangePass.jsx
 <<<<<<< HEAD
+=======
+>>>>>>> 390aa61 (mukti changes in UI):src/Pages/UserDashboard/ChangePass.jsx
 import React, { useState } from 'react';
 
 const ForgotPass = () => {
@@ -75,6 +78,7 @@ const ForgotPass = () => {
 };
 
 export default ForgotPass;
+<<<<<<< HEAD:src/Pages/User/ChangePass.jsx
 =======
 import React, { useState } from 'react';
 
@@ -153,3 +157,5 @@ const ForgotPass = () => {
 
 export default ForgotPass;
 >>>>>>> 06b573bde6b3dd1f40cc020f320420a0d4ef3a9c
+=======
+>>>>>>> 390aa61 (mukti changes in UI):src/Pages/UserDashboard/ChangePass.jsx

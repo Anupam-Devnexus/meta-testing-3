@@ -79,6 +79,7 @@ const AccessCheckbox = ({ item, formData, handleChange }) => {
 };
 
 export default function AddUser() {
+<<<<<<< HEAD
   const initialFormState = useMemo(
     () => ({
       name: "",
@@ -92,6 +93,16 @@ export default function AddUser() {
     }),
     []
   );
+=======
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    role: "",
+  });
+>>>>>>> 390aa61 (mukti changes in UI)
 
   const [formData, setFormData] = useState(initialFormState);
   const [error, setError] = useState("");
@@ -112,6 +123,7 @@ export default function AddUser() {
   const handleChange = useCallback((e, item) => {
     const { name, value, checked } = e.target;
 
+<<<<<<< HEAD
     if (name === "access") {
       const allPaths = collectChildren(item);
       setFormData((prev) => {
@@ -131,6 +143,20 @@ export default function AddUser() {
       });
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+=======
+    const { name, email, phone, password, confirmPassword, role } = formData;
+
+    if (!name || !email || !phone || !password || !confirmPassword || !role) {
+      setError("All fields are required!");
+      setSuccess("");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      setSuccess("");
+      return;
+>>>>>>> 390aa61 (mukti changes in UI)
     }
   }, []);
 
@@ -140,6 +166,7 @@ const handleSubmit = async (e) => {
   e.preventDefault();
   const { name, email, phone, password, confirmPassword, role, access } = formData;
 
+<<<<<<< HEAD
   if (!name || !email || !phone || !password || !confirmPassword || !role) {
     setError("All fields are required!");
     setSuccess("");
@@ -190,6 +217,37 @@ console.log(loggedInUser.id)
       setFormData(initialFormState);
     } else {
       setError(result.message || "Something went wrong!");
+=======
+    try {
+      const response = await fetch(
+        "https://dbbackend.devnexussolutions.com/auth/api/signup-users",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const result = await response.json();
+      console.log("API Response:", result);
+
+      if (response.ok) {
+        setSuccess("User added successfully!");
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          password: "",
+          confirmPassword: "",
+          role: "",
+        });
+      } else {
+        setError(result.message || "Something went wrong!");
+      }
+    } catch (err) {
+      console.error("Error posting user:", err);
+      setError("Network or server error");
+>>>>>>> 390aa61 (mukti changes in UI)
     }
   } catch (err) {
     console.error(err);
@@ -204,24 +262,47 @@ console.log(loggedInUser.id)
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl p-6">
         <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Add New User</h2>
 
+<<<<<<< HEAD
         {error && <p className="mb-4 text-center text-red-600 font-medium">{error}</p>}
         {success && <p className="mb-4 text-center text-green-600 font-medium">{success}</p>}
+=======
+        {error && (
+          <p className="mb-4 text-center text-red-600 font-medium">{error}</p>
+        )}
+        {success && (
+          <p className="mb-4 text-center text-green-600 font-medium">
+            {success}
+          </p>
+        )}
+>>>>>>> 390aa61 (mukti changes in UI)
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Name */}
+<<<<<<< HEAD
           <div>
             <label className="block text-gray-700 font-medium mb-1">Name</label>
+=======
+          <div className="flex flex-col">
+            <label htmlFor="name" className="mb-2 text-gray-700 font-medium">
+              Name
+            </label>
+>>>>>>> 390aa61 (mukti changes in UI)
             <input
               name="name"
               value={formData.name}
               onChange={handleChange}
               placeholder="Enter full name"
+<<<<<<< HEAD
               className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+=======
+              className="input-style"
+>>>>>>> 390aa61 (mukti changes in UI)
               required
             />
           </div>
 
           {/* Email */}
+<<<<<<< HEAD
           <div>
             <label className="block text-gray-700 font-medium mb-1">Email</label>
             <input
@@ -231,11 +312,26 @@ console.log(loggedInUser.id)
               onChange={handleChange}
               placeholder="Enter email"
               className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+=======
+          <div className="flex flex-col">
+            <label htmlFor="email" className="mb-2 text-gray-700 font-medium">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter email"
+              className="input-style"
+>>>>>>> 390aa61 (mukti changes in UI)
               required
             />
           </div>
 
           {/* Phone */}
+<<<<<<< HEAD
           <div>
             <label className="block text-gray-700 font-medium mb-1">Phone</label>
             <input
@@ -273,18 +369,46 @@ console.log(loggedInUser.id)
           {/* Password */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Password</label>
+=======
+          <div className="flex flex-col">
+            <label htmlFor="phone" className="mb-2 text-gray-700 font-medium">
+              Phone
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter phone number"
+              className="input-style"
+              required
+            />
+          </div>
+
+          {/* Password */}
+          <div className="flex flex-col">
+            <label htmlFor="password" className="mb-2 text-gray-700 font-medium">
+              Password
+            </label>
+>>>>>>> 390aa61 (mukti changes in UI)
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter password"
+<<<<<<< HEAD
               className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+=======
+              className="input-style"
+>>>>>>> 390aa61 (mukti changes in UI)
               required
             />
           </div>
 
           {/* Confirm Password */}
+<<<<<<< HEAD
           <div>
             <label className="block text-gray-700 font-medium mb-1">Confirm Password</label>
             <input
@@ -294,10 +418,28 @@ console.log(loggedInUser.id)
               onChange={handleChange}
               placeholder="Re-enter password"
               className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+=======
+          <div className="flex flex-col">
+            <label
+              htmlFor="confirmPassword"
+              className="mb-2 text-gray-700 font-medium"
+            >
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Re-enter password"
+              className="input-style"
+>>>>>>> 390aa61 (mukti changes in UI)
               required
             />
           </div>
 
+<<<<<<< HEAD
           {/* Page Access */}
           <div className="sm:col-span-2">
             <label className="block text-gray-700 font-medium mb-2">Page Access</label>
@@ -314,6 +456,30 @@ console.log(loggedInUser.id)
           </div>
 
           {/* Submit */}
+=======
+          {/* Role */}
+          <div className="flex flex-col">
+            <label htmlFor="role" className="mb-2 text-gray-700 font-medium">
+              Role
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="input-style"
+              required
+            >
+              <option value="" disabled>
+                Select Role
+              </option>
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+            </select>
+          </div>
+
+          {/* Submit Button */}
+>>>>>>> 390aa61 (mukti changes in UI)
           <button
             type="submit"
             className="sm:col-span-2 w-full mt-4 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition duration-200 shadow-md"
@@ -322,6 +488,21 @@ console.log(loggedInUser.id)
           </button>
         </form>
       </div>
+
+      {/* Tailwind Custom Class for Inputs */}
+      <style jsx>{`
+        .input-style {
+          border: 1px solid #d1d5db;
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          outline: none;
+          transition: border 0.2s ease-in-out;
+        }
+        .input-style:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+      `}</style>
     </div>
   );
 }

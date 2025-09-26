@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 390aa61 (mukti changes in UI)
 import React, { useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -25,6 +28,7 @@ export default function BlogsPage({ value, onChange }) {
     />
   );
 }
+<<<<<<< HEAD
 =======
 import React, { useState } from "react";
 import ReactQuill from "react-quill";
@@ -53,3 +57,5 @@ export default function BlogsPage({ value, onChange }) {
   );
 }
 >>>>>>> 06b573bde6b3dd1f40cc020f320420a0d4ef3a9c
+=======
+>>>>>>> 390aa61 (mukti changes in UI)

@@ -4,11 +4,14 @@ import { useNavigate } from "react-router-dom";
 
 import useMetaLeads from "../../Zustand/MetaLeadsGet";
 import useLeadStore from "../../Zustand/LeadsGet";
+<<<<<<< HEAD
 import useUserStore from "../../Zustand/UsersGet";
 import IntegrationPage from "./Interagtion/IntegrationPage";
 
 import StatCard from "../../Components/Cards/StatCard";
 import SalesFunnel from "../../Components/Charts/SalesFunnel";
+=======
+>>>>>>> 390aa61 (mukti changes in UI)
 import SellHistoryChart from "../../Components/SellHistoryChart";
 import SupportTracker from "../../Components/SupportTracker";
 
@@ -61,6 +64,7 @@ export default function Dashboard() {
 
   // 🔹 Fetch Data on Mount
   useEffect(() => {
+<<<<<<< HEAD
     const storedUser = localStorage.getItem("User");
     if (storedUser) {
       try {
@@ -70,6 +74,15 @@ export default function Dashboard() {
         console.error("Failed to parse user info:", err);
       }
     }
+=======
+    
+    const userName = localStorage.getItem("userName") || "User";
+    const userEmail = localStorage.getItem("userEmail") || "email@example.com";
+    const userRole = localStorage.getItem("userRole") || "Role";
+
+    setUserInfo({ userName, userEmail, userRole });
+
+>>>>>>> 390aa61 (mukti changes in UI)
     fetchMetaLeads();
     fetchData();
     fetchUser();
@@ -126,6 +139,7 @@ export default function Dashboard() {
           hoverEffect
         />
       </div>
+<<<<<<< HEAD
 
       {/* Sales & Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
@@ -143,6 +157,10 @@ export default function Dashboard() {
       {/* Support Tracker */}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-10 hover:shadow-xl transition-shadow duration-300">
         <h2 className="text-2xl font-bold mb-4 text-indigo-700">Support Tracker</h2>
+=======
+           <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 pt-20">
+        <SellHistoryChart />
+>>>>>>> 390aa61 (mukti changes in UI)
         <SupportTracker />
       </div>
     </div>

@@ -26,89 +26,30 @@ import AddUser from "./Pages/AdminDashboard/Users/AddUser";
 import AddLeads from "./Pages/AdminDashboard/Leads/AddLeads";
 import UploadExcel from "./Pages/AdminDashboard/Leads/UploadExcel";
 import MannualLeads from "./Pages/AdminDashboard/Leads/MannualLeads";
+import Stats from "./Pages/AdminDashboard/Stats/Stats"
+import Contact from "./Pages/AdminDashboard/Contact/Contact";
+
+
+// User Layout + Pages
+import UserLayout from "./Pages/UserDashboard/UserLayout";
+import UserDashboard from "./Pages/UserDashboard/UserDashboard";
+
+// Edit Mannual Pages
 import EditMannualLeads from "./Pages/AdminDashboard/Leads/EditMannulLeads";
 import EditUser from "./Pages/AdminDashboard/Leads/EditUser";
-import Caleads from "./Pages/AdminDashboard/Caleads/Caleads";
-import Stats from "./Pages/AdminDashboard/Stats/Stats";
-import Appointments from "./Pages/AdminDashboard/Calender/Appointments";
-import AppointmentForm from "./Pages/AdminDashboard/Calender/AppointmentForm";
-import IntegrationPage from "./Pages/AdminDashboard/Interagtion/IntegrationPage";
-import GoogleAds from "./Pages/AdminDashboard/Google/GoogleAds";
-import { Oppur } from "./Pages/AdminDashboard/Oppur";
-import Proflie from "./Pages/AdminDashboard/Proflie";
-import Privacy from "./Pages/Privacy";
 
 
-// User Pages
-import UserLayout from "./Pages/User/UserLayout";
-import UserDashboard from "./Pages/User/UserDashboard";
-import FollowUpStatus from "./Pages/User/Follow-up Status";
-import UserProfile from "./Pages/User/UserProfile";
+// Unauthorized
+// import Unauthorized from "./Pages/Unauthorized";
 
-// Misc
-import Unauthorized from "./Pages/Unauthorized";
-import Website from "./Pages/AdminDashboard/Website/Website";
-
-import { elements } from "chart.js";
-import Terms from "./Pages/Terms";
-
-// ================= Route Configurations =================
-const adminRoutes = [
-  { path: "", element: <AdminDashboard /> },
-  { path: "admin-profile", element: <Proflie /> },
-  { path: "users", element: <AllUsers /> },
-  { path: "users/add", element: <AddUser /> },
-  { path: "users/edit/:userId", element: <EditUser /> },
-  { path: "meta", element: <Meta /> },
-  { path: "mannual-leads", element: <MannualLeads /> },
-  { path: "mannual-leads/add", element: <AddLeads /> },
-  { path: "mannual-leads/edit/:leadId", element: <EditMannualLeads /> },
-  { path: "upload-excel", element: <UploadExcel /> },
-  { path: "ca-leads", element: <Caleads /> },
-  { path: "digital-leads", element: <Caleads /> },
-  { path: "web-development-leads", element: <Caleads /> },
-  { path: "travel-agency-leads", element: <Caleads /> },
-  { path: "appointments", element: <Appointments /> },
-  { path: "appointment-form", element: <AppointmentForm /> },
-  { path: "google-ads", element: <GoogleAds /> },
-  { path: "oppurtunity", element: <Oppur /> },
-  { path: "stats", element: <Stats /> },
-  { path: "website", element: <Website /> },
-];
-
-const userRoutes = [
-  { path: "", element: <UserDashboard /> },
-  { path: "follow-up-status", element: <FollowUpStatus /> },
-  { path: "user-profile", element: <UserProfile /> },
-];
-
-// ================= Root Redirect =================
-function RootRedirect() {
-  const { user } = useAuth();
-
-  if (!user) return <Navigate to="/login" replace />;
-
-  const role = user.role?.trim().toLowerCase();
-  if (role === "admin") return <Navigate to="/admin-dashboard" replace />;
-  if (role === "user") return <Navigate to="/user-dashboard" replace />;
-
-  return <Navigate to="/unauthorized" replace />;
-}
-
-// ================= App Content =================
 function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Hide navbar on auth pages
-  const hideNavbar = ["/login", "/signup", "/forgot-password","/terms","/privacy", "/confirm-otp"].includes(
-    location.pathname
-  );
-  const mainMarginClass = hideNavbar ? "ml-0" : "ml-64";
+  const hideNavbar = location.pathname === "/" || location.pathname === "/signup" || location.pathname === "/unauthorized";
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Navbar */}
+    <div className="">
       {!hideNavbar && user && <Navbar />}
 
       <main className={`flex-1 ${mainMarginClass} min-h-screen overflow-auto`}>
@@ -125,33 +66,48 @@ function AppContent() {
           <Route path="/terms" element={<Terms/>}/>
           <Route path="/privacy" element={<Privacy/>}/>
 
-          {/* Admin Routes */}
-          <Route
-            path="/admin-dashboard/*"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            {adminRoutes.map(({ path, element }) => (
-              <Route key={path} path={path} element={element} />
-            ))}
-          </Route>
+        {/* Admin Routes */}
+        <Route
+          path="/admin-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="/admin-dashboard/users" element={<AllUsers />} />
+          <Route path="/admin-dashboard/meta" element={<Meta />} />
+          <Route path="/admin-dashboard/users/add" element={<AddUser />} />
+          <Route path="/admin-dashboard/mannual-leads/add" element={<AddLeads/>}/>
+          <Route path="/admin-dashboard/upload-excel" element={<UploadExcel/>}/>
+          <Route path="/admin-dashboard/mannual-leads" element={<MannualLeads/>}/>
+          <Route path="/admin-dashboard/stats" element={<Stats/>}/>
+          <Route path="/admin-dashboard/contact" element={<Contact/>}/>
+          {/* Add more nested admin routes here */}
 
-          {/* User Routes */}
-          <Route
-            path="/user-dashboard/*"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <UserLayout />
-              </ProtectedRoute>
-            }
-          >
-            {userRoutes.map(({ path, element }) => (
-              <Route key={path} path={path} element={element} />
-            ))}
-          </Route>
+
+          {/* Dynamic Routes */}
+
+ {/* Edit manual lead */}
+ <Route path="/admin-dashboard/mannual-leads/edit/:leadId" element={<EditMannualLeads />} />
+ <Route path="/admin-dashboard/users/edit/:userId" element={<EditUser/>}/>
+
+        
+        </Route>
+
+        {/* User Routes */}
+        <Route
+          path="/user-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["User"]}>
+              <UserLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<UserDashboard />} />
+          {/* Add more nested user routes here */}
+        </Route>
 
           {/* 404 */}
           <Route
