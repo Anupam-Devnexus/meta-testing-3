@@ -106,7 +106,7 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
     });
   };
 
-  // Bulk Communication
+
   const sendWhatsApp = () => {
     rows.forEach((row, idx) => {
       const id = row.id || row._id || idx;
@@ -144,8 +144,6 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
     setSubmitting(true);
     try {
       const token = JSON.parse(localStorage.getItem("UserDetails"));
-
-      // Collect enabled rows
       const updates = Object.keys(enabledRows)
         .filter((id) => enabledRows[id])
         .map((id) => {
@@ -166,7 +164,6 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
         return;
       }
 
-      // ❗ Pick first row’s data (backend only supports one updateData)
       const ids = updates.map((u) => u._id);
       const updateData = {
         remarks1: updates[0].remarks1,
@@ -175,7 +172,6 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
       };
 
       console.log("Payload being sent:", { ids, updateData });
-
       const res = await fetch(`${patchApi}`, {
         method: "PATCH",
         headers: {
@@ -185,11 +181,12 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
         body: JSON.stringify({ ids, updateData }),
       });
 
+      // console.log(res)
+
       if (!res.ok) {
         const errText = await res.text();
         throw new Error(`Failed: ${errText}`);
       }
-
       const response = await res.json();
       console.log("Patch response:", response);
       console.log("Changes submitted successfully!");

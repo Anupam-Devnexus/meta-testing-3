@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import DynamicDataTable from '../../../Components/Tables/DynamicDataTable'
-import MetaLeads from "../../../Zustand/MetaLeadsGet"
+import MetaLeads from "../../../Zustand/MetaLeadsGet";
 const Meta = () => {
   const {metaleads , error , loading,fetchMetaLeads} = MetaLeads()
 

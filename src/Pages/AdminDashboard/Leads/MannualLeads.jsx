@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import useLeadStore from "../../../Zustand/LeadsGet";
 import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
+import MannualTable from "../../../Components/Tables/MannualTable";
 
 export default function ManualLeads() {
   const { data, loading, error, fetchData } = useLeadStore();
@@ -10,16 +11,16 @@ export default function ManualLeads() {
   }, []);
 
   const leads = data?.leads || [];
-  const api = "https://dbbackend.devnexussolutions.com/User/leads"
-  console.log("Leads Data:", leads);
+  const api = "https://dbbackend.devnexussolutions.com/user/leads"
+  console.log("Leads Data:", leads)
   return (
     <div className="p-4">
       {loading && <p className="text-yellow-600">Loading leads...</p>}
       {error && <p className="text-red-500">Error: {error}</p>}
 
       {!loading && !error && leads.length > 0 && (
-        <DynamicDataTable
-          apiData={leads}
+        <MannualTable
+          leads={leads}
           patchApi={api}
         />
       )}

@@ -19,7 +19,7 @@ const useLeadStore = create((set) => ({
       }
 
       const response = await fetch(
-        'https://dbbackend.devnexussolutions.com/User/leads',
+        'https://dbbackend.devnexussolutions.com/user/leads',
         {
           method: "GET",
           headers: {
