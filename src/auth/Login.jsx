@@ -78,7 +78,7 @@ export default function Login() {
         ...prev,
         login: "Something went wrong. Please try again later.",
       }));
-    } finally {
+    }  {
       setLoading(false);
     }
   };
