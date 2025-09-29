@@ -332,15 +332,16 @@ const sendGmail = () => {
             </tbody>
           </table>
         </div>
-        <MannualTable
-          leads={leads}
-          patchApi={api}
-        />
       )}
+      <MannualTable
+        leads={leads}
+        patchApi={api}
+      />
 
       {!loading && !error && leads.length === 0 && (
         <p className="text-gray-500">No leads found.</p>
       )}
+    </div>
     </div>
   );
 }

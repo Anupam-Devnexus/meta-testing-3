@@ -19,7 +19,6 @@ const useLeadStore = create((set) => ({
       }
 
       const response = await fetch(
-<<<<<<< HEAD
         'https://dbbackend.devnexussolutions.com/user/leads',
         {
           method: "GET",
@@ -28,9 +27,6 @@ const useLeadStore = create((set) => ({
             Authorization: `Bearer ${authToken}`,
           },
         }
-=======
-        'https://dbbackend.devnexussolutions.com/auth/api/get-all-leads'
->>>>>>> 390aa61 (mukti changes in UI)
       );
 
       if (response.status === 401) {

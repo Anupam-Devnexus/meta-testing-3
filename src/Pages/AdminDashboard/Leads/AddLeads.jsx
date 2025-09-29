@@ -81,7 +81,7 @@ export default function AddLeads() {
   };
 
   return (
-    <section className="p-4 max-w-6xl mx-auto">
+    <section className="p-4 max-w-6xl mx-auto mt-10">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">Create Leads</h1>
 
       <Formik
@@ -90,7 +90,7 @@ export default function AddLeads() {
         onSubmit={handleFormSubmit}
       >
         {({ isSubmitting, values }) => (
-          <Form className="bg-white p-6 rounded-2xl shadow-xl space-y-6">
+          <Form className="space-y-6 bg-white p-6 rounded-2xl shadow-xl">
             {/* Static Fields */}
             <div className="grid sm:grid-cols-2 gap-5">
               {[
@@ -105,85 +105,29 @@ export default function AddLeads() {
                 { label: "Remarks 1", name: "remarks1" },
                 { label: "Remarks 2", name: "remarks2" },
               ].map(({ label, name, type = "text" }) => (
-                <div key={name} className="flex flex-col">
-                  <label className="text-sm font-medium text-gray-700 mb-1">{label}</label>
+                <div key={name}>
+                  <label className="block text-sm font-medium text-gray-700">{label}</label>
                   <Field
                     name={name}
                     type={type}
-                    className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full border p-2 rounded focus:outline-blue-500"
                   />
-                  <ErrorMessage name={name} component="div" className="text-red-500 text-sm mt-1" />
+                  <ErrorMessage name={name} component="div" className="text-red-500 text-sm" />
                 </div>
               ))}
-            </div>
 
-<<<<<<< HEAD
-            {/* Status Dropdown */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">Status</label>
-              <Field
-                as="select"
-                name="status"
-                className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-gray-800"
-              >
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-=======
-    return (
-      <section className="p-2  max-w-6xl mx-auto mt-10">
-        <div className="pb-10">
-  <span className="text-3xl font-bold mb-10 ">Create Leads</span>
-
-
-        </div>
-
-        
-        <Formik
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={handleFormSubmit}
-        >
-          {({ isSubmitting, values }) => (
-            <Form className="space-y-5 bg-white p-6 rounded-xl shadow-md">
-              {/* Date Field */}
-              {/* <div>
-                <label className="block font-medium text-sm text-gray-700">Date</label>
-                <Field
-                  name="date"
-                  readOnly
-                  className="w-full border p-2 rounded bg-gray-100 text-gray-700"
-                />
-              </div> */}
-
-              {/* Static Fields */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  { label: "Name", name: "name" },
-                  { label: "Email", name: "email", type: "email" },
-                  { label: "Phone", name: "phone" },
-                  { label: "City", name: "city" },
-                  { label: "Budget", name: "budget" },
-                  { label: "Requirement", name: "requirement" },
-                  { label: "Source", name: "source" },
-                  { label: "Campaign", name: "Campaign" },
-                  { label: "Remarks 1", name: "remarks1" },
-                  { label: "Remarks 2", name: "remarks2" },
-                ].map(({ label, name, type = "text" }) => (
-                  <div key={name}>
-                    <label className="block text-sm font-medium text-gray-700">{label}</label>
-                    <Field
-                      name={name}
-                      type={type}
-                      className="w-full border p-2 rounded focus:outline-blue-500"
-                    />
-                    <ErrorMessage name={name} component="div" className="text-red-500 text-sm" />
-                  </div>
->>>>>>> 390aa61 (mukti changes in UI)
-                ))}
-              </Field>
-              <ErrorMessage name="status" component="div" className="text-red-500 text-sm mt-1" />
+              {/* Status Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <Field as="select" name="status" className="w-full border p-2 rounded">
+                  {statusOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </Field>
+                <ErrorMessage name="status" component="div" className="text-red-500 text-sm mt-1" />
+              </div>
             </div>
 
             {/* Dynamic Fields */}
@@ -202,7 +146,10 @@ export default function AddLeads() {
                   </div>
 
                   {values.dynamicFields.map((_, index) => (
-                    <div key={index} className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 items-center">
+                    <div
+                      key={index}
+                      className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 items-center"
+                    >
                       <Field
                         name={`dynamicFields[${index}].label`}
                         placeholder="Label"
