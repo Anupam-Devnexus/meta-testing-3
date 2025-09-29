@@ -26,7 +26,7 @@ import AddUser from "./Pages/AdminDashboard/Users/AddUser";
 import AddLeads from "./Pages/AdminDashboard/Leads/AddLeads";
 import UploadExcel from "./Pages/AdminDashboard/Leads/UploadExcel";
 import MannualLeads from "./Pages/AdminDashboard/Leads/MannualLeads";
-<<<<<<< HEAD
+
 import Stats from "./Pages/AdminDashboard/Stats/Stats";
 import Contact from "./Pages/AdminDashboard/Contact/Contact";
 import Calender from "./Pages/AdminDashboard/Calender/Calender";
@@ -38,8 +38,7 @@ import UserLayout from "./Pages/UserDashboard/UserLayout";
 // Edit Mannual Pages
 import EditMannualLeads from "./Pages/AdminDashboard/Leads/EditMannulLeads";
 import EditUser from "./Pages/AdminDashboard/Leads/EditUser";
-<<<<<<< HEAD
-import InvoiceTable from "./Pages/AdminDashboard/Caleads/Caleads";
+import Caleads from "./Pages/AdminDashboard/Caleads/Caleads";
 import UserDashboard from "./Components/UserDashboardleads";
 import FollowUpStatus from "./Pages/UserDashboard/Follow-up Status";
 import ForgotPass from "./Pages/UserDashboard/ChangePass";
@@ -90,48 +89,6 @@ function AppContent() {
           <Route path="/admin-dashboard/users" element={<AllUsers />} />
           <Route path="/admin-dashboard/meta" element={<Meta />} />
           <Route path="/admin-dashboard/users/add" element={<AddUser />} />
-<<<<<<< HEAD
-          <Route
-            path="/admin-dashboard/mannual-leads/add"
-            element={<AddLeads />}
-          />
-          <Route
-            path="/admin-dashboard/upload-excel"
-            element={<UploadExcel />}
-          />
-          <Route
-            path="/admin-dashboard/mannual-leads"
-            element={<MannualLeads />}
-          />
-          <Route path="/admin-dashboard/ca-leads" element={<InvoiceTable />} />
-          <Route path="/admin-dashboard/digital-leads" element={<InvoiceTable />} />
-          <Route path="/admin-dashboard/web-development-leads" element={<InvoiceTable />} />
-          <Route path="/admin-dashboard/travel-agency-leads" element={<InvoiceTable />} />
-          <Route path="/admin-dashboard/appointments" element={<Appointments />} />
-          <Route path="/admin-dashboard/integrations" element={<IntegrationPage />} />
-          <Route path="/admin-dashboard/appointment-form" element={<AppointmentForm />} />
-          <Route path="/admin-dashboard/google-ads" element={<GoogleAds />} />
-          <Route path="/admin-dashboard/oppurtunity" element={<Oppur/>}/>
-
-
-          <Route path="/admin-dashboard/stats" element={<Stats />} />
-          <Route path="/admin-dashboard/contact" element={<Contact />} />
-          <Route path="/admin-dashboard/blogs" element={<BlogsPage />} />
-
-          {/* Add more nested admin routes here */}
-
-          {/* Dynamic Routes */}
-
-          {/* Edit manual lead */}
-          <Route
-            path="/admin-dashboard/mannual-leads/edit/:leadId"
-            element={<EditMannualLeads />}
-          />
-          <Route
-            path="/admin-dashboard/users/edit/:userId"
-            element={<EditUser />}
-          />
-=======
           <Route path="/admin-dashboard/mannual-leads/add" element={<AddLeads/>}/>
           <Route path="/admin-dashboard/upload-excel" element={<UploadExcel/>}/>
           <Route path="/admin-dashboard/mannual-leads" element={<MannualLeads/>}/>
@@ -147,7 +104,6 @@ function AppContent() {
  <Route path="/admin-dashboard/users/edit/:userId" element={<EditUser/>}/>
 
         
->>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
         </Route>
 
         {/* User Routes */}
@@ -160,12 +116,9 @@ function AppContent() {
           }
         >
           <Route index element={<UserDashboard />} />
-<<<<<<< HEAD
           <Route path="/user-dashboard/leads" element={<UserDashboard />} />
           <Route path="/user-dashboard/follow-up" element={<FollowUpStatus />} />
           <Route path="/user-dashboard/change-password" element={<ForgotPass />} />
-=======
->>>>>>> 3cf69d926bd9d82757e2a459d3ff5ae739e25376
           {/* Add more nested user routes here */}
         </Route>
 
@@ -181,7 +134,7 @@ function AppContent() {
         </Routes>
       </main>
     </div>
-    </div>
+    // </div>
   );
 }
 

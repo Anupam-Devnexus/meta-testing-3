@@ -1,24 +1,15 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
+// Icons
 import { FaUsers } from "react-icons/fa";
 import { FiChevronDown, FiLogOut, FiUser } from "react-icons/fi";
 import { GrTableAdd, GrIntegration } from "react-icons/gr";
 import { SlCalender } from "react-icons/sl";
 import { MdLeaderboard } from "react-icons/md";
 import { RiAdminLine } from "react-icons/ri";
-import { GrIntegration } from "react-icons/gr";
 import { SiGoogleads } from "react-icons/si";
 import { IoLogoGoogleplus } from "react-icons/io";
-import { LuPartyPopper } from "react-icons/lu";
-=======
-import { useState } from "react";
-import { FaUsers } from "react-icons/fa";
-import { FiChevronDown, FiLogOut, FiUser } from "react-icons/fi";
-import { GrTableAdd } from "react-icons/gr";
-import { MdLeaderboard } from "react-icons/md";
-import { RiAdminLine } from "react-icons/ri";
-import { SiGoogleads } from "react-icons/si";
-import { IoLogoGoogleplus } from "react-icons/io";
-import { useNavigate, useLocation } from "react-router-dom";
 import { LuPartyPopper } from "react-icons/lu";
 
 export default function Navbar() {
@@ -28,17 +19,15 @@ export default function Navbar() {
   const storedRole = localStorage.getItem("userRole") || "User";
   const storedName = localStorage.getItem("userName") || "Guest";
 
-  // Navigation Config
+  // Admin Navigation
   const adminNav = [
     { icon: <RiAdminLine />, label: "Dashboard", path: "/admin-dashboard" },
-    { icon: <LuPartyPopper />, label: "Oppurtunity", path: "/admin-dashboard/oppurtunity" },
+    { icon: <LuPartyPopper />, label: "Opportunity", path: "/admin-dashboard/oppurtunity" },
     {
       icon: <FaUsers />,
       label: "Users",
       path: "/admin-dashboard/users",
-      submenu: [
-        { icon: <FaUsers />, sublabel: "All Users", path: "/admin-dashboard/users" },
-      ],
+      submenu: [{ icon: <FaUsers />, sublabel: "All Users", path: "/admin-dashboard/users" }],
     },
     {
       icon: <FaUsers />,
@@ -46,7 +35,6 @@ export default function Navbar() {
       path: "/admin-dashboard/leads",
       submenu: [
         { icon: <FaUsers />, sublabel: "Create Lead", path: "/admin-dashboard/mannual-leads/add" },
-        // { icon: <FaUsers />, sublabel: "All Leads", path: "/admin-dashboard/mannual-leads" },
       ],
     },
     { icon: <SiGoogleads />, label: "Manual Leads", path: "/admin-dashboard/mannual-leads" },
@@ -67,16 +55,14 @@ export default function Navbar() {
       icon: <IoLogoGoogleplus />,
       label: "Google",
       path: "/admin-dashboard/google",
-      submenu: [
-        { icon: <IoLogoGoogleplus />, sublabel: "Google Ads", path: "/admin-dashboard/google-ads" },
-      ],
+      submenu: [{ icon: <IoLogoGoogleplus />, sublabel: "Google Ads", path: "/admin-dashboard/google-ads" }],
     },
     { icon: <RiAdminLine />, label: "Stats", path: "/admin-dashboard/stats" },
-    { icon: <RiAdminLine />, label: "Blogs", path: "/admin-dashboard/blogs" },
     { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" },
     { icon: <GrIntegration />, label: "Integrations", path: "/admin-dashboard/integrations" },
   ];
 
+  // User Navigation
   const userNav = [
     { icon: <MdLeaderboard />, label: "My Leads", path: "/user-dashboard/leads" },
     { icon: <GrTableAdd />, label: "Follow Up", path: "/user-dashboard/follow-up" },
@@ -99,61 +85,8 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // Admin Navigation (static)
-  const adminNav = [
-    { icon: <RiAdminLine />, label: "Dashboard", path: "/admin-dashboard" },
-    { icon: <LuPartyPopper />, label: "Opportunity", path: "/admin-dashboard/oppurtunity" },
-    {
-      icon: <FaUsers />,
-      label: "Users",
-      path: "/admin-dashboard/users",
-      submenu: [{ icon: <FaUsers />, sublabel: "All Users", path: "/admin-dashboard/users" }],
-    },
-    {
-      icon: <FaUsers />,
-      label: "Leads",
-      path: "/admin-dashboard/leads",
-      submenu: [
-        { icon: <FaUsers />, sublabel: "Create Lead", path: "/admin-dashboard/mannual-leads/add" },
-      ],
-    },
-    { icon: <SiGoogleads />, label: "Manual Leads", path: "/admin-dashboard/mannual-leads" },
-    { icon: <FaUsers />, label: "Website Leads", path: "/admin-dashboard/website" },
-    {
-      icon: <FaUsers />,
-      label: "Meta",
-      path: "/admin-dashboard/meta",
-      submenu: [
-        { icon: <SiGoogleads />, sublabel: "Meta Leads", path: "/admin-dashboard/meta" },
-        { icon: <FaUsers />, sublabel: "CA Leads", path: "/admin-dashboard/ca-leads" },
-        { icon: <FaUsers />, sublabel: "Digital Leads", path: "/admin-dashboard/digital-leads" },
-        { icon: <FaUsers />, sublabel: "Web Dev Leads", path: "/admin-dashboard/web-development-leads" },
-        { icon: <FaUsers />, sublabel: "Travel Leads", path: "/admin-dashboard/travel-agency-leads" },
-      ],
-    },
-    {
-      icon: <IoLogoGoogleplus />,
-      label: "Google",
-      path: "/admin-dashboard/google",
-      submenu: [{ icon: <IoLogoGoogleplus />, sublabel: "Google Ads", path: "/admin-dashboard/google-ads" }],
-    },
-    { icon: <RiAdminLine />, label: "Stats", path: "/admin-dashboard/stats" },
-    { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" },
-    // { icon: <GrIntegration />, label: "Proflie", path: "/admin-dashboard/admin-profile" },
-  ];
-
-  // User navigation dynamically from permissions
-  const userNav = permissions.map((perm) => ({
-    icon: <MdLeaderboard />,
-    label: perm.label,
-    path: perm.path,
-  }));
-
-  const navData = role === "admin" ? adminNav : userNav;
-  // console.log(role);
   return (
     <nav className="w-64 h-screen bg-[var(--primary-color)]/95 backdrop-blur-lg text-white fixed top-0 left-0 shadow-xl flex flex-col border-r border-white/10">
-
       {/* Header */}
       <div className="px-5 py-4 border-b border-white/10">
         <h1 className="text-xl font-bold tracking-wide">
@@ -177,9 +110,7 @@ export default function Navbar() {
                       ? setOpenSubmenu(openSubmenu === item.label ? null : item.label)
                       : handleNavigate(item.path)
                   }
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 ${isParentActive
-                      ? "bg-white/20 font-semibold"
-                      : "hover:bg-white/10"
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 ${isParentActive ? "bg-white/20 font-semibold" : "hover:bg-white/10"
                     }`}
                 >
                   <div className="flex items-center gap-3">
@@ -237,7 +168,6 @@ export default function Navbar() {
           <div className="absolute bottom-16 left-4 right-4 bg-white text-[var(--primary-color)] rounded-lg shadow-lg overflow-hidden animate-fade-in">
             <button
               onClick={() => alert("View Profile")}
->>>>>>> 390aa61 (mukti changes in UI)
               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
             >
               View Profile

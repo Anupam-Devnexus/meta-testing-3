@@ -64,7 +64,7 @@ export default function Dashboard() {
 
     setUserInfo({ userName, userEmail, userRole });
 
->>>>>>> 390aa61 (mukti changes in UI)
+
     fetchMetaLeads();
     fetchData();
     fetchUser();
@@ -92,59 +92,60 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
-        <StatCard
-          icon={FaUser}
-          title="Total Users"
-          value={loading ? "..." : totalUsers}
-          bgColor="bg-indigo-100"
-          iconColor="text-indigo-600"
-          onClick={() => navigate("/admin-dashboard/users")}
-          hoverEffect
-          hoverEffect
-        />
-        <StatCard
-          icon={FaUsers}
-          title="Total Meta Leads"
-          value={totalMetaLeads}
-          bgColor="bg-green-100"
-          iconColor="text-green-600"
-          onClick={() => navigate("/admin-dashboard/meta")}
-          hoverEffect
-          hoverEffect
-        />
-        <StatCard
-          icon={FaChartLine}
-          title="Total Leads"
-          value={totalLeads}
-          bgColor="bg-yellow-100"
-          iconColor="text-yellow-600"
-          onClick={() => navigate("/admin-dashboard/stats")}
-          hoverEffect
-          hoverEffect
-        />
-      </div>
-
-      {/* Sales & Analytics Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-        {/* Sales Funnel */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales Funnel</h2>
-          <SalesFunnel />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
+          <StatCard
+            icon={FaUser}
+            title="Total Users"
+            value={loading ? "..." : totalUsers}
+            bgColor="bg-indigo-100"
+            iconColor="text-indigo-600"
+            onClick={() => navigate("/admin-dashboard/users")}
+            hoverEffect
+            
+          />
+          <StatCard
+            icon={FaUsers}
+            title="Total Meta Leads"
+            value={totalMetaLeads}
+            bgColor="bg-green-100"
+            iconColor="text-green-600"
+            onClick={() => navigate("/admin-dashboard/meta")}
+            hoverEffect
+            
+          />
+          <StatCard
+            icon={FaChartLine}
+            title="Total Leads"
+            value={totalLeads}
+            bgColor="bg-yellow-100"
+            iconColor="text-yellow-600"
+            onClick={() => navigate("/admin-dashboard/stats")}
+            hoverEffect
+            
+          />
         </div>
 
-        {/* Sales History Chart */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales History</h2>
-          <SellHistoryChart />
-        </div>
-      </div>
+        {/* Sales & Analytics Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+          {/* Sales Funnel */}
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales Funnel</h2>
+            <SalesFunnel />
+          </div>
 
-      {/* Support Tracker */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-10">
-        <h2 className="text-2xl font-bold mb-4 text-indigo-700">Support Tracker</h2>
-        <SupportTracker />
+          {/* Sales History Chart */}
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales History</h2>
+            <SellHistoryChart />
+          </div>
+        </div>
+
+        {/* Support Tracker */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-10">
+          <h2 className="text-2xl font-bold mb-4 text-indigo-700">Support Tracker</h2>
+          <SupportTracker />
+        </div>
       </div>
     </div>
   );

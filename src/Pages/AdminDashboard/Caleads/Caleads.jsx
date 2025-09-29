@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useEffect, useMemo } from "react";
 import useCaleads from "../../../Zustand/Caleads";
 import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
