@@ -81,7 +81,7 @@ function AppContent() {
   const { user } = useAuth();
 
   // Hide navbar on public pages
-  const hideNavbar = ["/login", "/home", "/signup", "/forgot-password", "/confirm-otp"].includes(location.pathname);
+  const hideNavbar = ["/login", "/privacy", "/terms", "/home", "/signup", "/forgot-password", "/confirm-otp"].includes(location.pathname);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
