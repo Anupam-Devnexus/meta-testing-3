@@ -1,6 +1,6 @@
 // App.jsx
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectRoute";
 import Navbar from "./Components/Navbar";
@@ -77,11 +77,12 @@ const userRoutes = [
 
 // ================= App Content =================
 function AppContent() {
-  const location = useLocation();
   const { user } = useAuth();
 
   // Hide navbar on public pages
-  const hideNavbar = ["/login", "/privacy", "/terms", "/home", "/signup", "/forgot-password", "/confirm-otp"].includes(location.pathname);
+  const hideNavbar = ["/login", "/", "/signup", "/forgot-password", "/confirm-otp", "/privacy", "/terms"].includes(
+    window.location.pathname
+  );
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -89,11 +90,10 @@ function AppContent() {
 
       <main className={`flex-1 min-h-screen overflow-auto ${!hideNavbar ? "ml-64" : ""}`}>
         <Routes>
-          {/* Default redirect to /home */}
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          {/* Public Home */}
+          <Route path="/" element={<Home />} />
 
-          {/* Public Routes */}
-          <Route path="/home" element={<Home />} />
+          {/* Auth Pages */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgetPass />} />
