@@ -6,7 +6,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
-  const [formData, setFormData] = useState({ username: "", password: "", role: "" });
+  const [formData, setFormData] = useState({ username: "", password: "" });
   const [errors, setErrors] = useState({ username: "", password: "", login: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -50,20 +50,17 @@ export default function Login() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            username: formData.username?.trim(),
-            password: formData.password?.trim(),
-
+            username: formData.username.trim(),
+            password: formData.password.trim(),
           }),
         }
       );
-   
-
 
       const data = await response.json();
       console.log("Backend response:", data);
 
       if (response.ok && data.token && data.user) {
-        const role = data.user.role || "User"; // default role
+        const role = data.user.role || "User";
         const userDetails = {
           id: data.user._id,
           name: data.user.name || "Unknown",
@@ -74,19 +71,12 @@ export default function Login() {
 
         localStorage.setItem("UserDetails", JSON.stringify(userDetails));
         setUser(userDetails);
-        console.log(userDetails)
-        // Normalize role for routing
+
         const normalizedRole = role.toLowerCase();
-        if (normalizedRole === "admin") {
-          navigate("/admin-dashboard"); // match first admin route
-        } else if(normalizedRole === "user") {
-          navigate("/user-dashboard"); // match first user route
-        }
-        else{
-          navigate("/")
-        }
-      }
-      else {
+        if (normalizedRole === "admin") navigate("/admin-dashboard");
+        else if (normalizedRole === "user") navigate("/user-dashboard");
+        else navigate("/");
+      } else {
         setErrors((prev) => ({
           ...prev,
           login: data.msg || data.message || "Invalid credentials",
@@ -104,71 +94,80 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#f0f0f0] px-4">
-      <div className="flex flex-col md:flex-row items-center gap-10 bg-white p-8 rounded-2xl shadow-xl w-full max-w-3xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-50 to-indigo-100 px-4">
+      <div className="flex flex-col md:flex-row items-center bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl">
 
-        {/* Logo Section */}
-        <div className="flex items-center justify-center w-full md:w-1/3">
-          <img src="/vite.svg" alt="logo" className="h-auto max-h-32 object-contain" />
+        {/* Left Hero Section */}
+        <div className="hidden md:flex flex-col justify-center bg-indigo-600 text-white w-1/2 p-12">
+          <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
+          <p className="text-lg text-indigo-100">
+            Connect your Facebook Pages, integrate with Google Calendar, and manage your leads all in one place.
+          </p>
         </div>
 
         {/* Form Section */}
-        <form onSubmit={handleSubmit} className="w-full md:w-2/3 space-y-6">
-          <h2 className="text-2xl font-semibold text-[#141414]">Login</h2>
+        <div className="w-full md:w-1/2 p-10">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center md:text-left">Login</h2>
 
-          {/* Username */}
-          <div className="flex flex-col gap-1">
-            <label htmlFor="username" className="text-sm font-medium text-gray-700">Email or Phone</label>
-            <input
-              type="text"
-              name="username"
-              id="username"
-              value={formData.username}
-              onChange={handleChange}
-              className={`w-full px-4 py-2 border-b outline-none ${errors.username ? "border-red-500" : "border-[#dcdc3c]"}`}
-              placeholder="Enter your email or phone"
-            />
-            {errors.username && <span className="text-red-500 text-sm">{errors.username}</span>}
-          </div>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Username */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-700">Email or Phone</label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="Enter your email or phone"
+                className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-indigo-500 outline-none transition ${
+                  errors.username ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.username && <span className="text-red-500 text-sm">{errors.username}</span>}
+            </div>
 
-          {/* Password */}
-          <div className="flex flex-col gap-1 relative">
-            <label htmlFor="password" className="text-sm font-medium text-gray-700">Password</label>
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              id="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`w-full px-4 py-2 border-b outline-none ${errors.password ? "border-red-500" : "border-[#dcdc3c]"}`}
-            />
-            <span
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-9 text-sm text-blue-600 hover:underline cursor-pointer"
-            >
-              {showPassword ? "Hide" : "Show"}
-            </span>
-            {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
-          </div>
+            {/* Password */}
+            <div className="flex flex-col gap-1 relative">
+              <label className="text-sm font-medium text-gray-700">Password</label>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-indigo-500 outline-none transition ${
+                  errors.password ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              <span
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-3 text-sm text-indigo-600 hover:underline cursor-pointer select-none"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </span>
+              {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
+            </div>
 
-          {/* Submit Button */}
-          <div>
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-2 rounded-md transition duration-300 ${loading ? "bg-gray-400 text-white" : "bg-[#141414] text-white hover:bg-[#dcdc3c] hover:text-black"}`}
+              className={`w-full py-3 rounded-lg font-semibold transition-transform transform hover:scale-105 ${
+                loading ? "bg-gray-400 text-white" : "bg-indigo-600 text-white hover:bg-indigo-700"
+              }`}
             >
               {loading ? "Logging in..." : "Login"}
             </button>
-          </div>
-          <span
-      className="text-blue-600 cursor-pointer hover:underline font-medium"
-          
-          onClick={()=> navigate('/forgot-password')}>Forget Passowrd</span>
 
-          {/* Login error */}
-          {errors.login && <div className="text-red-500 text-sm mt-2">{errors.login}</div>}
-        </form>
+            {/* Forgot Password */}
+            <p className="text-sm text-center text-indigo-600 cursor-pointer hover:underline" onClick={() => navigate("/forgot-password")}>
+              Forgot Password?
+            </p>
+
+            {/* Login Error */}
+            {errors.login && <p className="text-red-500 text-center">{errors.login}</p>}
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -181,7 +181,8 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
         body: JSON.stringify({ ids, updateData }),
       });
 
-      // console.log(res)
+      console.log(res)
+      console.log(patchApi)
 
       if (!res.ok) {
         const errText = await res.text();

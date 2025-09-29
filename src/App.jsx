@@ -1,12 +1,6 @@
 // App.jsx
 import "./App.css";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  useLocation,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectRoute";
 import Navbar from "./Components/Navbar";
@@ -36,7 +30,7 @@ import IntegrationPage from "./Pages/AdminDashboard/Interagtion/IntegrationPage"
 import GoogleAds from "./Pages/AdminDashboard/Google/GoogleAds";
 import { Oppur } from "./Pages/AdminDashboard/Oppur";
 import Proflie from "./Pages/AdminDashboard/Proflie";
-
+import Website from "./Pages/AdminDashboard/Website/Website";
 
 // User Pages
 import UserLayout from "./Pages/User/UserLayout";
@@ -46,7 +40,9 @@ import UserProfile from "./Pages/User/UserProfile";
 
 // Misc
 import Unauthorized from "./Pages/Unauthorized";
-import Website from "./Pages/AdminDashboard/Website/Website";
+import Privacy from "./Pages/Privacy";
+import Terms from "./Pages/Terms";
+import Home from "./Pages/Home";
 
 // ================= Route Configurations =================
 const adminRoutes = [
@@ -79,46 +75,32 @@ const userRoutes = [
   { path: "user-profile", element: <UserProfile /> },
 ];
 
-// ================= Root Redirect =================
-function RootRedirect() {
-  const { user } = useAuth();
-
-  if (!user) return <Navigate to="/login" replace />;
-
-  const role = user.role?.trim().toLowerCase();
-  if (role === "admin") return <Navigate to="/admin-dashboard" replace />;
-  if (role === "user") return <Navigate to="/user-dashboard" replace />;
-
-  return <Navigate to="/unauthorized" replace />;
-}
-
 // ================= App Content =================
 function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Hide navbar on auth pages
-  const hideNavbar = ["/login", "/signup", "/forgot-password", "/confirm-otp"].includes(
-    location.pathname
-  );
-  const mainMarginClass = hideNavbar ? "ml-0" : "ml-64";
+  // Hide navbar on public pages
+  const hideNavbar = ["/login", "/home", "/signup", "/forgot-password", "/confirm-otp"].includes(location.pathname);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Navbar */}
       {!hideNavbar && user && <Navbar />}
 
-      <main className={`flex-1 ${mainMarginClass} min-h-screen overflow-auto`}>
+      <main className={`flex-1 min-h-screen overflow-auto ${!hideNavbar ? "ml-64" : ""}`}>
         <Routes>
-          {/* Root redirect */}
-          <Route path="/" element={<RootRedirect />} />
+          {/* Default redirect to /home */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
 
           {/* Public Routes */}
+          <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgetPass />} />
           <Route path="/confirm-otp" element={<ConfirmOtp />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
 
           {/* Admin Routes */}
           <Route
