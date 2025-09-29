@@ -81,9 +81,9 @@ export default function Dashboard() {
   const totalUsers = useMemo(() => users?.users?.length || 0, [users]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-indigo-50 via-white to-indigo-100 p-2">
-      {/* Header */}
-      <div className="mb-12 bg-white rounded-2xl shadow-lg p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    <div className="p-3 bg-gradient-to-tr from-indigo-50 via-white to-indigo-50 min-h-screen">
+      {/* User greeting */}
+      <div className="mb-12 p-8 bg-white rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-indigo-700">
             Welcome back,{" "}
@@ -93,7 +93,9 @@ export default function Dashboard() {
             Role: {userInfo.role || "User"}
           </p>
         </div>
-        <IntegrationPage />
+        <div className="mt-4 sm:mt-0 text-indigo-500 text-base font-medium select-text">
+          📧 {userInfo.userEmail}
+        </div>
       </div>
 
       {/* Stats Cards */}
