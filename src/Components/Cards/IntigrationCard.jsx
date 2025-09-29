@@ -4,15 +4,12 @@ const IntegrationCard = ({
   buttonText,
   buttonColor,
   onClick,
-  isLoading, // ✅ accept loading prop
+  isLoading,
 }) => {
   return (
     <div
       className={` flex flex-col justify-between`}
     >
-      <div className="flex items-center gap-3">
-
-      </div>
 
 
       <button
