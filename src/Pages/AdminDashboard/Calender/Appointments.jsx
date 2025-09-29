@@ -249,64 +249,122 @@ const Appointments = () => {
     setNewEvent(prev => ({ ...prev, attendees: prev.attendees.filter((_, idx) => idx !== i) }));
   };
 
-  // -------------------------
-  // Create meeting and post to backend
-  // -------------------------
-  const handleCreateMeeting = async () => {
-    console.log("[Event] Creating meeting...");
-    if (!signedIn) return logError("Event", "Not signed in");
-    setLoading(true);
+ // -------------------------
+// Create meeting and post to backend (debug version)
+// -------------------------
+const handleCreateMeeting = async () => {
+  console.log("[Event] Creating meeting...");
+  if (!signedIn) return logError("Event", "Not signed in");
+  setLoading(true);
+
+  try {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) return logError("Event", "No access token found");
+
+    const startDateTime = new Date(`${newEvent.date}T${newEvent.startTime}`).toISOString();
+    const endDateTime = new Date(`${newEvent.date}T${newEvent.endTime}`).toISOString();
+
+    const eventPayload = {
+      summary: newEvent.title || "Untitled Meeting",
+      description: newEvent.description,
+      start: {
+        dateTime: startDateTime,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      end: {
+        dateTime: endDateTime,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      attendees: newEvent.attendees
+        .filter(a => a.trim() !== "")
+        .map(email => ({ email })),
+      conferenceData: {
+        createRequest: {
+          requestId: String(Date.now()),
+          conferenceSolutionKey: { type: "hangoutsMeet" },
+        },
+      },
+    };
+
+    console.log("[Event] Event payload for Google Calendar:", eventPayload);
+
+    // -------------------------
+    // Create event in Google Calendar
+    // -------------------------
+    gapi.client.setToken({ access_token: accessToken });
+    const res = await gapi.client.calendar.events.insert({
+      calendarId: "primary",
+      resource: eventPayload,
+      conferenceDataVersion: 1,
+      sendUpdates: "all",
+    });
+    console.log("[Event] Event created in Google Calendar:", res.result);
+
+    const link = res.result.conferenceData?.entryPoints?.[0]?.uri || "";
+    setMeetLink(link);
+    console.log("[Event] Meet link:", link);
+
+    // -------------------------
+    // Post to backend with detailed debug
+    // -------------------------
+    const payload = {
+      event: { ...eventPayload, meetLink: link, gcalId: res.result.id },
+    };
+
+    console.log("[Backend] Attempting to POST event...");
+    console.log("[Backend] URL:", BACKEND_EVENT_URL);
+    console.log("[Backend] Payload:", payload);
 
     try {
-      const accessToken = localStorage.getItem("accessToken");
-      const startDateTime = new Date(`${newEvent.date}T${newEvent.startTime}`).toISOString();
-      const endDateTime = new Date(`${newEvent.date}T${newEvent.endTime}`).toISOString();
-
-      const eventPayload = {
-        summary: newEvent.title || "Untitled Meeting",
-        description: newEvent.description,
-        start: { dateTime: startDateTime, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-        end: { dateTime: endDateTime, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-        attendees: newEvent.attendees.filter(a => a.trim() !== "").map(email => ({ email })),
-        conferenceData: { createRequest: { requestId: String(Date.now()), conferenceSolutionKey: { type: "hangoutsMeet" } } },
-      };
-      console.log("[Event] Event payload:", eventPayload);
-
-      gapi.client.setToken({ access_token: accessToken });
-      const res = await gapi.client.calendar.events.insert({
-        calendarId: "primary",
-        resource: eventPayload,
-        conferenceDataVersion: 1,
-        sendUpdates: "all",
+      const backendRes = await axios.post(BACKEND_EVENT_URL, payload, {
+        headers: { "Content-Type": "application/json" },
       });
-      console.log("[Event] Event created in Google Calendar:", res.result);
-
-      const link = res.result.conferenceData?.entryPoints?.[0]?.uri || "";
-      setMeetLink(link);
-      console.log("[Event] Meet link:", link);
-
-      // -------------------------
-      // Post to backend
-      // -------------------------
-      try {
-        await axios.post(BACKEND_EVENT_URL, {
-          event: { ...eventPayload, meetLink: link, gcalId: res.result.id },
-        });
-        console.log("[Backend] Event posted successfully");
-        toast.success("Event posted to backend successfully!");
-      } catch (err) {
-        logError("Backend", "Failed to post event", err);
-      }
-
-      setEvents(prev => [...prev, { id: res.result.id, title: res.result.summary, start: res.result.start.dateTime, end: res.result.end.dateTime }]);
-      setModalOpen(false);
-      setNewEvent({ title: "", description: "", date: "", startTime: "09:00", endTime: "10:00", attendees: [""] });
+      console.log("[Backend] Event posted successfully:", backendRes.data);
+      toast.success("Event posted to backend successfully!");
     } catch (err) {
-      logError("Event", "Failed to create meeting", err);
-    } finally {
-      setLoading(false);
+      console.error("[Backend] Failed to post event");
+      if (err.response) {
+        console.error("[Backend] Status:", err.response.status);
+        console.error("[Backend] Response data:", err.response.data);
+        console.error("[Backend] Headers:", err.response.headers);
+      } else if (err.request) {
+        console.error("[Backend] No response received:", err.request);
+      } else {
+        console.error("[Backend] Error message:", err.message);
+      }
+      console.error("[Backend] Full error object:", err);
+      toast.error("Failed to post event. Check console for details.");
     }
-  };
+
+    // -------------------------
+    // Update local events state
+    // -------------------------
+    setEvents(prev => [
+      ...prev,
+      {
+        id: res.result.id,
+        title: res.result.summary,
+        start: res.result.start.dateTime,
+        end: res.result.end.dateTime,
+      },
+    ]);
+
+    setModalOpen(false);
+    setNewEvent({
+      title: "",
+      description: "",
+      date: "",
+      startTime: "09:00",
+      endTime: "10:00",
+      attendees: [""],
+    });
+  } catch (err) {
+    logError("Event", "Failed to create meeting", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // -------------------------
   // Render
