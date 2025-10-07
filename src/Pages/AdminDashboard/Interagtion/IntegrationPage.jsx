@@ -77,53 +77,60 @@ const IntegrationPage = () => {
    * 🔐 Login flow using FB OAuth
    * --------------------------------------------
    */
-  const handleFacebookLogin = useCallback(() => {
-    console.log("[FB] ▶️ Connect button clicked");
+ const handleFacebookLogin = useCallback(() => {
+  console.log("[FB] ▶️ Connect button clicked");
 
-    if (!isReady) {
-      setError("Facebook SDK not loaded yet");
+  // 🔹 Ensure FB SDK has loaded before proceeding
+  if (!isReady) {
+    setError("Facebook SDK not loaded yet");
+    return;
+  }
+
+  // 🔹 Check the current login status of the user
+  window.FB.getLoginStatus((response) => {
+    console.log("[FB] Current login status:", response);
+
+    // ✅ User is already logged in and authorized the app
+    if (response.status === "connected") {
+      const { accessToken } = response.authResponse;
+      console.log("[FB] ✅ Already connected, using stored token:", accessToken);
+
+      setFbStatus("connected");
+      handleFetchPages(accessToken); // Fetch pages using the existing token
       return;
     }
 
-    window.FB.getLoginStatus((response) => {
-      console.log("[FB] Current login status:", response);
+    // 🔹 Trigger FB login popup if user is not connected
+    console.log("[FB] Opening login popup...");
+    window.FB.login(
+      (loginResp) => {
+        console.log("[FB] Login response:", loginResp);
 
-      if (response.status === "connected") {
-        const { accessToken } = response.authResponse;
-        console.log("[FB] ✅ Already connected, using stored token:", accessToken);
-        setFbStatus("connected");
-        handleFetchPages(accessToken);
-        return;
-      }
-
-      // 🔹 Trigger FB login popup
-      console.log("[FB] Opening login popup...");
-      window.FB.login(
-        (loginResp) => {
-          console.log("[FB] Login response:", loginResp);
-
-          if (!loginResp.authResponse) {
-            setError("Login cancelled or failed");
-            return;
-          }
-
-          const { accessToken, userID } = loginResp.authResponse;
-          console.log("[FB] ✅ Logged in:", { userID, accessToken });
-
-          localStorage.setItem("fb_user_token", accessToken);
-          setFbStatus("connected");
-          handleFetchPages(accessToken);
-        },
-        {
-          scope:
-            "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval,business_management,ads_read",
-          auth_type: "rerequest",
-          return_scopes: true,
+        // ❌ User cancelled login or login failed
+        if (!loginResp.authResponse) {
+          setError("Login cancelled or failed");
+          return;
         }
-      );
-    });
-  }, [isReady]);
 
+        // ✅ Successful login
+        const { accessToken, userID } = loginResp.authResponse;
+        console.log("[FB] ✅ Logged in:", { userID, accessToken });
+
+        // Store access token locally for reuse
+        localStorage.setItem("fb_user_token", accessToken);
+
+        setFbStatus("connected");
+        handleFetchPages(accessToken); // Fetch pages using the new token
+      },
+      {
+        scope:
+          "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval,business_management,ads_read",
+        auth_type: "rerequest", // Prompt user to reauthorize if needed
+        return_scopes: true,    // Return granted scopes in the response
+      }
+    );
+  });
+}, [isReady]);
   /**
    * --------------------------------------------
    * 📦 Fetch Pages (using helper)
