@@ -11,7 +11,7 @@
 export const getUserPages = (accessToken) => {
   return new Promise((resolve, reject) => {
     console.log("[FB API] 📡 Fetching pages for user...");
-console.log("Using Access Token:", accessToken);
+    console.log("Using Access Token:", accessToken);
     window.FB.api(
       "/me/accounts",
       "GET",
@@ -38,7 +38,7 @@ console.log("Using Access Token:", accessToken);
 export const getPageInsights = (pageId, accessToken) => {
   return new Promise((resolve, reject) => {
     console.log(`[FB API] 📊 Fetching insights for Page ID: ${pageId}`);
-
+console.log("Using Access Token:", accessToken);
     window.FB.api(
       `/${pageId}/insights`,
       "GET",
