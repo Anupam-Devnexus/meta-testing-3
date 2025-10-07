@@ -162,23 +162,32 @@ const IntegrationPage = () => {
   const accessToken = selectedPage.access_token;
 
   try {
-    // ✅ Specify metrics you want to fetch
-    const metrics = [
-      "page_impressions",
-      "page_engaged_users",
-      "page_fans",
-      "page_views_total"
-    ];
+    console.log(`[FB] 📊 Fetching all available insights for page: ${selectedPage.name}`);
 
-    // Pass metrics array to getPageInsights
-    const data = await getPageInsights(selectedPage.id, accessToken, metrics);
+    // 🔹 Request all available metrics (without specifying metric names)
+    const data = await getPageInsights(selectedPage.id, accessToken, []); // empty array to fetch all
 
-    console.log("[FB] ✅ Insights fetched:", data);
-    setInsights(data);
+    if (!data || !data.length) {
+      console.warn("[FB] ⚠️ No insights available for this page");
+      setInsights({});
+      return;
+    }
+
+    // 🔹 Transform the response into a readable object
+    const formattedInsights = {};
+    data.forEach((metric) => {
+      // Use the latest value
+      formattedInsights[metric.name] = metric.values?.[0]?.value ?? 0;
+    });
+
+    console.log("[FB] ✅ Insights fetched dynamically:", formattedInsights);
+    setInsights(formattedInsights);
   } catch (err) {
     console.error("[FB] ❌ Error fetching insights:", err);
+    setError(err?.message || "Failed to fetch insights");
   }
 };
+
 
 
   /**
