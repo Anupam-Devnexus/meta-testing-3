@@ -116,7 +116,7 @@ const IntegrationPage = () => {
         },
         {
           scope:
-            "public_profile,email",
+            "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval,business_management,ads_read",
           auth_type: "rerequest",
           return_scopes: true,
         }
