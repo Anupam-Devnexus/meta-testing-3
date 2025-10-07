@@ -11,7 +11,7 @@
 export const getUserPages = (accessToken) => {
   return new Promise((resolve, reject) => {
     console.log("[FB API] 📡 Fetching pages for user...");
-
+console.log("Using Access Token:", accessToken);
     window.FB.api(
       "/me/accounts",
       "GET",
