@@ -87,7 +87,7 @@ const IntegrationPage = () => {
     console.log("[FB] Fetching pages with accessToken:", accessToken);
 
     window.FB.api(
-      "/me/accounts",
+      "https://dbbackend.devnexussolutions.com/auth/api/get-all-users",
       "GET",
       { access_token: accessToken },
       (response) => {
