@@ -156,51 +156,92 @@ const IntegrationPage = () => {
    * 📊 Fetch Page Insights (optional demo)
    * --------------------------------------------
    */
+/**
+ * 📊 Safely fetch insights for a Facebook Page
+ * - Dynamically gets all available metrics from /metadata
+ * - Then fetches insights only for those valid metrics
+ * - Works for any Page without throwing metric errors
+ */
+
 const handleFetchInsights = async () => {
   if (!selectedPage) return;
 
+  const pageId = selectedPage.id;
   const accessToken = selectedPage.access_token;
 
   try {
     console.log(`[FB] 📊 Fetching insights for page: ${selectedPage.name}`);
 
-    // 🔹 Predefined safe metrics that exist on most Pages
-    const safeMetrics = [
-      "page_impressions",
-      "page_engaged_users",
-      "page_fan_adds",
-      "page_fan_removes",
-      "page_views_login_total",
-      "page_posts_impressions_organic",
-      "page_posts_impressions_paid"
-    ];
+    // Step 1️⃣ — Fetch available metrics dynamically
+    const availableMetrics = await new Promise((resolve, reject) => {
+      window.FB.api(
+        `/${pageId}/insights/metadata`,
+        "GET",
+        { access_token: accessToken },
+        (response) => {
+          if (!response || response.error) {
+            console.error("[FB API] ❌ Failed to fetch metrics metadata:", response.error);
+            reject(response?.error);
+          } else {
+            const metrics = response.data.map((m) => m.name);
+            console.log("[FB API] ✅ Available metrics:", metrics);
+            resolve(metrics);
+          }
+        }
+      );
+    });
 
-    // 🔹 Call FB API
-    const data = await getPageInsights(selectedPage.id, accessToken, safeMetrics);
-
-    if (!data || !data.length) {
-      console.warn("[FB] ⚠️ No insights available for this page");
+    if (!availableMetrics || !availableMetrics.length) {
+      console.warn("[FB] ⚠️ No metrics available for this page");
       setInsights({});
       return;
     }
 
-    // 🔹 Filter only metrics returned by FB to avoid undefined
+    // Step 2️⃣ — Fetch insights only for valid metrics
+    const validMetrics = availableMetrics.join(",");
+    const data = await new Promise((resolve, reject) => {
+      window.FB.api(
+        `/${pageId}/insights`,
+        "GET",
+        {
+          metric: validMetrics,
+          access_token: accessToken,
+        },
+        (response) => {
+          if (!response || response.error) {
+            console.error("[FB API] ❌ Failed to fetch insights:", response.error);
+            reject(response?.error);
+          } else {
+            console.log("[FB API] ✅ Insights fetched:", response.data);
+            resolve(response.data);
+          }
+        }
+      );
+    });
+
+    if (!data || !data.length) {
+      console.warn("[FB] ⚠️ No insights data returned");
+      setInsights({});
+      return;
+    }
+
+    // Step 3️⃣ — Format results for UI display
     const formattedInsights = {};
     data.forEach((metric) => {
       if (metric.values && metric.values.length > 0) {
-        // Use latest value
         formattedInsights[metric.name] = metric.values[0].value ?? 0;
       }
     });
 
-    console.log("[FB] ✅ Insights fetched safely:", formattedInsights);
+    console.log("[FB] ✅ Formatted insights:", formattedInsights);
     setInsights(formattedInsights);
   } catch (err) {
     console.error("[FB] ❌ Error fetching insights:", err);
     setError(err?.message || "Failed to fetch insights");
-    setInsights({}); // Clear previous insights
+    setInsights({});
   }
 };
+
 
   /**
    * --------------------------------------------
