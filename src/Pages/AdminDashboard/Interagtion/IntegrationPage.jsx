@@ -66,6 +66,7 @@ const IntegrationPage = () => {
    */
   const handleFacebookLogin = useCallback(() => {
     console.log("[FB] Connect button clicked...");
+    
 
     if (!isReady) {
       console.error("[FB] SDK not ready ❌");
@@ -79,7 +80,7 @@ const IntegrationPage = () => {
 
       if (response.status === "connected") {
         console.log("[FB] Already connected ✅");
-        setFbStatus("connected");
+        setFbStatus("connecteds");
         return;
       }
 
