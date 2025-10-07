@@ -156,16 +156,27 @@ const IntegrationPage = () => {
    * 📊 Fetch Page Insights (optional demo)
    * --------------------------------------------
    */
- const handleFetchInsights = async () => {
+const handleFetchInsights = async () => {
   if (!selectedPage) return;
 
   const accessToken = selectedPage.access_token;
 
   try {
-    console.log(`[FB] 📊 Fetching all available insights for page: ${selectedPage.name}`);
+    console.log(`[FB] 📊 Fetching insights for page: ${selectedPage.name}`);
 
-    // 🔹 Request all available metrics (without specifying metric names)
-    const data = await getPageInsights(selectedPage.id, accessToken, []); // empty array to fetch all
+    // 🔹 Predefined safe metrics that exist on most Pages
+    const safeMetrics = [
+      "page_impressions",
+      "page_engaged_users",
+      "page_fan_adds",
+      "page_fan_removes",
+      "page_views_login_total",
+      "page_posts_impressions_organic",
+      "page_posts_impressions_paid"
+    ];
+
+    // 🔹 Call FB API
+    const data = await getPageInsights(selectedPage.id, accessToken, safeMetrics);
 
     if (!data || !data.length) {
       console.warn("[FB] ⚠️ No insights available for this page");
@@ -173,22 +184,23 @@ const IntegrationPage = () => {
       return;
     }
 
-    // 🔹 Transform the response into a readable object
+    // 🔹 Filter only metrics returned by FB to avoid undefined
     const formattedInsights = {};
     data.forEach((metric) => {
-      // Use the latest value
-      formattedInsights[metric.name] = metric.values?.[0]?.value ?? 0;
+      if (metric.values && metric.values.length > 0) {
+        // Use latest value
+        formattedInsights[metric.name] = metric.values[0].value ?? 0;
+      }
     });
 
-    console.log("[FB] ✅ Insights fetched dynamically:", formattedInsights);
+    console.log("[FB] ✅ Insights fetched safely:", formattedInsights);
     setInsights(formattedInsights);
   } catch (err) {
     console.error("[FB] ❌ Error fetching insights:", err);
     setError(err?.message || "Failed to fetch insights");
+    setInsights({}); // Clear previous insights
   }
 };
-
-
 
   /**
    * --------------------------------------------
