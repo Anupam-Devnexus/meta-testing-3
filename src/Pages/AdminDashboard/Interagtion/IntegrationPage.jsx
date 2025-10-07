@@ -156,16 +156,30 @@ const IntegrationPage = () => {
    * 📊 Fetch Page Insights (optional demo)
    * --------------------------------------------
    */
-  const handleFetchInsights = async () => {
-    if (!selectedPage) return;
-    const accessToken = selectedPage.access_token;
-    try {
-      const data = await getPageInsights(selectedPage.id, accessToken);
-      setInsights(data);
-    } catch (err) {
-      console.error("[FB] ❌ Error fetching insights:", err);
-    }
-  };
+ const handleFetchInsights = async () => {
+  if (!selectedPage) return;
+
+  const accessToken = selectedPage.access_token;
+
+  try {
+    // ✅ Specify metrics you want to fetch
+    const metrics = [
+      "page_impressions",
+      "page_engaged_users",
+      "page_fans",
+      "page_views_total"
+    ];
+
+    // Pass metrics array to getPageInsights
+    const data = await getPageInsights(selectedPage.id, accessToken, metrics);
+
+    console.log("[FB] ✅ Insights fetched:", data);
+    setInsights(data);
+  } catch (err) {
+    console.error("[FB] ❌ Error fetching insights:", err);
+  }
+};
+
 
   /**
    * --------------------------------------------
