@@ -5,9 +5,22 @@ const UserDashboard = () => {
   const [data, setData] = useState([]);
   const [editing, setEditing] = useState(null);
 
+  const token = JSON.parse(localStorage.getItem("UserDetails"))?.token;
+  if (!token) {
+    return (
+      <p className="text-center text-red-600 mt-20 text-lg font-medium">
+        User not authenticated. Please log in.
+      </p>
+    );
+  }
+
   useEffect(() => {
     fetch("https://dbbackend.devnexussolutions.com/auth/api/get-all-leads", {
       method: "GET",
+       headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Uncomment if token is needed
+        },
       credentials: "include", // send session cookie
     })
       .then((res) => res.json())

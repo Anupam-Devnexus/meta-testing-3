@@ -1,12 +1,12 @@
-// src/Pages/Dashboard/Integrations/IntegrationPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { FaFacebook, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import IntegrationCard from "../../../Components/Cards/IntigrationCard";
+import { getUserPages, getPageInsights } from "../../../utils/facebookApi";
 
 /**
  * --------------------------------------------
- * 🧩 Custom Hook: useFacebookSDK
- * Loads and initializes the Facebook SDK dynamically
+ * 🧩 Hook: useFacebookSDK
+ * Dynamically loads the FB SDK and initializes it
  * --------------------------------------------
  */
 const useFacebookSDK = (appId) => {
@@ -16,21 +16,19 @@ const useFacebookSDK = (appId) => {
   useEffect(() => {
     console.log("[FB SDK] Checking if SDK is already loaded...");
 
-    // ✅ If FB object already exists, SDK is ready
     if (window.FB) {
       console.log("[FB SDK] Already initialized ✅");
       setIsReady(true);
       return;
     }
 
-    // 🔹 Initialize Facebook SDK
     window.fbAsyncInit = function () {
       try {
         console.log("[FB SDK] Initializing...");
         window.FB.init({
-          appId, // Your Facebook App ID from .env
+          appId,
           cookie: true,
-          xfbml: false, // Disable social plugins parsing
+          xfbml: false,
           version: "v19.0",
         });
         console.log("[FB SDK] Initialization complete ✅");
@@ -41,7 +39,6 @@ const useFacebookSDK = (appId) => {
       }
     };
 
-    // 🔹 Inject SDK <script> into the document if not loaded yet
     if (!document.getElementById("facebook-jssdk")) {
       console.log("[FB SDK] Injecting SDK script...");
       const js = document.createElement("script");
@@ -62,109 +59,60 @@ const useFacebookSDK = (appId) => {
 
 /**
  * --------------------------------------------
- * ⚙️ Main Integration Page Component
- * Handles:
- * - FB Login via OAuth
- * - Fetching connected Pages
- * - Showing connection status
+ * ⚙️ Main Integration Page
+ * Handles Facebook Login + Page Fetch
  * --------------------------------------------
  */
 const IntegrationPage = () => {
-  const [fbStatus, setFbStatus] = useState("idle"); // idle | connected
+  const [fbStatus, setFbStatus] = useState("idle");
   const [selectedPage, setSelectedPage] = useState(null);
   const [pages, setPages] = useState([]);
   const [error, setError] = useState(null);
+  const [insights, setInsights] = useState([]);
 
   const { isReady, loadError } = useFacebookSDK(import.meta.env.VITE_FACEBOOK_APP_ID);
 
   /**
    * --------------------------------------------
-   * 📦 Fetch all Facebook Pages connected to user
-   * API: GET /me/accounts
-   * --------------------------------------------
-   */
-  const fetchFacebookPages = useCallback((accessToken) => {
-    console.log("[FB] Fetching pages with accessToken:", accessToken);
-
-    window.FB.api(
-      "https://dbbackend.devnexussolutions.com/auth/api/get-all-users",
-      "GET",
-      { access_token: accessToken },
-      (response) => {
-        if (!response || response.error) {
-          console.error("[FB] ❌ Error fetching pages:", response.error);
-          setError(response?.error?.message || "Failed to fetch pages");
-          return;
-        }
-
-        console.log("[FB] ✅ Pages fetched successfully:", response.data);
-        setPages(response.data);
-
-        // Optional: Automatically select the first Page
-        if (response.data.length > 0) {
-          console.log("[FB] Selecting first page:", response.data[0]);
-          setSelectedPage(response.data[0]);
-        } else {
-          console.warn("[FB] No Pages found for this user.");
-        }
-      }
-    );
-  }, []);
-
-  /**
-   * --------------------------------------------
-   * 🔐 Handle Facebook Login Flow
-   * - Checks if user is already logged in
-   * - If not, triggers FB Login popup
-   * - Stores accessToken and fetches Pages
+   * 🔐 Login flow using FB OAuth
    * --------------------------------------------
    */
   const handleFacebookLogin = useCallback(() => {
     console.log("[FB] ▶️ Connect button clicked");
 
     if (!isReady) {
-      console.error("[FB] SDK not ready ❌");
       setError("Facebook SDK not loaded yet");
       return;
     }
 
-    // 1️⃣ Check current login status
     window.FB.getLoginStatus((response) => {
       console.log("[FB] Current login status:", response);
 
       if (response.status === "connected") {
-        // Already logged in
         const { accessToken } = response.authResponse;
         console.log("[FB] ✅ Already connected, using stored token:", accessToken);
         setFbStatus("connected");
-        fetchFacebookPages(accessToken);
+        handleFetchPages(accessToken);
         return;
       }
 
-      // 2️⃣ Trigger FB login popup
-      console.log("[FB] Opening Facebook Login popup...");
+      // 🔹 Trigger FB login popup
+      console.log("[FB] Opening login popup...");
       window.FB.login(
         (loginResp) => {
           console.log("[FB] Login response:", loginResp);
 
-          // Check if login was successful
           if (!loginResp.authResponse) {
-            console.error("[FB] ❌ Login cancelled or failed");
             setError("Login cancelled or failed");
             return;
           }
 
           const { accessToken, userID } = loginResp.authResponse;
-          console.log("[FB] ✅ Logged in successfully:", { userID, accessToken });
+          console.log("[FB] ✅ Logged in:", { userID, accessToken });
 
-          // Store token for later use
           localStorage.setItem("fb_user_token", accessToken);
-
-          // Update UI state
           setFbStatus("connected");
-
-          // Fetch the user's connected Pages
-          fetchFacebookPages(accessToken);
+          handleFetchPages(accessToken);
         },
         {
           scope:
@@ -174,11 +122,47 @@ const IntegrationPage = () => {
         }
       );
     });
-  }, [isReady, fetchFacebookPages]);
+  }, [isReady]);
 
   /**
    * --------------------------------------------
-   * 🔓 Handle Disconnect / Logout
+   * 📦 Fetch Pages (using helper)
+   * --------------------------------------------
+   */
+  const handleFetchPages = async (accessToken) => {
+    try {
+      const data = await getUserPages(accessToken);
+      setPages(data);
+      if (data.length > 0) {
+        setSelectedPage(data[0]);
+        console.log("[FB] ✅ Selected first page:", data[0]);
+      } else {
+        console.warn("[FB] No pages found for this user.");
+      }
+    } catch (err) {
+      setError(err?.message || "Failed to fetch pages");
+    }
+  };
+
+  /**
+   * --------------------------------------------
+   * 📊 Fetch Page Insights (optional demo)
+   * --------------------------------------------
+   */
+  const handleFetchInsights = async () => {
+    if (!selectedPage) return;
+    const accessToken = selectedPage.access_token;
+    try {
+      const data = await getPageInsights(selectedPage.id, accessToken);
+      setInsights(data);
+    } catch (err) {
+      console.error("[FB] ❌ Error fetching insights:", err);
+    }
+  };
+
+  /**
+   * --------------------------------------------
+   * 🔓 Disconnect Facebook
    * --------------------------------------------
    */
   const handleDisconnect = () => {
@@ -190,12 +174,13 @@ const IntegrationPage = () => {
       setFbStatus("idle");
       setSelectedPage(null);
       setPages([]);
+      setInsights([]);
     });
   };
 
   /**
    * --------------------------------------------
-   * 🧱 UI Data for Integration Cards
+   * 🧱 Integration Card Config
    * --------------------------------------------
    */
   const integrationsData = [
@@ -210,7 +195,7 @@ const IntegrationPage = () => {
         fbStatus === "connected"
           ? selectedPage
             ? `Connected to ${selectedPage.name}`
-            : "Connected to Facebook"
+            : "Connected"
           : "Connect Facebook",
       buttonColor: fbStatus === "connected" ? "bg-green-600" : "bg-blue-600",
       onClick: fbStatus === "connected" ? handleDisconnect : handleFacebookLogin,
@@ -218,9 +203,12 @@ const IntegrationPage = () => {
     },
   ];
 
+  // --------------------------------------------
+  // 🖼️ UI
+  // --------------------------------------------
   return (
     <div className="grid gap-4">
-      {/* ❌ Error Message Display */}
+      {/* Error Banner */}
       {(error || loadError) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
           <FaExclamationTriangle className="text-red-500 mr-3" />
@@ -231,7 +219,7 @@ const IntegrationPage = () => {
         </div>
       )}
 
-      {/* ✅ Connection Success Banner */}
+      {/* Connection Success */}
       {fbStatus === "connected" && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
           <FaCheck className="text-green-500 mr-3" />
@@ -243,7 +231,7 @@ const IntegrationPage = () => {
         </div>
       )}
 
-      {/* 💡 Integration Card Display */}
+      {/* Integration Card */}
       {integrationsData.map((integration) => (
         <IntegrationCard
           key={integration.id}
@@ -252,7 +240,7 @@ const IntegrationPage = () => {
         />
       ))}
 
-      {/* 🧾 Show fetched Facebook Pages */}
+      {/* Display Pages */}
       {pages.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4">
           <h3 className="font-semibold mb-2">Your Facebook Pages</h3>
@@ -263,6 +251,26 @@ const IntegrationPage = () => {
               </li>
             ))}
           </ul>
+
+          {/* Optional: Fetch Insights Button */}
+          {selectedPage && (
+            <button
+              onClick={handleFetchInsights}
+              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md"
+            >
+              Fetch Insights for {selectedPage.name}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Display Insights */}
+      {insights.length > 0 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
+          <h3 className="font-semibold mb-2">Page Insights</h3>
+          <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto">
+            {JSON.stringify(insights, null, 2)}
+          </pre>
         </div>
       )}
     </div>

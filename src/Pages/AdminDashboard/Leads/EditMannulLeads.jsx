@@ -73,6 +73,12 @@ export default function EditMannualLeads() {
 
     const apiUrl = `https://dbbackend.devnexussolutions.com/auth/api/get-all-leads/edit/${leadId}`;
 
+    const token = JSON.parse(localStorage.getItem("UserDetails"))?.token;
+    if (!token) {
+      alert("User not authenticated. Please log in.");
+      return;
+    }
+
     console.log("PATCH request to:", apiUrl);
     console.log("Payload being sent:", formData);
 
@@ -81,7 +87,7 @@ export default function EditMannualLeads() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          // Authorization: `Bearer ${localStorage.getItem("token")}`, // Uncomment if token is needed
+          Authorization: `Bearer ${token}`, // Uncomment if token is needed
         },
         body: JSON.stringify(formData),
         credentials: "include",

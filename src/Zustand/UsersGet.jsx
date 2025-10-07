@@ -18,7 +18,13 @@ const useUserStore = create((set) => ({
       }
 
       const response = await fetch(
-        'https://dbbackend.devnexussolutions.com/auth/api/get-all-users'
+        'https://dbbackend.devnexussolutions.com/auth/api/get-all-users', {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
       );
 
       if (!response.ok) {
