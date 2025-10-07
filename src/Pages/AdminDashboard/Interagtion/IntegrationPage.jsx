@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FaFacebook, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import IntegrationCard from "../../../Components/Cards/IntigrationCard";
-import { getUserPages, getPageInsights } from "../../../utils/facebookApi";
+import { getUserPages } from "../../../utils/facebookApi";
 
 /**
- * --------------------------------------------
  * 🧩 Hook: useFacebookSDK
- * Dynamically loads the FB SDK and initializes it
- * --------------------------------------------
+ * Dynamically loads and initializes the Facebook SDK
  */
 const useFacebookSDK = (appId) => {
   const [isReady, setIsReady] = useState(false);
@@ -16,12 +14,14 @@ const useFacebookSDK = (appId) => {
   useEffect(() => {
     console.log("[FB SDK] Checking if SDK is already loaded...");
 
+    // Prevent re-initialization
     if (window.FB) {
       console.log("[FB SDK] Already initialized ✅");
       setIsReady(true);
       return;
     }
 
+    // Initialize SDK after it loads
     window.fbAsyncInit = function () {
       try {
         console.log("[FB SDK] Initializing...");
@@ -39,6 +39,7 @@ const useFacebookSDK = (appId) => {
       }
     };
 
+    // Inject SDK script only once
     if (!document.getElementById("facebook-jssdk")) {
       console.log("[FB SDK] Injecting SDK script...");
       const js = document.createElement("script");
@@ -58,83 +59,69 @@ const useFacebookSDK = (appId) => {
 };
 
 /**
- * --------------------------------------------
  * ⚙️ Main Integration Page
- * Handles Facebook Login + Page Fetch
- * --------------------------------------------
+ * Handles:
+ * - Facebook login
+ * - Fetching user pages
+ * - Fetching safe insights (with auto-validation)
  */
 const IntegrationPage = () => {
   const [fbStatus, setFbStatus] = useState("idle");
   const [selectedPage, setSelectedPage] = useState(null);
   const [pages, setPages] = useState([]);
   const [error, setError] = useState(null);
-  const [insights, setInsights] = useState([]);
-
+  const [insights, setInsights] = useState({});
   const { isReady, loadError } = useFacebookSDK(import.meta.env.VITE_FACEBOOK_APP_ID);
 
   /**
-   * --------------------------------------------
-   * 🔐 Login flow using FB OAuth
-   * --------------------------------------------
+   * 🔐 Login to Facebook
    */
- const handleFacebookLogin = useCallback(() => {
-  console.log("[FB] ▶️ Connect button clicked");
+  const handleFacebookLogin = useCallback(() => {
+    console.log("[FB] ▶️ Connect button clicked");
 
-  // 🔹 Ensure FB SDK has loaded before proceeding
-  if (!isReady) {
-    setError("Facebook SDK not loaded yet");
-    return;
-  }
-
-  // 🔹 Check the current login status of the user
-  window.FB.getLoginStatus((response) => {
-    console.log("[FB] Current login status:", response);
-
-    // ✅ User is already logged in and authorized the app
-    if (response.status === "connected") {
-      const { accessToken } = response.authResponse;
-      console.log("[FB] ✅ Already connected, using stored token:", accessToken);
-
-      setFbStatus("connected");
-      handleFetchPages(accessToken); // Fetch pages using the existing token
+    if (!isReady) {
+      setError("Facebook SDK not loaded yet");
       return;
     }
 
-    // 🔹 Trigger FB login popup if user is not connected
-    console.log("[FB] Opening login popup...");
-    window.FB.login(
-      (loginResp) => {
-        console.log("[FB] Login response:", loginResp);
+    window.FB.getLoginStatus((response) => {
+      console.log("[FB] Current login status:", response);
 
-        // ❌ User cancelled login or login failed
-        if (!loginResp.authResponse) {
-          setError("Login cancelled or failed");
-          return;
-        }
-
-        // ✅ Successful login
-        const { accessToken, userID } = loginResp.authResponse;
-        console.log("[FB] ✅ Logged in:", { userID, accessToken });
-
-        // Store access token locally for reuse
-        localStorage.setItem("fb_user_token", accessToken);
-
+      if (response.status === "connected") {
+        const { accessToken } = response.authResponse;
+        console.log("[FB] ✅ Already connected, using stored token");
         setFbStatus("connected");
-        handleFetchPages(accessToken); // Fetch pages using the new token
-      },
-      {
-        scope:
-          "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval,business_management,ads_read",
-        auth_type: "rerequest", // Prompt user to reauthorize if needed
-        return_scopes: true,    // Return granted scopes in the response
+        handleFetchPages(accessToken);
+        return;
       }
-    );
-  });
-}, [isReady]);
+
+      console.log("[FB] Opening login popup...");
+      window.FB.login(
+        (loginResp) => {
+          if (!loginResp.authResponse) {
+            setError("Login cancelled or failed");
+            return;
+          }
+
+          const { accessToken, userID } = loginResp.authResponse;
+          console.log("[FB] ✅ Logged in:", { userID, accessToken });
+
+          localStorage.setItem("fb_user_token", accessToken);
+          setFbStatus("connected");
+          handleFetchPages(accessToken);
+        },
+        {
+          scope:
+            "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,leads_retrieval,business_management,ads_read",
+          auth_type: "rerequest",
+          return_scopes: true,
+        }
+      );
+    });
+  }, [isReady]);
+
   /**
-   * --------------------------------------------
-   * 📦 Fetch Pages (using helper)
-   * --------------------------------------------
+   * 📦 Fetch pages owned by the logged-in user
    */
   const handleFetchPages = async (accessToken) => {
     try {
@@ -142,9 +129,9 @@ const IntegrationPage = () => {
       setPages(data);
       if (data.length > 0) {
         setSelectedPage(data[0]);
-        console.log("[FB] ✅ Selected first page:", data[0]);
+        console.log("[FB] ✅ Selected page:", data[0]);
       } else {
-        console.warn("[FB] No pages found for this user.");
+        console.warn("[FB] ⚠️ No pages found for this user.");
       }
     } catch (err) {
       setError(err?.message || "Failed to fetch pages");
@@ -152,101 +139,79 @@ const IntegrationPage = () => {
   };
 
   /**
-   * --------------------------------------------
-   * 📊 Fetch Page Insights (optional demo)
-   * --------------------------------------------
+   * 📊 Fetch safe insights for the selected page
+   * Avoids invalid metric errors by trying each one individually.
    */
-/**
- * 📊 Safely fetch insights for a Facebook Page
- * - Dynamically gets all available metrics from /metadata
- * - Then fetches insights only for those valid metrics
- * - Works for any Page without throwing metric errors
- */
+  const handleFetchInsights = async () => {
+    if (!selectedPage) return;
 
-const handleFetchInsights = async () => {
-  if (!selectedPage) return;
+    const pageId = selectedPage.id;
+    const accessToken = selectedPage.access_token;
 
-  const pageId = selectedPage.id;
-  const accessToken = selectedPage.access_token;
+    // Common, safe Page metrics
+    const SAFE_METRICS = [
+      "page_impressions",
+      "page_engaged_users",
+      "page_fan_adds",
+      "page_fan_removes",
+      "page_views_login_total",
+      "page_posts_impressions_organic",
+      "page_posts_impressions_paid",
+    ];
 
-  try {
-    console.log(`[FB] 📊 Fetching insights for page: ${selectedPage.name}`);
+    try {
+      console.log(`[FB] 📊 Fetching insights for page: ${selectedPage.name}`);
 
-    // Step 1️⃣ — Fetch available metrics dynamically
-    const availableMetrics = await new Promise((resolve, reject) => {
-      window.FB.api(
-        `/${pageId}/insights/metadata`,
-        "GET",
-        { access_token: accessToken },
-        (response) => {
-          if (!response || response.error) {
-            console.error("[FB API] ❌ Failed to fetch metrics metadata:", response.error);
-            reject(response?.error);
-          } else {
-            const metrics = response.data.map((m) => m.name);
-            console.log("[FB API] ✅ Available metrics:", metrics);
-            resolve(metrics);
+      const validResults = [];
+
+      for (const metric of SAFE_METRICS) {
+        try {
+          const result = await new Promise((resolve, reject) => {
+            window.FB.api(
+              `/${pageId}/insights`,
+              "GET",
+              { metric, access_token: accessToken },
+              (response) => {
+                if (!response || response.error) reject(response?.error);
+                else resolve(response.data);
+              }
+            );
+          });
+
+          if (result && result.length > 0) {
+            console.log(`[FB API] ✅ Metric "${metric}" fetched successfully`);
+            validResults.push(...result);
           }
+        } catch (err) {
+          console.warn(`[FB API] ⚠️ Metric "${metric}" not available — skipping`);
         }
-      );
-    });
-
-    if (!availableMetrics || !availableMetrics.length) {
-      console.warn("[FB] ⚠️ No metrics available for this page");
-      setInsights({});
-      return;
-    }
-
-    // Step 2️⃣ — Fetch insights only for valid metrics
-    const validMetrics = availableMetrics.join(",");
-    const data = await new Promise((resolve, reject) => {
-      window.FB.api(
-        `/${pageId}/insights`,
-        "GET",
-        {
-          metric: validMetrics,
-          access_token: accessToken,
-        },
-        (response) => {
-          if (!response || response.error) {
-            console.error("[FB API] ❌ Failed to fetch insights:", response.error);
-            reject(response?.error);
-          } else {
-            console.log("[FB API] ✅ Insights fetched:", response.data);
-            resolve(response.data);
-          }
-        }
-      );
-    });
-
-    if (!data || !data.length) {
-      console.warn("[FB] ⚠️ No insights data returned");
-      setInsights({});
-      return;
-    }
-
-    // Step 3️⃣ — Format results for UI display
-    const formattedInsights = {};
-    data.forEach((metric) => {
-      if (metric.values && metric.values.length > 0) {
-        formattedInsights[metric.name] = metric.values[0].value ?? 0;
       }
-    });
 
-    console.log("[FB] ✅ Formatted insights:", formattedInsights);
-    setInsights(formattedInsights);
-  } catch (err) {
-    console.error("[FB] ❌ Error fetching insights:", err);
-    setError(err?.message || "Failed to fetch insights");
-    setInsights({});
-  }
-};
+      if (!validResults.length) {
+        console.warn("[FB] ⚠️ No valid insights for this page");
+        setInsights({});
+        return;
+      }
 
+      // Format result
+      const formatted = {};
+      validResults.forEach((metric) => {
+        if (metric.values?.length) {
+          formatted[metric.name] = metric.values[0].value ?? 0;
+        }
+      });
+
+      console.log("[FB] ✅ Formatted insights:", formatted);
+      setInsights(formatted);
+    } catch (err) {
+      console.error("[FB] ❌ Error fetching insights:", err);
+      setError(err?.message || "Failed to fetch insights");
+      setInsights({});
+    }
+  };
 
   /**
-   * --------------------------------------------
-   * 🔓 Disconnect Facebook
-   * --------------------------------------------
+   * 🔓 Disconnect from Facebook
    */
   const handleDisconnect = () => {
     if (!isReady) return;
@@ -257,15 +222,11 @@ const handleFetchInsights = async () => {
       setFbStatus("idle");
       setSelectedPage(null);
       setPages([]);
-      setInsights([]);
+      setInsights({});
     });
   };
 
-  /**
-   * --------------------------------------------
-   * 🧱 Integration Card Config
-   * --------------------------------------------
-   */
+  // 🔹 Integration card configuration
   const integrationsData = [
     {
       id: 1,
@@ -291,7 +252,7 @@ const handleFetchInsights = async () => {
   // --------------------------------------------
   return (
     <div className="grid gap-4">
-      {/* Error Banner */}
+      {/* 🔺 Error Banner */}
       {(error || loadError) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
           <FaExclamationTriangle className="text-red-500 mr-3" />
@@ -302,7 +263,7 @@ const handleFetchInsights = async () => {
         </div>
       )}
 
-      {/* Connection Success */}
+      {/* ✅ Success Banner */}
       {fbStatus === "connected" && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
           <FaCheck className="text-green-500 mr-3" />
@@ -314,7 +275,7 @@ const handleFetchInsights = async () => {
         </div>
       )}
 
-      {/* Integration Card */}
+      {/* 🔗 Integration Card */}
       {integrationsData.map((integration) => (
         <IntegrationCard
           key={integration.id}
@@ -323,7 +284,7 @@ const handleFetchInsights = async () => {
         />
       ))}
 
-      {/* Display Pages */}
+      {/* 📄 Display User Pages */}
       {pages.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4">
           <h3 className="font-semibold mb-2">Your Facebook Pages</h3>
@@ -335,7 +296,7 @@ const handleFetchInsights = async () => {
             ))}
           </ul>
 
-          {/* Optional: Fetch Insights Button */}
+          {/* Fetch Insights Button */}
           {selectedPage && (
             <button
               onClick={handleFetchInsights}
@@ -347,8 +308,8 @@ const handleFetchInsights = async () => {
         </div>
       )}
 
-      {/* Display Insights */}
-      {insights.length > 0 && (
+      {/* 📊 Display Insights */}
+      {Object.keys(insights).length > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
           <h3 className="font-semibold mb-2">Page Insights</h3>
           <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto">
