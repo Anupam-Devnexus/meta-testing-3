@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meta Integrations</title>
+
+  <!-- Tailwind / Custom CSS -->
+  <link href="/src/style.css" rel="stylesheet" />
+
+  <!-- Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script type="module" crossorigin src="/assets/index-DXCRpfe7.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CGvVhNXr.css">
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- React entrypoint -->
+
+  <!-- Facebook SDK -->
+  <script>
+    /**
+     * 🔹 Facebook SDK Loader
+     * - Loads SDK asynchronously
+     * - Initializes with App ID only (no secret)
+     * - Supports login, cookies, and XFBML
+     * - Version: v19.0
+     */
+    (function(d, s, id) {
+      if (d.getElementById(id)) return; // prevent multiple loads
+      const js = d.createElement(s);
+      js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      js.async = true;
+      js.defer = true;
+      const fjs = d.getElementsByTagName(s)[0];
+      fjs.parentNode.insertBefore(js, fjs);
+    })(document, "script", "facebook-jssdk");
+
+    // 🔹 Initialize FB SDK after load
+    window.fbAsyncInit = function () {
+      FB.init({
+        appId: 1312250540909733, // Replace with import.meta.env.VITE_FACEBOOK_APP_ID in React
+        cookie: true,             // Enable cookies for login session
+        xfbml: true,              // Parse social plugins like Like buttons
+        version: "v19.0",         // Latest FB Graph API version
+      });
+
+      FB.AppEvents.logPageView(); // Optional: track page view for analytics
+      console.log("[FB SDK] Initialized ✅");
+    };
+  </script>
+</body>
+
+</html>
