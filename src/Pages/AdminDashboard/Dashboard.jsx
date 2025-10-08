@@ -17,70 +17,15 @@ export default function Dashboard() {
   const { users, loading, fetchUser } = useUserStore();
   const { data, fetchData } = useLeadStore();
 
-  // -----------------------------
-  // State Definitions
-  // -----------------------------
-  const [userInfo, setUserInfo] = useState({
-    id: "",
-    name: "",
-    email: "",
-    role: "",
-    token: "",
-  });
 
   // Initialize Facebook state from localStorage
   const [facebookConnected, setFacebookConnected] = useState(
-    localStorage.getItem("facebookConnected") === "true"
+    localStorage.getItem("facebookConnected") === "false"
   );
 
   const [view, setView] = useState("integration"); // 'integration' or 'stats'
   const navigate = useNavigate();
 
-  // -----------------------------
-  // Handle Facebook OAuth Login
-  // -----------------------------
-  const handleFacebook = async () => {
-    try {
-      if (!userInfo.token) throw new Error("No token found. Please login first.");
-
-      const res = await fetch(
-        "https://dbbackend.devnexussolutions.com/facebook/config",
-        {
-          method: "GET",
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        }
-      );
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Failed to fetch config: ${errorText}`);
-      }
-
-      const { appId, redirectUri } = await res.json();
-      if (!appId || !redirectUri)
-        throw new Error("Invalid Facebook config (missing appId or redirectUri)");
-
-      const fbAuthUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(
-        redirectUri
-      )}&scope=pages_show_list,pages_read_engagement,leads_retrieval&response_type=code`;
-
-      const fbWindow = window.open(fbAuthUrl, "fbLogin", "width=600,height=700");
-
-      // Polling to detect when popup closes
-      const interval = setInterval(() => {
-        if (fbWindow.closed) {
-          clearInterval(interval);
-          // Update state & persist to localStorage
-          setFacebookConnected(true);
-          localStorage.setItem("facebookConnected", "true");
-        }
-      }, 1000);
-    } catch (err) {
-      console.error("Facebook Login Error:", err.message);
-      setFacebookConnected(false);
-      localStorage.setItem("facebookConnected", "false");
-    }
-  };
 
   // -----------------------------
   // Fetch Initial Data on Mount
@@ -118,9 +63,8 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <FaFacebook className="text-blue-600 text-xl" />
           <span
-            className={`font-semibold ${
-              facebookConnected ? "text-green-600" : "text-red-600"
-            }`}
+            className={`font-semibold ${facebookConnected ? "text-green-600" : "text-red-600"
+              }`}
           >
             {facebookConnected ? "Facebook Connected ✅" : "Not Connected ❌"}
           </span>
@@ -153,7 +97,7 @@ export default function Dashboard() {
               {facebookConnected ? "Connected ✅" : "Not Connected ❌"}
             </span>
           </p>
-{/* 
+          {/* 
           <button
             onClick={handleFacebook}
             className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
