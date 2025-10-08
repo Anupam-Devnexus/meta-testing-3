@@ -10,8 +10,8 @@ export default function AllUsers() {
     fetchUser();
   }, []);
 
-  const confirmData = users.users || [];
-  console.log("All users", confirmData);
+  const confirmData = users?.users || [];
+  // console.log("All users", confirmData);
 
   // 🔹 Function to delete user
   const handleDelete = async (id) => {
@@ -50,7 +50,7 @@ export default function AllUsers() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-2 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-800">All Users</h2>
         <div className="flex items-center gap-3">

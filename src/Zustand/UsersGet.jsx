@@ -10,9 +10,9 @@ const useUserStore = create((set) => ({
 
     try {
       // Get token from localStorage
-      const userDetails = JSON.parse(localStorage.getItem('UserDetails'));
-      const token = userDetails?.token;
-
+      const UserDetails = JSON.parse(localStorage.getItem('UserDetails'));
+      const token = UserDetails?.token;
+// console.log("Token:", token);
       if (!token) {
         throw new Error('No token found. Please login.');
       }
@@ -22,7 +22,7 @@ const useUserStore = create((set) => ({
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${user.token}`,
+              Authorization: `Bearer ${token}`,
             },
           }
       );
