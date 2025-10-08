@@ -35,8 +35,8 @@ export default function Stats() {
   const handleCardClick = (chart) => setActiveChart(chart);
 
   return (
-    <div className="p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">📊 Statistics Overview</h1>
+    <div className="p-2 space-y-3">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">📊 Statistics Overview For You</h1>
 
       {/* Stats Cards */}
       <div
