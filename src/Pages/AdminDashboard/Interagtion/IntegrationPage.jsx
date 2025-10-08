@@ -44,7 +44,7 @@ const useFacebookSDK = (appId) => {
 // --------------------------------------------
 const IntegrationPage = () => {
   const [fbStatus, setFbStatus] = useState(
-    localStorage.getItem("fb_connected") === "true" ? "connected" : "idle"
+    localStorage.setItem("fb_connected" , "false")
   );
   const [selectedPage, setSelectedPage] = useState(null);
   const [pages, setPages] = useState([]);
