@@ -6,7 +6,6 @@ import {
   FaChartLine,
   FaFacebook,
 } from "react-icons/fa";
-import CountUp from "react-countup"; // ✅ Animated numbers
 
 import useMetaLeads from "../../Zustand/MetaLeadsGet";
 import useLeadStore from "../../Zustand/LeadsGet";
@@ -32,7 +31,7 @@ export default function Dashboard() {
   const [view, setView] = useState("integration"); // 'integration' or 'stats'
 
   // -----------------------------
-  // Data fetching
+  // Fetch Data
   // -----------------------------
   useEffect(() => {
     fetchUser();
@@ -41,7 +40,7 @@ export default function Dashboard() {
   }, [facebookConnected, fetchData, fetchMetaLeads, fetchUser]);
 
   // -----------------------------
-  // Memoized counts
+  // Memoized Stats
   // -----------------------------
   const totalLeads = useMemo(() => data?.leads?.length || 0, [data]);
   const totalMetaLeads = useMemo(
@@ -51,7 +50,7 @@ export default function Dashboard() {
   const totalUsers = useMemo(() => users?.users?.length || 0, [users]);
 
   // -----------------------------
-  // Component UI
+  // Render
   // -----------------------------
   return (
     <div className="min-h-screen bg-gradient-to-tr from-indigo-100 via-white to-indigo-300 p-6">
@@ -81,7 +80,7 @@ export default function Dashboard() {
       {/* Main Section */}
       {view === "integration" ? (
         // -----------------------------
-        // Facebook Integration
+        // Integration View
         // -----------------------------
         <div className="bg-white rounded-2xl shadow-lg p-8 transition-all hover:shadow-xl">
           <h2 className="text-2xl font-bold text-indigo-700 flex items-center gap-2 mb-6">
@@ -102,18 +101,18 @@ export default function Dashboard() {
           <IntegrationPage onConnectSuccess={() => setFacebookConnected(true)} />
         </div>
       ) : (
+        // -----------------------------
+        // Stats View
+        // -----------------------------
         <>
           {facebookConnected ? (
-            // -----------------------------
-            // Stats Dashboard
-            // -----------------------------
-            <div className="space-y-10">
-              {/* Stat Cards Section */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="space-y-8">
+              {/* Stat Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 <StatCard
                   icon={FaUser}
                   title="Total Users"
-                  value={<CountUp end={totalUsers} duration={1.5} />}
+                  value={loading ? "..." : totalUsers}
                   bgColor="bg-indigo-100"
                   iconColor="text-indigo-600"
                   onClick={() => navigate("/admin-dashboard/users")}
@@ -122,7 +121,7 @@ export default function Dashboard() {
                 <StatCard
                   icon={FaUsers}
                   title="Total Meta Leads"
-                  value={<CountUp end={totalMetaLeads} duration={1.5} />}
+                  value={totalMetaLeads}
                   bgColor="bg-green-100"
                   iconColor="text-green-600"
                   onClick={() => navigate("/admin-dashboard/meta")}
@@ -131,33 +130,24 @@ export default function Dashboard() {
                 <StatCard
                   icon={FaChartLine}
                   title="Total Leads"
-                  value={<CountUp end={totalLeads} duration={1.5} />}
+                  value={totalLeads}
                   bgColor="bg-yellow-100"
                   iconColor="text-yellow-600"
                   onClick={() => navigate("/admin-dashboard/leads")}
                   hoverEffect
                 />
-                <StatCard
-                  icon={FaFacebook}
-                  title="Facebook Integration"
-                  value={facebookConnected ? "Active" : "Inactive"}
-                  bgColor="bg-blue-100"
-                  iconColor="text-blue-600"
-                  onClick={() => setView("integration")}
-                  hoverEffect
-                />
               </div>
 
-              {/* Analytics Charts */}
+              {/* Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
                   <h2 className="text-2xl font-bold mb-4 text-indigo-700">
                     Sales Funnel
                   </h2>
                   <SalesFunnel />
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
                   <h2 className="text-2xl font-bold mb-4 text-indigo-700">
                     Sales History
                   </h2>
@@ -166,7 +156,7 @@ export default function Dashboard() {
               </div>
 
               {/* Support Tracker */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
                 <h2 className="text-2xl font-bold mb-4 text-indigo-700">
                   Support Tracker
                 </h2>
@@ -175,10 +165,10 @@ export default function Dashboard() {
             </div>
           ) : (
             // -----------------------------
-            // Not Connected Notice
+            // Not Connected Message
             // -----------------------------
-            <div className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl">
-              <h2 className="text-2xl font-bold mb-4 text-red-600 text-center">
+            <div className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+              <h2 className="text-2xl font-bold mb-4 text-red-600">
                 Please connect Facebook to view dashboard stats.
               </h2>
               <button

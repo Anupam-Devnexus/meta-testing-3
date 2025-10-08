@@ -3,7 +3,6 @@ import useLeadStore from "../../../Zustand/LeadsGet";
 import useUserStore from "../../../Zustand/UsersGet";
 import useMetaLeads from "../../../Zustand/MetaLeadsGet";
 import { FaUsers, FaUserCheck, FaChartBar } from "react-icons/fa";
-import CountUp from "react-countup";
 
 import MetaChart from "../../../Components/Charts/MetaChart";
 import MannualChart from "../../../Components/Charts/MannualChart";
@@ -19,7 +18,6 @@ export default function Stats() {
 
   // ✅ Facebook connection flag
   const fb_connect = localStorage.getItem("fb_connect") === "true";
-  console.log("FB Connected:", fb_connect);
 
   // Default chart is "meta" if connected, otherwise "manual"
   const [activeChart, setActiveChart] = useState(fb_connect ? "meta" : "manual");
@@ -46,7 +44,7 @@ export default function Stats() {
           fb_connect ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
         }`}
       >
-        {/* Only show Meta Leads if connected */}
+        {/* Meta Leads only if connected */}
         {fb_connect ? (
           <StatCard
             title="Meta Leads"
@@ -55,13 +53,14 @@ export default function Stats() {
             active={activeChart === "meta"}
             onClick={() => handleCardClick("meta")}
           />
-        ) :  <StatCard
+        ) : (
+          <StatCard
             title="Connect Facebook to See Meta Leads"
-            value={""}
+            value="-"
             icon={<FaChartBar className="text-blue-500" />}
-            active={activeChart === "meta"}
-            // onClick={() => handleCardClick("meta")}
-          />}
+            active={false}
+          />
+        )}
 
         <StatCard
           title="Manual Leads"
@@ -120,9 +119,7 @@ function StatCard({ title, value, icon, onClick, active }) {
       <div className="text-4xl">{icon}</div>
       <div>
         <p className="text-gray-500 text-sm">{title}</p>
-        <p className="text-2xl font-bold text-gray-800">
-          <CountUp end={value} duration={2} separator="," />
-        </p>
+        <p className="text-2xl font-bold text-gray-800">{value.toString()}</p>
       </div>
     </div>
   );
