@@ -20,9 +20,9 @@ export default function Dashboard() {
 
   // ✅ Correctly load FB status from localStorage
   const [facebookConnected, setFacebookConnected] = useState(() => {
-    return localStorage.getItem("facebookConnected") === "true";
+    return localStorage.getItem("fb_connected") === "true";
   });
-
+console.log("Facebook Connected:", facebookConnected);
   const [view, setView] = useState("integration"); // 'integration' or 'stats'
 
   // -----------------------------
