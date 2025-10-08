@@ -269,7 +269,7 @@ const IntegrationPage = () => {
           <FaCheck className="text-green-500 mr-3" />
           <div>
             <p className="text-green-800 font-medium">
-              Connected {selectedPage ? `to ${selectedPage.name}` : "to Facebook"}
+              Connecteds {selectedPage ? `to ${selectedPage.name}` : "to Facebook"}
             </p>
           </div>
         </div>
