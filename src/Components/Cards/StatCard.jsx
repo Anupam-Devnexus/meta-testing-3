@@ -6,7 +6,7 @@ export default function StatCard({ icon: Icon, title, value, bgColor = "bg-white
     >
       {Icon && <Icon className="text-5xl text-indigo-600 mb-3" />}
       <h3 className="text-gray-500 uppercase tracking-wide font-semibold">{title}</h3>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
+      <p className="text-1xl font-bold text-gray-900">{value}</p>
     </div>
   );
 }

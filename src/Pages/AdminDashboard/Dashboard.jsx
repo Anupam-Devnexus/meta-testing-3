@@ -113,7 +113,7 @@ console.log("Facebook Connected:", facebookConnected);
               value={
                 facebookConnected
                   ? totalMetaLeads
-                  : "⚠️ Connect Facebook to view"
+                  : "⚠️ connect Facebook"
               }
               bgColor="bg-green-100"
               iconColor="text-green-600"
@@ -127,15 +127,23 @@ console.log("Facebook Connected:", facebookConnected);
             <StatCard
               icon={FaChartLine}
               title="Total Leads"
-              value={totalLeads}
+              value={
+                facebookConnected
+                  ? totalLeads
+                  : "⚠️ connect Facebook"
+              }
               bgColor="bg-yellow-100"
               iconColor="text-yellow-600"
-              onClick={() => navigate("/admin-dashboard/stats")}
+              onClick={() =>
+                facebookConnected
+                  ? navigate("/admin-dashboard/leads")
+                  : alert("Please connect Facebook first!")
+               }
               hoverEffect
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        { facebookConnected &&  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-bold mb-4 text-indigo-700">
                 Sales Funnel
@@ -149,14 +157,19 @@ console.log("Facebook Connected:", facebookConnected);
               </h2>
               <SellHistoryChart />
             </div>
-          </div>
+          </div>}
 
-          <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+        {facebookConnected &&  <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
             <h2 className="text-2xl font-bold mb-4 text-indigo-700">
               Support Tracker
             </h2>
             <SupportTracker />
-          </div>
+          </div>}
+          {!facebookConnected && (
+            <div className="text-center text-red-600 font-semibold">
+              Please connect Facebook to view dashboard statistics and charts.
+            </div>
+          )}
         </div>
       )}
     </div>
