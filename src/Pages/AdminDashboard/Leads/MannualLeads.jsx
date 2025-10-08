@@ -1,37 +1,29 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import useLeadStore from "../../../Zustand/LeadsGet";
-import useUserStore from "../../../Zustand/UsersGet";
 import MannualTable from "../../../Components/Tables/MannualTable";
+import { useManualLeadsStore } from "../../../Zustand/MannualLeads";
+import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
 
 // Icons
-import { FaFilter, FaWhatsapp } from "react-icons/fa";
-
+import { FaFilter } from "react-icons/fa";
 
 export default function ManualLeads() {
-  const { data, loading, error, fetchData } = useLeadStore();
-  const { users, fetchUser } = useUserStore();
   const navigate = useNavigate();
 
+  // Use your manual leads store
+  const { leads, loading, error, fetchLeads } = useManualLeadsStore();
+
+  // Local state for table interactions
   const [enabledRows, setEnabledRows] = useState({});
   const [remarks, setRemarks] = useState({});
   const [showGlobalRemarks, setShowGlobalRemarks] = useState(false);
 
-
-
-  // --- Fetch data
+  // --- Fetch manual leads on mount
   useEffect(() => {
-    fetchData();
-    fetchUser();
+    fetchLeads();
   }, []);
 
-  const leads = data?.leads || [];
-  const usersData = users?.users || [];
-
-  console.log(leads , usersData)
-
-
-  // --- Initialize remarks state when leads change
+  // --- Initialize enabledRows and remarks when leads change
   useEffect(() => {
     const initEnabled = {};
     const initRemarks = {};
@@ -43,17 +35,12 @@ export default function ManualLeads() {
     setRemarks(initRemarks);
   }, [leads]);
 
-  // --- Helpers
+  // --- Helper to check if any row is selected
   const isAnyRowSelected = useMemo(
     () => Object.values(enabledRows).some(Boolean),
     [enabledRows]
   );
-
- 
- 
-
-  
-
+console.log("Leads data:", leads);
   // --- Render
   return (
     <div className="p-4 space-y-4">
@@ -68,10 +55,10 @@ export default function ManualLeads() {
             Add Lead
           </button>
           <FaFilter
-            className={`text-blue-600 cursor-pointer ${
-              !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+            className={`text-blue-600 ${
+              !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
-            onClick={() => isAnyRowSelected && setShowGlobalRemarks((p) => !p)}
+            onClick={() => isAnyRowSelected && setShowGlobalRemarks((prev) => !prev)}
             title={
               !isAnyRowSelected
                 ? "Select at least one row to enable"
@@ -83,9 +70,20 @@ export default function ManualLeads() {
         </div>
       </div>
 
+      {/* Loading/Error states */}
+      {loading && <p>Loading leads...</p>}
+      {error && <p className="text-red-600">{error}</p>}
 
-      {/* Patch Table */}
-      <MannualTable leads={leads} patchApi="https://dbbackend.devnexussolutions.com/user/leads" />
+      {/* Table */}
+      <MannualTable
+        leads={leads}
+        patchApi="https://dbbackend.devnexussolutions.com/user/leads"
+        enabledRows={enabledRows}
+        setEnabledRows={setEnabledRows}
+        remarks={remarks}
+        setRemarks={setRemarks}
+        showGlobalRemarks={showGlobalRemarks}
+      />
     </div>
   );
 }

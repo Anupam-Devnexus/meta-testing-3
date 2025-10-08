@@ -11,7 +11,7 @@ const TAG_COLORS = [
   "bg-red-100 text-red-700",
 ];
 
-export default function DynamicDataTable({ apiData, patchApi = '' }) {
+export default function DynamicDataTable({ apiData, patchApi = "" }) {
   // Normalize API data
   const rows = useMemo(() => {
     if (!apiData) return [];
@@ -45,24 +45,27 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
     const initRemarks = {};
     const initTags = {};
     rows.forEach((row, idx) => {
-      const id = row.id || row._id || idx;
+      const id = row._id || row.id || idx;
       initEnabled[id] = false;
-      initRemarks[id] = { remark1: "", remark2: "" };
-      initTags[id] = [];
+      initRemarks[id] = { remark1: row.remarks1 || "", remark2: row.remarks2 || "" };
+      initTags[id] = row.tags || [];
     });
     setEnabledRows(initEnabled);
     setRemarks(initRemarks);
     setTags(initTags);
   }, [rows]);
 
-  // Helpers
+  // Helper to get email/phone from field_data or direct properties
   const detectEmail = (row) =>
-    Object.entries(row).find(([k]) => k.toLowerCase().includes("email"))?.[1] || "";
+    row.email ||
+    row.user_email ||
+    row.field_data?.find((f) => f.name.toLowerCase().includes("email"))?.values?.[0] ||
+    "";
   const detectPhone = (row) =>
-    Object.entries(row).find(([k]) => k.toLowerCase().includes("phone"))?.[1] || "";
+    row.phone || row.field_data?.find((f) => f.name.toLowerCase().includes("phone"))?.values?.[0] ||
+    "";
 
-  const toggleRow = (id) =>
-    setEnabledRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleRow = (id) => setEnabledRows((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const addTag = (id, newTag) => {
     if (!newTag.trim()) return;
@@ -106,10 +109,10 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
     });
   };
 
-
+  // WhatsApp / Gmail
   const sendWhatsApp = () => {
     rows.forEach((row, idx) => {
-      const id = row.id || row._id || idx;
+      const id = row._id || row.id || idx;
       if (!enabledRows[id]) return;
       const phone = detectPhone(row);
       if (!phone) return;
@@ -122,7 +125,7 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
 
   const sendGmail = () => {
     rows.forEach((row, idx) => {
-      const id = row.id || row._id || idx;
+      const id = row._id || row.id || idx;
       if (!enabledRows[id]) return;
       const email = detectEmail(row);
       if (!email) return;
@@ -130,16 +133,16 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
       const body = encodeURIComponent(
         `Hi ${row.name || row.full_name || "Customer"},\n\nRemark 1: ${remarks[id]?.remark1 || globalRemark1}\nRemark 2: ${remarks[id]?.remark2 || globalRemark2}\n\nThanks,\nTeam`
       );
-      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`, "_blank");
+      window.open(
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`,
+        "_blank"
+      );
     });
   };
 
-
+  // Patch changes
   const submitChanges = async () => {
-    if (!patchApi) {
-      alert("Patch API endpoint not provided.");
-      return;
-    }
+    if (!patchApi) return alert("Patch API endpoint not provided.");
 
     setSubmitting(true);
     try {
@@ -149,7 +152,6 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
         .map((id) => {
           const row = rows.find((r) => (r._id || r.id) === id);
           if (!row) return null;
-
           return {
             _id: row._id || row.id,
             remarks1: remarks[id]?.remark1 || row.remarks1 || "",
@@ -159,10 +161,7 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
         })
         .filter(Boolean);
 
-      if (!updates.length) {
-        alert("No rows selected to update.");
-        return;
-      }
+      if (!updates.length) return alert("No rows selected to update.");
 
       const ids = updates.map((u) => u._id);
       const updateData = {
@@ -171,8 +170,7 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
         tags: updates[0].tags,
       };
 
-      console.log("Payload being sent:", { ids, updateData });
-      const res = await fetch(`${patchApi}`, {
+      const res = await fetch(patchApi, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -181,19 +179,11 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
         body: JSON.stringify({ ids, updateData }),
       });
 
-      console.log(res)
-      console.log(patchApi)
-
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Failed: ${errText}`);
-      }
+      if (!res.ok) throw new Error("Failed to submit changes.");
       const response = await res.json();
       console.log("Patch response:", response);
-      console.log("Changes submitted successfully!");
     } catch (err) {
       console.error("Error submitting:", err);
-      console.log("Error submitting changes! " + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -201,7 +191,13 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
 
   if (!rows.length) return <p className="text-gray-500">No data available</p>;
 
-  const headers = Object.keys(rows[0]).filter((k) => k !== "_id" && k !== "id");
+  // Headers from field_data + other keys
+  const headers = useMemo(() => {
+    if (!rows.length) return [];
+    const fieldNames = rows[0].field_data?.map((f) => f.name) || [];
+    const otherKeys = ["name", "email", "phone", "status", "createdAt"];
+    return [...otherKeys, ...fieldNames];
+  }, [rows]);
 
   return (
     <div className="p-4 space-y-4">
@@ -225,7 +221,7 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
         <button
           onClick={submitChanges}
           disabled={!isAnyRowSelected || submitting}
-          className={`ml-auto px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+          className="ml-auto px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? "Submitting..." : "Submit Changes"}
         </button>
@@ -245,7 +241,6 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
               <option key={idx} value={opt}>{opt}</option>
             ))}
           </select>
-
           {showCustomInput && (
             <div className="flex gap-2 items-center">
               <input
@@ -263,7 +258,6 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
               </button>
             </div>
           )}
-
           <input
             type="text"
             placeholder="Enter Remark 2"
@@ -271,7 +265,6 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
             onChange={(e) => setGlobalRemark2(e.target.value)}
             className="px-4 py-2 border-b border-gray-300 text-sm outline-none flex-1"
           />
-
           <button
             onClick={applyGlobalRemarks}
             className="flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded-full shadow-sm hover:bg-blue-700"
@@ -296,7 +289,7 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
           </thead>
           <tbody>
             {rows.map((row, idx) => {
-              const id = row.id || row._id || idx;
+              const id = row._id || row.id || idx;
               return (
                 <tr key={id} className={`hover:bg-gray-50 ${enabledRows[id] ? "bg-gray-100" : ""}`}>
                   <td className="py-2 px-4 border text-center">
@@ -307,9 +300,12 @@ export default function DynamicDataTable({ apiData, patchApi = '' }) {
                       className="w-5 h-5 accent-blue-500"
                     />
                   </td>
-                  {headers.map((h, i) => (
-                    <td key={i} className="py-2 px-4 border">{row[h] || "-"}</td>
-                  ))}
+                  {headers.map((h, i) => {
+                    if (row[h] !== undefined) return <td key={i} className="py-2 px-4 border">{row[h] || "-"}</td>;
+                    // search field_data
+                    const fd = row.field_data?.find((f) => f.name === h);
+                    return <td key={i} className="py-2 px-4 border">{fd?.values?.[0] || "-"}</td>;
+                  })}
                   <td className="py-2 px-4 border text-xs">{remarks[id]?.remark2 || "-"}</td>
                   <td className="py-2 px-4 border">
                     <div className="flex flex-wrap gap-1 mb-1">

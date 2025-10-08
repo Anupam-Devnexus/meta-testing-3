@@ -10,14 +10,14 @@ export default function Website() {
   useEffect(() => {
     fetchContacts();
   }, []);
-
+console.log(data)
   // Safely extract submissions
   const submissions = data?.submissions || [];
   // console.log(submissions)
   const api = "https://dbbackend.devnexussolutions.com/auth/api/contact"
 
   return (
-    <section className="p-6 max-w-7xl mx-auto space-y-6">
+    <section className="p-2 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">Contact Submissions</h1>

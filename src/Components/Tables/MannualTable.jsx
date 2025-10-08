@@ -17,6 +17,12 @@ const ModernTable = ({ leads = [], patchApi }) => {
   const [globalRemark2, setGlobalRemark2] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const token = JSON.parse(localStorage.getItem("UserDetails"))?.token;
+
+  if (!token) {
+    return <p className="text-red-600">User not authenticated. Please log in.</p>;
+  }
+
   // Collect dynamic table headers
   const allKeys = useMemo(() => {
     if (!leads.length) return [];
@@ -45,8 +51,7 @@ const ModernTable = ({ leads = [], patchApi }) => {
     if (!row.email) return;
     const subject = encodeURIComponent("Follow-up on your inquiry");
     const body = encodeURIComponent(
-      `Hello ${row.field_data?.find((f) => f.name === "full_name")?.values[0] || "Customer"},\n\nRemark 1: ${
-        remarks[row._id]?.remark1 || row.remarks1 || ""
+      `Hello ${row.field_data?.find((f) => f.name === "full_name")?.values[0] || "Customer"},\n\nRemark 1: ${remarks[row._id]?.remark1 || row.remarks1 || ""
       }\nRemark 2: ${remarks[row._id]?.remark2 || row.remarks2 || ""}`
     );
     window.open(
@@ -59,8 +64,7 @@ const ModernTable = ({ leads = [], patchApi }) => {
     const phone = row.field_data?.find((f) => f.name === "phone")?.values[0];
     if (!phone) return;
     const msg = encodeURIComponent(
-      `Hello ${row.field_data?.find((f) => f.name === "full_name")?.values[0] || "Customer"},\nRemark 1: ${
-        remarks[row._id]?.remark1 || row.remarks1 || ""
+      `Hello ${row.field_data?.find((f) => f.name === "full_name")?.values[0] || "Customer"},\nRemark 1: ${remarks[row._id]?.remark1 || row.remarks1 || ""
       }\nRemark 2: ${remarks[row._id]?.remark2 || row.remarks2 || ""}`
     );
     window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
@@ -149,9 +153,8 @@ const ModernTable = ({ leads = [], patchApi }) => {
             {leads.map((row, idx) => (
               <tr
                 key={row._id}
-                className={`transition hover:bg-gray-50 ${
-                  idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                }`}
+                className={`transition hover:bg-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                  }`}
               >
                 <td className="p-3 border text-center">
                   <input

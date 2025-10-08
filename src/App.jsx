@@ -31,6 +31,7 @@ import GoogleAds from "./Pages/AdminDashboard/Google/GoogleAds";
 import { Oppur } from "./Pages/AdminDashboard/Oppur";
 import Proflie from "./Pages/AdminDashboard/Proflie";
 import Website from "./Pages/AdminDashboard/Website/Website";
+import DynamicCampaignPage from "./Pages/AdminDashboard/DynamicCampaignPage";
 
 // User Pages
 import UserLayout from "./Pages/User/UserLayout";
@@ -67,6 +68,7 @@ const adminRoutes = [
   { path: "oppurtunity", element: <Oppur /> },
   { path: "stats", element: <Stats /> },
   { path: "website", element: <Website /> },
+  { path: "meta/:campaignName", element: <DynamicCampaignPage /> },
 ];
 
 const userRoutes = [
