@@ -81,7 +81,7 @@ export default function Dashboard() {
   const totalUsers = useMemo(() => users?.users?.length || 0, [users]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-indigo-50 via-white to-indigo-100 p-2">
+    <div className="min-h-screen bg-gradient-to-tr from-indigo-200 via-white to-indigo-400 p-3">
       {/* Header */}
       <div className="mb-12 bg-white rounded-2xl shadow-lg p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
