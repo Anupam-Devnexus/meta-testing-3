@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { FaUser, FaUsers, FaChartLine, FaFacebook } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -13,58 +13,53 @@ import SellHistoryChart from "../../Components/SellHistoryChart";
 import SupportTracker from "../../Components/SupportTracker";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { metaleads, fetchMetaLeads } = useMetaLeads();
   const { users, loading, fetchUser } = useUserStore();
   const { data, fetchData } = useLeadStore();
 
-
-  // Initialize Facebook state from localStorage
-  const [facebookConnected, setFacebookConnected] = useState(
-    localStorage.getItem("facebookConnected") === "false"
-  );
+  // ✅ Correctly load FB status from localStorage
+  const [facebookConnected, setFacebookConnected] = useState(() => {
+    return localStorage.getItem("facebookConnected") === "true";
+  });
 
   const [view, setView] = useState("integration"); // 'integration' or 'stats'
-  const navigate = useNavigate();
-
 
   // -----------------------------
-  // Fetch Initial Data on Mount
+  // ✅ Fetch Data when Connected
   // -----------------------------
   useEffect(() => {
-    const storedUser = localStorage.getItem("User");
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        setUserInfo((prev) => ({ ...prev, ...user }));
-      } catch (err) {
-        console.error("Failed to parse user info:", err);
-      }
-    }
-
-    fetchMetaLeads();
-    fetchData();
     fetchUser();
-  }, []);
+    fetchData();
+
+    if (facebookConnected) {
+      fetchMetaLeads();
+    }
+  }, [facebookConnected, fetchData, fetchMetaLeads, fetchUser]);
 
   // -----------------------------
-  // Derived Memoized Data
+  // Derived Data (Memoized)
   // -----------------------------
   const totalLeads = useMemo(() => data?.leads?.length || 0, [data]);
-  const totalMetaLeads = useMemo(() => metaleads?.leads?.length || 0, [metaleads]);
+  const totalMetaLeads = useMemo(
+    () => metaleads?.leads?.length || 0,
+    [metaleads]
+  );
   const totalUsers = useMemo(() => users?.users?.length || 0, [users]);
 
   // -----------------------------
-  // Render Component
+  // UI Render
   // -----------------------------
   return (
     <div className="min-h-screen bg-gradient-to-tr from-indigo-200 via-white to-indigo-400 p-4">
-      {/* Top Bar: Persistent FB Badge + Toggle Button */}
+      {/* Top Bar */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
           <FaFacebook className="text-blue-600 text-xl" />
           <span
-            className={`font-semibold ${facebookConnected ? "text-green-600" : "text-red-600"
-              }`}
+            className={`font-semibold ${
+              facebookConnected ? "text-green-600" : "text-red-600"
+            }`}
           >
             {facebookConnected ? "Facebook Connected ✅" : "Not Connected ❌"}
           </span>
@@ -73,14 +68,14 @@ export default function Dashboard() {
         <button
           className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
           onClick={() =>
-            setView(view === "integration" ? "stats" : "integration")
+            setView((prev) => (prev === "integration" ? "stats" : "integration"))
           }
         >
           {view === "integration" ? "Go to Dashboard Stats" : "Back to Integrations"}
         </button>
       </div>
 
-      {/* Main Panel */}
+      {/* Main View */}
       {view === "integration" ? (
         <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 space-y-6">
           <h2 className="text-2xl font-bold mb-4 text-indigo-700 flex items-center gap-2">
@@ -90,22 +85,15 @@ export default function Dashboard() {
           <p className="text-lg">
             Status:{" "}
             <span
-              className={
-                facebookConnected ? "text-green-600 font-semibold" : "text-red-600 font-semibold"
-              }
+              className={`font-semibold ${
+                facebookConnected ? "text-green-600" : "text-red-600"
+              }`}
             >
               {facebookConnected ? "Connected ✅" : "Not Connected ❌"}
             </span>
           </p>
-          {/* 
-          <button
-            onClick={handleFacebook}
-            className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
-          >
-            {facebookConnected ? "Reconnect Facebook" : "Connect Facebook"}
-          </button> */}
 
-          <IntegrationPage />
+          <IntegrationPage onConnectSuccess={() => setFacebookConnected(true)} />
         </div>
       ) : (
         <div className="space-y-8">
@@ -122,10 +110,18 @@ export default function Dashboard() {
             <StatCard
               icon={FaUsers}
               title="Total Meta Leads"
-              value={totalMetaLeads}
+              value={
+                facebookConnected
+                  ? totalMetaLeads
+                  : "⚠️ Connect Facebook to view"
+              }
               bgColor="bg-green-100"
               iconColor="text-green-600"
-              onClick={() => navigate("/admin-dashboard/meta")}
+              onClick={() =>
+                facebookConnected
+                  ? navigate("/admin-dashboard/meta")
+                  : alert("Please connect Facebook first!")
+              }
               hoverEffect
             />
             <StatCard
@@ -141,18 +137,24 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales Funnel</h2>
+              <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                Sales Funnel
+              </h2>
               <SalesFunnel />
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-bold mb-4 text-indigo-700">Sales History</h2>
+              <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                Sales History
+              </h2>
               <SellHistoryChart />
             </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-2xl font-bold mb-4 text-indigo-700">Support Tracker</h2>
+            <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+              Support Tracker
+            </h2>
             <SupportTracker />
           </div>
         </div>
