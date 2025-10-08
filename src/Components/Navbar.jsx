@@ -93,20 +93,20 @@ export default function Navbar() {
         path: "/admin-dashboard/meta",
         submenu: loading
           ? Array(3)
-            .fill(null)
-            .map((_, i) => ({
-              icon: <FaUsers />,
-              sublabel: `Loading ${i + 1}...`,
-              loading: true,
-              path: "#",
-            }))
+              .fill(null)
+              .map((_, i) => ({
+                icon: <FaUsers />,
+                sublabel: `Loading ${i + 1}...`,
+                loading: true,
+                path: "#",
+              }))
           : campaignNames?.length > 0
-            ? campaignNames.map((campaign) => ({
+          ? campaignNames.map((campaign) => ({
               icon: <FaUsers />,
               sublabel: campaign,
               path: `/admin-dashboard/meta/${encodeURIComponent(campaign)}`,
             }))
-            : [
+          : [
               {
                 icon: <FaChevronDown />,
                 sublabel: "No Campaigns Found",
@@ -116,6 +116,16 @@ export default function Navbar() {
       });
     } else {
       baseNav.push({
+        icon: <FaFacebook />,
+        label: "Meta (Connect FB)",
+        path: "#",
+        // submenu: [
+        //   {
+        //     icon: <FaChevronDown />,
+        //     sublabel: "Connect Facebook to view",
+        //     path: "#",
+        //   },
+        // ],
       });
     }
 
@@ -156,7 +166,7 @@ export default function Navbar() {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-none scrollbar-thumb-white/20">
+      <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-white/20">
         <ul className="flex flex-col gap-2">
           {navData.map((item) => {
             const isParentActive =
@@ -171,14 +181,15 @@ export default function Navbar() {
                   onClick={() =>
                     item.submenu
                       ? setOpenSubmenu(
-                        openSubmenu === item.label ? null : item.label
-                      )
+                          openSubmenu === item.label ? null : item.label
+                        )
                       : handleNavigate(item.path)
                   }
-                  className={`flex items-center justify-between px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 ${isParentActive
+                  className={`flex items-center justify-between px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                    isParentActive
                       ? "bg-white/20 font-semibold"
                       : "hover:bg-white/10"
-                    }`}
+                  }`}
                 >
                   <div className="flex items-center gap-3 text-sm md:text-base">
                     {item.icon}
@@ -186,8 +197,9 @@ export default function Navbar() {
                   </div>
                   {item.submenu && (
                     <FiChevronDown
-                      className={`text-xs transition-transform ${openSubmenu === item.label ? "rotate-180" : ""
-                        }`}
+                      className={`text-xs transition-transform ${
+                        openSubmenu === item.label ? "rotate-180" : ""
+                      }`}
                     />
                   )}
                 </div>
@@ -201,12 +213,13 @@ export default function Navbar() {
                         <li key={sub.sublabel}>
                           <div
                             onClick={() => !sub.loading && handleNavigate(sub.path)}
-                            className={`flex items-center gap-2 py-2 px-2 text-sm rounded-md cursor-pointer transition-all duration-200 ${sub.loading
+                            className={`flex items-center gap-2 py-2 px-2 text-sm rounded-md cursor-pointer transition-all duration-200 ${
+                              sub.loading
                                 ? "bg-white/10 animate-pulse opacity-70"
                                 : isSubActive
-                                  ? "text-[#dcdc3c] font-semibold"
-                                  : "hover:text-[#dcdc3c]"
-                              }`}
+                                ? "text-[#dcdc3c] font-semibold"
+                                : "hover:text-[#dcdc3c]"
+                            }`}
                           >
                             {sub.icon}
                             <span className="truncate">
@@ -237,8 +250,9 @@ export default function Navbar() {
           <FiUser />
           <span className="text-sm truncate">Hi, {name}</span>
           <FiChevronDown
-            className={`ml-auto transition-transform ${dropdownOpen ? "rotate-180" : ""
-              }`}
+            className={`ml-auto transition-transform ${
+              dropdownOpen ? "rotate-180" : ""
+            }`}
           />
         </button>
 

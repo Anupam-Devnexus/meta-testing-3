@@ -1,12 +1,18 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { FaUser, FaUsers, FaChartLine, FaFacebook } from "react-icons/fa";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  FaUser,
+  FaUsers,
+  FaChartLine,
+  FaFacebook,
+} from "react-icons/fa";
+import CountUp from "react-countup"; // ✅ Animated numbers
 
 import useMetaLeads from "../../Zustand/MetaLeadsGet";
 import useLeadStore from "../../Zustand/LeadsGet";
 import useUserStore from "../../Zustand/UsersGet";
-import IntegrationPage from "./Interagtion/IntegrationPage";
 
+import IntegrationPage from "./Interagtion/IntegrationPage";
 import StatCard from "../../Components/Cards/StatCard";
 import SalesFunnel from "../../Components/Charts/SalesFunnel";
 import SellHistoryChart from "../../Components/SellHistoryChart";
@@ -14,31 +20,28 @@ import SupportTracker from "../../Components/SupportTracker";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+
   const { metaleads, fetchMetaLeads } = useMetaLeads();
   const { users, loading, fetchUser } = useUserStore();
   const { data, fetchData } = useLeadStore();
 
-  // ✅ Correctly load FB status from localStorage
   const [facebookConnected, setFacebookConnected] = useState(() => {
     return localStorage.getItem("fb_connected") === "true";
   });
-console.log("Facebook Connected:", facebookConnected);
+
   const [view, setView] = useState("integration"); // 'integration' or 'stats'
 
   // -----------------------------
-  // ✅ Fetch Data when Connected
+  // Data fetching
   // -----------------------------
   useEffect(() => {
     fetchUser();
     fetchData();
-
-    if (facebookConnected) {
-      fetchMetaLeads();
-    }
+    if (facebookConnected) fetchMetaLeads();
   }, [facebookConnected, fetchData, fetchMetaLeads, fetchUser]);
 
   // -----------------------------
-  // Derived Data (Memoized)
+  // Memoized counts
   // -----------------------------
   const totalLeads = useMemo(() => data?.leads?.length || 0, [data]);
   const totalMetaLeads = useMemo(
@@ -48,14 +51,14 @@ console.log("Facebook Connected:", facebookConnected);
   const totalUsers = useMemo(() => users?.users?.length || 0, [users]);
 
   // -----------------------------
-  // UI Render
+  // Component UI
   // -----------------------------
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-indigo-200 via-white to-indigo-400 p-4">
-      {/* Top Bar */}
-      <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-gradient-to-tr from-indigo-100 via-white to-indigo-300 p-6">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-2">
-          <FaFacebook className="text-blue-600 text-xl" />
+          <FaFacebook className="text-blue-600 text-2xl" />
           <span
             className={`font-semibold ${
               facebookConnected ? "text-green-600" : "text-red-600"
@@ -66,24 +69,27 @@ console.log("Facebook Connected:", facebookConnected);
         </div>
 
         <button
-          className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
           onClick={() =>
             setView((prev) => (prev === "integration" ? "stats" : "integration"))
           }
+          className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-xl shadow hover:bg-indigo-700 transition-all"
         >
-          {view === "integration" ? "Go to Dashboard Stats" : "Back to Integrations"}
+          {view === "integration" ? "View Dashboard Stats" : "Back to Integrations"}
         </button>
       </div>
 
-      {/* Main View */}
+      {/* Main Section */}
       {view === "integration" ? (
-        <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 space-y-6">
-          <h2 className="text-2xl font-bold mb-4 text-indigo-700 flex items-center gap-2">
+        // -----------------------------
+        // Facebook Integration
+        // -----------------------------
+        <div className="bg-white rounded-2xl shadow-lg p-8 transition-all hover:shadow-xl">
+          <h2 className="text-2xl font-bold text-indigo-700 flex items-center gap-2 mb-6">
             <FaFacebook /> Facebook Integration
           </h2>
 
-          <p className="text-lg">
-            Status:{" "}
+          <p className="text-lg mb-4">
+            Connection Status:{" "}
             <span
               className={`font-semibold ${
                 facebookConnected ? "text-green-600" : "text-red-600"
@@ -96,81 +102,94 @@ console.log("Facebook Connected:", facebookConnected);
           <IntegrationPage onConnectSuccess={() => setFacebookConnected(true)} />
         </div>
       ) : (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <StatCard
-              icon={FaUser}
-              title="Total Users"
-              value={loading ? "..." : totalUsers}
-              bgColor="bg-indigo-100"
-              iconColor="text-indigo-600"
-              onClick={() => navigate("/admin-dashboard/users")}
-              hoverEffect
-            />
-            <StatCard
-              icon={FaUsers}
-              title="Total Meta Leads"
-              value={
-                facebookConnected
-                  ? totalMetaLeads
-                  : "⚠️ connect Facebook"
-              }
-              bgColor="bg-green-100"
-              iconColor="text-green-600"
-              onClick={() =>
-                facebookConnected
-                  ? navigate("/admin-dashboard/meta")
-                  : alert("Please connect Facebook first!")
-              }
-              hoverEffect
-            />
-            <StatCard
-              icon={FaChartLine}
-              title="Total Leads"
-              value={
-                facebookConnected
-                  ? totalLeads
-                  : "⚠️ connect Facebook"
-              }
-              bgColor="bg-yellow-100"
-              iconColor="text-yellow-600"
-              onClick={() =>
-                facebookConnected
-                  ? navigate("/admin-dashboard/leads")
-                  : alert("Please connect Facebook first!")
-               }
-              hoverEffect
-            />
-          </div>
+        <>
+          {facebookConnected ? (
+            // -----------------------------
+            // Stats Dashboard
+            // -----------------------------
+            <div className="space-y-10">
+              {/* Stat Cards Section */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard
+                  icon={FaUser}
+                  title="Total Users"
+                  value={<CountUp end={totalUsers} duration={1.5} />}
+                  bgColor="bg-indigo-100"
+                  iconColor="text-indigo-600"
+                  onClick={() => navigate("/admin-dashboard/users")}
+                  hoverEffect
+                />
+                <StatCard
+                  icon={FaUsers}
+                  title="Total Meta Leads"
+                  value={<CountUp end={totalMetaLeads} duration={1.5} />}
+                  bgColor="bg-green-100"
+                  iconColor="text-green-600"
+                  onClick={() => navigate("/admin-dashboard/meta")}
+                  hoverEffect
+                />
+                <StatCard
+                  icon={FaChartLine}
+                  title="Total Leads"
+                  value={<CountUp end={totalLeads} duration={1.5} />}
+                  bgColor="bg-yellow-100"
+                  iconColor="text-yellow-600"
+                  onClick={() => navigate("/admin-dashboard/leads")}
+                  hoverEffect
+                />
+                <StatCard
+                  icon={FaFacebook}
+                  title="Facebook Integration"
+                  value={facebookConnected ? "Active" : "Inactive"}
+                  bgColor="bg-blue-100"
+                  iconColor="text-blue-600"
+                  onClick={() => setView("integration")}
+                  hoverEffect
+                />
+              </div>
 
-        { facebookConnected &&  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-bold mb-4 text-indigo-700">
-                Sales Funnel
-              </h2>
-              <SalesFunnel />
+              {/* Analytics Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                    Sales Funnel
+                  </h2>
+                  <SalesFunnel />
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                    Sales History
+                  </h2>
+                  <SellHistoryChart />
+                </div>
+              </div>
+
+              {/* Support Tracker */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                  Support Tracker
+                </h2>
+                <SupportTracker />
+              </div>
             </div>
-
-            <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-bold mb-4 text-indigo-700">
-                Sales History
+          ) : (
+            // -----------------------------
+            // Not Connected Notice
+            // -----------------------------
+            <div className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl">
+              <h2 className="text-2xl font-bold mb-4 text-red-600 text-center">
+                Please connect Facebook to view dashboard stats.
               </h2>
-              <SellHistoryChart />
-            </div>
-          </div>}
-
-        {facebookConnected &&  <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-2xl font-bold mb-4 text-indigo-700">
-              Support Tracker
-            </h2>
-            <SupportTracker />
-          </div>}
-          {!facebookConnected && (
-            <div className="text-center text-red-600 font-semibold">
-              Please connect Facebook to view dashboard statistics and charts.
+              <button
+                onClick={() => setView("integration")}
+                className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all"
+              >
+                Go to Facebook Integration
+              </button>
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
