@@ -1,0 +1,1 @@
+import{j as r}from"./index-ePZmuw5s.js";import"./react-DNgDP3D6.js";const s=()=>{const e=JSON.parse(localStorage.getItem("UserDetails"));return console.log(e),r.jsx("div",{children:"UserProfile"})};export{s as default};
