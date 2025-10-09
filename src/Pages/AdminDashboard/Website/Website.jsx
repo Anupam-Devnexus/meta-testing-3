@@ -37,7 +37,7 @@ console.log(data)
       {/* Data Table */}
       {!loading && !error && submissions.length > 0 && (
         <div className="overflow-x-auto bg-white rounded-lg shadow border">
-          <WebsiteLeadTable data={submissions} patchApi={api} />
+          <WebsiteLeadTable data={submissions} patchApiUrl={api} />
         </div>
       )}
     </section>

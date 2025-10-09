@@ -3,29 +3,16 @@ import { Formik, Form, Field, ErrorMessage, FieldArray } from "formik";
 import * as Yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 
 const statusOptions = ["new", "in progress", "converted", "closed"];
-
-const initialValues = {
-  date: new Date().toISOString(),
-  name: "",
-  email: "",
-  phone: "",
-  city: "",
-  budget: "",
-  requirement: "",
-  source: "",
-  Campaign: "",
-  status: "new",
-  remarks1: "",
-  remarks2: "",
-  dynamicFields: [],
-};
 
 const validationSchema = Yup.object({
   name: Yup.string().required("Required"),
   email: Yup.string().email("Invalid email").required("Required"),
-  phone: Yup.string().matches(/^[0-9]{10}$/, "Must be 10 digits").required("Required"),
+  phone: Yup.string()
+    .matches(/^[0-9]{10}$/, "Must be 10 digits")
+    .required("Required"),
   city: Yup.string().required("Required"),
   budget: Yup.number().typeError("Must be a number").required("Required"),
   requirement: Yup.string().required("Required"),
@@ -35,11 +22,28 @@ const validationSchema = Yup.object({
 });
 
 export default function AddLeads() {
+  const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
   const [formToSubmit, setFormToSubmit] = useState(null);
 
   const token = localStorage.getItem("userDetails");
   const details = token ? JSON.parse(token).token : null;
+
+  const initialValues = {
+    date: new Date().toISOString(),
+    name: "",
+    email: "",
+    phone: "",
+    city: "",
+    budget: "",
+    requirement: "",
+    source: "",
+    Campaign: "",
+    status: "new",
+    remarks1: "",
+    remarks2: "",
+    dynamicFields: [],
+  };
 
   const handleFormSubmit = (values, { resetForm }) => {
     setFormToSubmit({ values, resetForm });
@@ -48,7 +52,6 @@ export default function AddLeads() {
 
   const confirmAndSubmit = async () => {
     if (!formToSubmit) return;
-
     const { values, resetForm } = formToSubmit;
 
     try {
@@ -67,12 +70,12 @@ export default function AddLeads() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Lead submitted successfully!");
+        toast.success("✅ Lead submitted successfully!");
         resetForm();
         setFormToSubmit(null);
         setShowConfirm(false);
       } else {
-        toast.error(data?.message || "Submission failed. Check console.");
+        toast.error(data?.message || "❌ Submission failed.");
       }
     } catch (error) {
       console.error("Submission Error:", error);
@@ -81,103 +84,156 @@ export default function AddLeads() {
   };
 
   return (
-    <section className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">Create Leads</h1>
+    <section className="p-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-semibold text-gray-800">Add New Lead</h1>
+        <button
+          onClick={() => navigate("/admin-dashboard/upload-excel")}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+          Upload Excel
+        </button>
+      </div>
 
+      {/* Form */}
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleFormSubmit}
       >
         {({ isSubmitting, values }) => (
-          <Form className="space-y-6 bg-white p-6 rounded-2xl shadow-xl">
-            {/* Static Fields */}
-            <div className="grid sm:grid-cols-2 gap-5">
-              {[
-                { label: "Name", name: "name" },
-                { label: "Email", name: "email", type: "email" },
-                { label: "Phone", name: "phone" },
-                { label: "City", name: "city" },
-                { label: "Budget", name: "budget" },
-                { label: "Requirement", name: "requirement" },
-                { label: "Source", name: "source" },
-                { label: "Campaign", name: "Campaign" },
-                { label: "Remarks 1", name: "remarks1" },
-                { label: "Remarks 2", name: "remarks2" },
-              ].map(({ label, name, type = "text" }) => (
-                <div key={name}>
-                  <label className="block text-sm font-medium text-gray-700">{label}</label>
-                  <Field
-                    name={name}
-                    type={type}
-                    className="w-full border p-2 rounded focus:outline-blue-500"
-                  />
-                  <ErrorMessage name={name} component="div" className="text-red-500 text-sm" />
-                </div>
-              ))}
+          <Form className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+            {/* Basic Info */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">
+                🧾 Lead Information
+              </h2>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+                {[
+                  { label: "Name", name: "name" },
+                  { label: "Email", name: "email", type: "email" },
+                  { label: "Phone", name: "phone" },
+                  { label: "City", name: "city" },
+                  { label: "Budget", name: "budget" },
+                  { label: "Requirement", name: "requirement" },
+                  { label: "Source", name: "source" },
+                  { label: "Campaign", name: "Campaign" },
+                ].map(({ label, name, type = "text" }) => (
+                  <div key={name}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {label}
+                    </label>
+                    <Field
+                      name={name}
+                      type={type}
+                      className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                    <ErrorMessage
+                      name={name}
+                      component="div"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
 
-              {/* Status Dropdown */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <Field as="select" name="status" className="w-full border p-2 rounded">
-                  {statusOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </Field>
-                <ErrorMessage name="status" component="div" className="text-red-500 text-sm mt-1" />
+            {/* Remarks */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">
+                💬 Remarks & Status
+              </h2>
+              <div className="grid sm:grid-cols-3 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Remarks 1
+                  </label>
+                  <Field
+                    name="remarks1"
+                    placeholder="Enter first remark"
+                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Remarks 2
+                  </label>
+                  <Field
+                    name="remarks2"
+                    placeholder="Enter second remark"
+                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <Field
+                    as="select"
+                    name="status"
+                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    {statusOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </Field>
+                </div>
               </div>
             </div>
 
             {/* Dynamic Fields */}
             <FieldArray name="dynamicFields">
               {({ push, remove }) => (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-md font-semibold text-gray-800">Additional Fields</h3>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">
+                    ➕ Additional Fields
+                  </h2>
+                  <div className="space-y-4">
+                    {values.dynamicFields.map((_, index) => (
+                      <div
+                        key={index}
+                        className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 items-center"
+                      >
+                        <Field
+                          name={`dynamicFields[${index}].label`}
+                          placeholder="Label"
+                          className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                        <Field
+                          name={`dynamicFields[${index}].value`}
+                          placeholder="Value"
+                          className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          className="text-red-500 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+
                     <button
                       type="button"
                       onClick={() => push({ label: "", value: "" })}
-                      className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                     >
                       + Add Field
                     </button>
                   </div>
-
-                  {values.dynamicFields.map((_, index) => (
-                    <div
-                      key={index}
-                      className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 items-center"
-                    >
-                      <Field
-                        name={`dynamicFields[${index}].label`}
-                        placeholder="Label"
-                        className="border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      />
-                      <Field
-                        name={`dynamicFields[${index}].value`}
-                        placeholder="Value"
-                        className="border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => remove(index)}
-                        className="text-red-600 text-sm hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
                 </div>
               )}
             </FieldArray>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 font-semibold transition"
+              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md"
             >
               {isSubmitting ? "Submitting..." : "Submit Lead"}
             </button>
@@ -185,26 +241,26 @@ export default function AddLeads() {
         )}
       </Formik>
 
-      {/* Toast Notification */}
+      {/* Toast */}
       <ToastContainer position="top-right" autoClose={3000} />
 
       {/* Confirmation Modal */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-5 animate-slideIn">
-            <h3 className="text-lg font-semibold text-gray-800">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 transition">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
+            <h3 className="text-xl font-semibold text-gray-800">
               Do you want to add more fields before submitting?
             </h3>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
+                className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
               >
                 Yes, Add More
               </button>
               <button
                 onClick={confirmAndSubmit}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
               >
                 Confirm Submit
               </button>

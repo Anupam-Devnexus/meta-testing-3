@@ -71,6 +71,7 @@ const WebsiteLeadTable = ({ data = [], patchApiUrl }) => {
                     })
                 )
             );
+            
             alert("✅ All selected leads updated successfully!");
             setSelectedIds([]);
         } catch (err) {
@@ -160,8 +161,8 @@ const WebsiteLeadTable = ({ data = [], patchApiUrl }) => {
                             <tr
                                 key={row._id}
                                 className={`border-b transition-all hover:bg-gray-50 ${selectedIds.includes(row._id)
-                                        ? "bg-blue-50 border-blue-200"
-                                        : ""
+                                    ? "bg-blue-50 border-blue-200"
+                                    : ""
                                     }`}
                             >
                                 {/* Checkbox */}

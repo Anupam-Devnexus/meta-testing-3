@@ -27,25 +27,40 @@ export default function ExcelUploader() {
 
     reader.readAsBinaryString(file);
   };
-
   const handleConfirm = async () => {
-    try {
-      setUploading(true);
-      const response = await axios.post("http://ec2-65-2-37-114.ap-south-1.compute.amazonaws.com:3000/auth/api/upload-excel-leads", { data });
+  try {
+    setUploading(true);
 
-      alert("Data uploaded successfully!");
-      console.log("Response:", response.data);
-
-      // reset
-      setShowConfirm(false);
-      setData([]);
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Failed to upload data.");
-    } finally {
-      setUploading(false);
+    const token = JSON.parse(localStorage.getItem("UserDetails"))?.token;
+    console.log("Auth Token:", token);
+    if (!token) {
+      alert("No authentication token found. Please log in again.");
+      return;
     }
-  };
+
+    const response = await axios.post(
+      "https://dbbackend.devnexussolutions.com/auth/api/upload-excel-leads",
+      { data }, // body
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    alert("Data uploaded successfully!");
+    console.log("Response:", response.data);
+
+    setShowConfirm(false);
+    setData([]);
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("Failed to upload data.");
+  } finally {
+    setUploading(false);
+  }
+};
+
 
   const handleCancel = () => {
     setShowConfirm(false);

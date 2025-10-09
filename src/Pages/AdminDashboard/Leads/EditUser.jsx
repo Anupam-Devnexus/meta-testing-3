@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import useUserStore from "../../../Zustand/UsersGet";
 
 export default function EditUser() {
   const { userId } = useParams();
   const navigate = useNavigate();
-
   const { users, loading, error, fetchUser } = useUserStore();
 
   const [formData, setFormData] = useState({
@@ -16,16 +17,18 @@ export default function EditUser() {
     loginHistory: [],
   });
 
+  // 🧩 Fetch users once
   useEffect(() => {
     fetchUser();
   }, []);
 
+  // 🎯 Populate form when user data is available
   useEffect(() => {
     if (users?.users && userId) {
       const user = users.users.find((u) => u._id === userId);
       if (user) {
         setFormData({
-          name: user.name || "",
+          name: user.EmpUsername || "",
           email: user.email || "",
           role: user.role || "",
           lastLogin: user.lastLogin || "",
@@ -35,6 +38,7 @@ export default function EditUser() {
     }
   }, [users, userId]);
 
+  // 🖊️ Handle field input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -43,35 +47,45 @@ export default function EditUser() {
     }));
   };
 
-  // 🔹 Inline update API call
+  // 💾 Submit updated user data
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const tokenData = localStorage.getItem("User");
-      const authToken = tokenData ? JSON.parse(tokenData).token : null;
-      if (!authToken) throw new Error("No auth token found. Please login first.");
-      const id = userId; // Ensure the correct ID is used
-      const res = await fetch(`https://dbbackend.devnexussolutions.com/auth/api/update-user/${id}`, {
-        method: "PATCH", // or "PATCH" depending on backend
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const tokenData = JSON.parse(localStorage.getItem("UserDetails"))?.token;
+      if (!tokenData) {
+        toast.error("No authentication token found. Please login again.");
+        return;
+      }
 
-      if (!res.ok) throw new Error("Failed to update user");
+      const res = await fetch(
+        `https://dbbackend.devnexussolutions.com/auth/api/update-user/${userId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${tokenData}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
-      alert("User updated successfully ✅");
-      navigate("/admin-dashboard/users");
+      if (!res.ok) throw new Error(`Failed to update user (${res.status})`);
+
+      toast.success("✅ User updated successfully!");
+      setTimeout(() => navigate("/admin-dashboard/users"), 1000);
     } catch (err) {
       console.error("Update error:", err);
-      alert("Error updating user ❌");
+      toast.error("❌ Error updating user. Check console for details.");
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading user data...</p>;
+  // 📅 Date formatter
+  const formatDate = (isoString) =>
+    isoString ? new Date(isoString).toLocaleString() : "";
+
+  if (loading)
+    return <p className="text-center mt-10 text-gray-600">Loading user data...</p>;
   if (error)
     return (
       <p className="text-center mt-10 text-red-600">
@@ -79,112 +93,99 @@ export default function EditUser() {
       </p>
     );
 
-  const formatDate = (isoString) => {
-    if (!isoString) return "";
-    return new Date(isoString).toLocaleString();
-  };
-
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-10">
-      <h1 className="text-2xl font-bold mb-6">Edit User: {formData.name}</h1>
+    <div className="max-w-3xl mx-auto p-8 bg-white rounded-2xl shadow-lg mt-10">
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">
+        Edit User: <span className="text-blue-600">{formData.name}</span>
+      </h1>
 
+      {/* 🧾 User Edit Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
-        <label className="block">
-          <span className="font-semibold text-gray-700">Name</span>
+        <div>
+          <label className="block font-semibold text-gray-700">Name</label>
           <input
             name="name"
             value={formData.name}
             onChange={handleChange}
             required
-            className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Full Name"
+            className="mt-1 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
-        </label>
+        </div>
 
         {/* Email */}
-        <label className="block">
-          <span className="font-semibold text-gray-700">Email</span>
+        <div>
+          <label className="block font-semibold text-gray-700">Email</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             required
-            className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Email"
+            className="mt-1 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
-        </label>
+        </div>
 
         {/* Role */}
-        <label className="block">
-          <span className="font-semibold text-gray-700">Role</span>
+        <div>
+          <label className="block font-semibold text-gray-700">Role</label>
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           >
             <option value="">Select Role</option>
             <option value="admin">Admin</option>
             <option value="user">User</option>
           </select>
-        </label>
+        </div>
 
         {/* Last Login */}
-        <label className="block">
-          <span className="font-semibold text-gray-700">Last Login</span>
+        <div>
+          <label className="block font-semibold text-gray-700">Last Login</label>
           <input
             type="text"
             name="lastLogin"
-            value={formData.lastLogin}
-            onChange={handleChange}
-            className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Last login timestamp"
+            value={formatDate(formData.lastLogin)}
+            disabled
+            className="mt-1 w-full border rounded-lg px-4 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
           />
-        </label>
+        </div>
 
+        {/* Save Button */}
         <button
           type="submit"
-          className="mt-4 bg-blue-600 text-white font-semibold px-6 py-2 rounded hover:bg-blue-700 transition"
+          className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition"
         >
           Save Changes
         </button>
       </form>
 
-      {/* Login History */}
+      {/* 🕓 Login History */}
       <section className="mt-10">
-        <h2 className="text-xl font-semibold mb-4">Login History</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          Login History
+        </h2>
+
         {formData.loginHistory.length === 0 ? (
           <p className="text-gray-500">No login history available.</p>
         ) : (
-          <div className="overflow-x-auto border rounded">
-            <table className="min-w-full border-collapse border border-gray-300">
-              <thead className="bg-gray-100">
+          <div className="overflow-x-auto border rounded-xl shadow-sm">
+            <table className="min-w-full border-collapse">
+              <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  <th className="border border-gray-300 px-4 py-2 text-left">
-                    Login At
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">
-                    IP Address
-                  </th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">
-                    User Agent
-                  </th>
+                  <th className="border px-4 py-2 text-left">Login At</th>
+                  <th className="border px-4 py-2 text-left">IP Address</th>
+                  <th className="border px-4 py-2 text-left">User Agent</th>
                 </tr>
               </thead>
               <tbody>
                 {formData.loginHistory.map((login) => (
                   <tr key={login._id} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2">
-                      {formatDate(login.loginAt)}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {login.ip}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {login.userAgent}
-                    </td>
+                    <td className="border px-4 py-2">{formatDate(login.loginAt)}</td>
+                    <td className="border px-4 py-2">{login.ip}</td>
+                    <td className="border px-4 py-2">{login.userAgent}</td>
                   </tr>
                 ))}
               </tbody>
@@ -192,6 +193,8 @@ export default function EditUser() {
           </div>
         )}
       </section>
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }
