@@ -81,7 +81,7 @@ export default function AddLeads() {
   };
 
   return (
-    <section className="p-4 max-w-6xl mx-auto mt-10">
+    <section className="p-4 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">Create Leads</h1>
 
       <Formik

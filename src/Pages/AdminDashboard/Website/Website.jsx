@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import useContactStore from "../../../Zustand/Contact";
 import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
+import WebsiteLeadTable from "../../../Components/Tables/WebsiteLeadTable";
 
 export default function Website() {
   // Zustand store for contact submissions
@@ -36,7 +37,7 @@ console.log(data)
       {/* Data Table */}
       {!loading && !error && submissions.length > 0 && (
         <div className="overflow-x-auto bg-white rounded-lg shadow border">
-          <DynamicDataTable apiData={submissions} patchApi={api} />
+          <WebsiteLeadTable data={submissions} patchApi={api} />
         </div>
       )}
     </section>
