@@ -2,6 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { FaFacebook, FaCheck, FaExclamationTriangle, FaSpinner } from "react-icons/fa";
 import IntegrationCard from "../../../Components/Cards/IntigrationCard";
 import { getUserPages } from "../../../utils/facebookApi";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Initialize Toastify
+// toast.configure();
 
 /* -------------------------------------------------------
  🧩 Hook: useFacebookSDK
@@ -53,7 +58,6 @@ const IntegrationPage = () => {
   const [fbStatus, setFbStatus] = useState(localStorage.getItem("fb_connected") || "false");
   const [selectedPage, setSelectedPage] = useState(null);
   const [pages, setPages] = useState([]);
-  const [error, setError] = useState(null);
   const [insights, setInsights] = useState({});
   const [loading, setLoading] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(false);
@@ -65,10 +69,7 @@ const IntegrationPage = () => {
     if (fbStatus === "true" && isReady) {
       const token = localStorage.getItem("fb_user_token");
       if (token) handleFetchPages(token);
-      else {
-        localStorage.setItem("fb_connected", "false");
-        setFbStatus("false");
-      }
+      else setFbStatus("false");
     }
   }, [fbStatus, isReady]);
 
@@ -76,14 +77,9 @@ const IntegrationPage = () => {
    🔐 Facebook Login
   ------------------------------------------------------- */
   const handleFacebookLogin = useCallback(() => {
-    if (!isReady) {
-      setError("Facebook SDK not loaded yet");
-      return;
-    }
+    if (!isReady) return toast.error("Facebook SDK not loaded yet");
 
     setLoading(true);
-    setError(null);
-
     window.FB.getLoginStatus((response) => {
       if (response.status === "connected") {
         const { accessToken } = response.authResponse;
@@ -97,9 +93,8 @@ const IntegrationPage = () => {
       window.FB.login(
         (loginResp) => {
           if (!loginResp.authResponse) {
-            setError("Login cancelled or failed");
             setLoading(false);
-            return;
+            return toast.error("Facebook login cancelled or failed");
           }
           const { accessToken } = loginResp.authResponse;
           localStorage.setItem("fb_user_token", accessToken);
@@ -125,8 +120,9 @@ const IntegrationPage = () => {
       const data = await getUserPages(accessToken);
       setPages(data);
       if (data.length > 0) setSelectedPage(data[0]);
+      toast.success("Pages loaded successfully!");
     } catch (err) {
-      setError(err?.message || "Failed to fetch pages");
+      toast.error(err?.message || "Failed to fetch pages");
     }
   };
 
@@ -135,7 +131,6 @@ const IntegrationPage = () => {
   ------------------------------------------------------- */
   const handleDisconnect = () => {
     if (!isReady) return;
-
     window.FB.logout(() => {
       localStorage.removeItem("fb_user_token");
       localStorage.setItem("fb_connected", "false");
@@ -143,6 +138,7 @@ const IntegrationPage = () => {
       setSelectedPage(null);
       setPages([]);
       setInsights({});
+      toast.info("Facebook disconnected");
     });
   };
 
@@ -151,6 +147,7 @@ const IntegrationPage = () => {
   ------------------------------------------------------- */
   const handleFetchInsights = async () => {
     if (!selectedPage) return;
+
     setLoadingInsights(true);
 
     const { id: pageId, access_token: accessToken } = selectedPage;
@@ -165,38 +162,35 @@ const IntegrationPage = () => {
       "page_posts_impressions_paid",
     ];
 
-    const validResults = [];
+    const results = [];
 
     for (const metric of SAFE_METRICS) {
       try {
-        const result = await new Promise((resolve, reject) => {
-          window.FB.api(
-            `/${pageId}/insights`,
-            "GET",
-            { metric, access_token: accessToken },
-            (res) => (res && !res.error ? resolve(res.data) : reject(res?.error))
+        const res = await new Promise((resolve, reject) => {
+          window.FB.api(`/${pageId}/insights`, "GET", { metric, access_token: accessToken }, (r) =>
+            r && !r.error ? resolve(r.data) : reject(r?.error)
           );
         });
-        if (result?.length) validResults.push(...result);
+        if (res?.length) results.push(...res);
       } catch {
-        // Skip metric if unavailable
+        // skip unavailable metrics
       }
     }
 
-    if (!validResults.length) {
+    if (!results.length) {
+      setInsights({});
       setLoadingInsights(false);
-      return setInsights({});
+      return toast.warning("No insights available for this page");
     }
 
     const formatted = {};
-    validResults.forEach((metric) => {
-      if (metric.values?.length)
-        formatted[metric.name] = metric.values[0].value ?? 0;
+    results.forEach((metric) => {
+      if (metric.values?.length) formatted[metric.name] = metric.values[0].value ?? 0;
     });
 
     setInsights(formatted);
-    localStorage.setItem("fb_connected", "true");
     setLoadingInsights(false);
+    toast.success("Insights fetched successfully!");
   };
 
   /* -------------------------------------------------------
@@ -210,13 +204,8 @@ const IntegrationPage = () => {
       bgColor: "bg-blue-50",
       textColor: "text-blue-800",
       borderColor: "border-blue-200",
-      buttonText: loading
-        ? "Connecting..."
-        : fbStatus === "true"
-        ? selectedPage
-          ? `Connected to ${selectedPage.name}`
-          : "Connected"
-        : "Connect Facebook",
+      buttonText:
+        loading ? "Connecting..." : fbStatus === "true" ? (selectedPage ? `Connected to ${selectedPage.name}` : "Connected") : "Connect Facebook",
       buttonColor: fbStatus === "true" ? "bg-green-600" : "bg-blue-600",
       onClick: fbStatus === "true" ? handleDisconnect : handleFacebookLogin,
       status: fbStatus,
@@ -225,20 +214,22 @@ const IntegrationPage = () => {
   ];
 
   /* -------------------------------------------------------
-   🖼️ UI
+   🖼️ Render UI
   ------------------------------------------------------- */
   return (
     <div className="grid gap-5 p-2 sm:p-4">
-      {(error || loadError) && (
+      {/* Error Alerts */}
+      {(loadError || fbStatus === "false") && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
           <FaExclamationTriangle className="text-red-500 mr-3 text-lg" />
           <div>
             <p className="text-red-800 font-semibold">Facebook Error</p>
-            <p className="text-red-600 text-sm">{error || loadError}</p>
+            <p className="text-red-600 text-sm">{loadError || "Not connected"}</p>
           </div>
         </div>
       )}
 
+      {/* Connected Status */}
       {fbStatus === "true" && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center transition-all duration-300">
           <FaCheck className="text-green-500 mr-3 text-lg" />
@@ -248,6 +239,7 @@ const IntegrationPage = () => {
         </div>
       )}
 
+      {/* Integration Card */}
       {integrationsData.map((integration) => (
         <IntegrationCard
           key={integration.id}
@@ -256,6 +248,7 @@ const IntegrationPage = () => {
         />
       ))}
 
+      {/* Loading Spinner */}
       {loading && (
         <div className="flex justify-center items-center mt-3 text-blue-600">
           <FaSpinner className="animate-spin mr-2" />
@@ -263,19 +256,27 @@ const IntegrationPage = () => {
         </div>
       )}
 
+      {/* Pages List */}
       {pages.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 mt-4 transition-all duration-300">
-          <h3 className="font-semibold text-gray-800 mb-3 text-lg">
-            Your Facebook Pages
-          </h3>
-          <ul className="list-disc ml-6 space-y-1 text-gray-700">
+          <h3 className="font-semibold text-gray-800 mb-3 text-lg">Your Facebook Pages</h3>
+          <ul className="grid gap-2 sm:grid-cols-2">
             {pages.map((p) => (
-              <li key={p.id}>
+              <li
+                key={p.id}
+                className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                  selectedPage?.id === p.id
+                    ? "bg-indigo-50 border-indigo-500"
+                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                }`}
+                onClick={() => setSelectedPage(p)}
+              >
                 <strong>{p.name}</strong> — ID: {p.id}
               </li>
             ))}
           </ul>
 
+          {/* Fetch Insights Button */}
           {selectedPage && (
             <button
               onClick={handleFetchInsights}
@@ -298,14 +299,32 @@ const IntegrationPage = () => {
         </div>
       )}
 
+      {/* Insights Cards */}
       {Object.keys(insights).length > 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mt-4 shadow-inner transition-all duration-300">
-          <h3 className="font-semibold text-gray-800 mb-3 text-lg">
-            Page Insights
-          </h3>
-          <pre className="text-xs bg-gray-100 p-3 rounded-lg overflow-auto text-gray-700">
-            {JSON.stringify(insights, null, 2)}
-          </pre>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Object.entries(insights).map(([key, value]) => {
+            const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+            const colors = {
+              page_impressions: "bg-blue-50 text-blue-800",
+              page_engaged_users: "bg-green-50 text-green-800",
+              page_fan_adds: "bg-indigo-50 text-indigo-800",
+              page_fan_removes: "bg-red-50 text-red-800",
+              page_views_login_total: "bg-yellow-50 text-yellow-800",
+              page_posts_impressions_organic: "bg-purple-50 text-purple-800",
+              page_posts_impressions_paid: "bg-pink-50 text-pink-800",
+            };
+            const colorClass = colors[key] || "bg-gray-50 text-gray-800";
+
+            return (
+              <div
+                key={key}
+                className={`flex flex-col justify-between p-4 rounded-xl shadow hover:shadow-lg transition-all duration-300 ${colorClass}`}
+              >
+                <h4 className="text-sm font-semibold mb-2">{label}</h4>
+                <p className="text-2xl font-bold">{value}</p>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

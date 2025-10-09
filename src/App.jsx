@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectRoute";
 import Navbar from "./Components/Navbar";
+import { ToastContainer } from "react-toastify";
 
 // Auth Pages
 import Login from "./auth/Login";
@@ -143,6 +144,17 @@ function AppContent() {
           />
         </Routes>
       </main>
+        <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 }
