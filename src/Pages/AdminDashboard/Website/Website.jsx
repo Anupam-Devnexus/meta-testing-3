@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import useContactStore from "../../../Zustand/Contact";
-import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
+
 import WebsiteLeadTable from "../../../Components/Tables/WebsiteLeadTable";
 
 export default function Website() {
@@ -11,7 +11,7 @@ export default function Website() {
   useEffect(() => {
     fetchContacts();
   }, []);
-console.log(data)
+  console.log(data)
   // Safely extract submissions
   const submissions = data?.submissions || [];
   // console.log(submissions)

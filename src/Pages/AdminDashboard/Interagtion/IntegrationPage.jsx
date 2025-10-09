@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Initialize Toastify
-// toast.configure();
 
 /* -------------------------------------------------------
  🧩 Hook: useFacebookSDK

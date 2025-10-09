@@ -1,77 +1,105 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import MannualTable from "../../../Components/Tables/MannualTable";
 import { useManualLeadsStore } from "../../../Zustand/MannualLeads";
-import DynamicDataTable from "../../../Components/Tables/DynamicDataTable";
 
 // Icons
 import { FaFilter } from "react-icons/fa";
 
+// --- Reducer for managing remarks efficiently
+const remarksReducer = (state, action) => {
+  switch (action.type) {
+    case "INIT":
+      return action.payload; // initialize all rows
+    case "UPDATE":
+      return { ...state, [action.id]: { ...state[action.id], ...action.data } };
+    case "APPLY_GLOBAL":
+      const updated = { ...state };
+      action.ids.forEach((id) => {
+        updated[id] = { remark1: action.remark1, remark2: action.remark2 };
+      });
+      return updated;
+    default:
+      return state;
+  }
+};
+
 export default function ManualLeads() {
   const navigate = useNavigate();
 
-  // Use your manual leads store
+  // --- Zustand store
   const { leads, loading, error, fetchLeads } = useManualLeadsStore();
 
-  // Local state for table interactions
+  // --- Local state
   const [enabledRows, setEnabledRows] = useState({});
-  const [remarks, setRemarks] = useState({});
+  const [remarks, dispatchRemarks] = useReducer(remarksReducer, {});
   const [showGlobalRemarks, setShowGlobalRemarks] = useState(false);
 
-  // --- Fetch manual leads on mount
+  // --- Fetch leads on mount
   useEffect(() => {
     fetchLeads();
   }, []);
 
-  // --- Initialize enabledRows and remarks when leads change
+  // --- Initialize enabledRows & remarks when leads change
   useEffect(() => {
     const initEnabled = {};
     const initRemarks = {};
     leads.forEach((lead) => {
       initEnabled[lead._id] = false;
-      initRemarks[lead._id] = { remark1: "", remark2: "" };
+      initRemarks[lead._id] = { remark1: lead.remarks1 || "", remark2: lead.remarks2 || "" };
     });
     setEnabledRows(initEnabled);
-    setRemarks(initRemarks);
+    dispatchRemarks({ type: "INIT", payload: initRemarks });
   }, [leads]);
 
-  // --- Helper to check if any row is selected
+  // --- Check if any row is selected
   const isAnyRowSelected = useMemo(
     () => Object.values(enabledRows).some(Boolean),
     [enabledRows]
   );
-console.log("Leads data:", leads);
-  // --- Render
+
+  // --- Submit changes
+  const submitChanges = async () => {
+    const updates = Object.keys(enabledRows)
+      .filter((id) => enabledRows[id])
+      .map((id) => ({ _id: id, ...remarks[id] }));
+
+    if (!updates.length) return alert("No rows selected!");
+
+    try {
+      const token = JSON.parse(localStorage.getItem("UserDetails"))?.token;
+      await fetch(`${"https://dbbackend.devnexussolutions.com/user/leads"}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ updates }),
+      });
+      alert("Remarks updated ✅");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update remarks ❌");
+    }
+  };
+ 
+
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-3 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-800">Manual Leads</h1>
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/admin-dashboard/mannual-leads/add")}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
           >
             Add Lead
           </button>
-          <FaFilter
-            className={`text-blue-600 ${
-              !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-            }`}
-            onClick={() => isAnyRowSelected && setShowGlobalRemarks((prev) => !prev)}
-            title={
-              !isAnyRowSelected
-                ? "Select at least one row to enable"
-                : showGlobalRemarks
-                ? "Hide Global Remarks"
-                : "Show Global Remarks"
-            }
-          />
         </div>
       </div>
 
-      {/* Loading/Error states */}
-      {loading && <p>Loading leads...</p>}
+    
+
+      {/* Loading/Error */}
+      {loading && <p className="text-gray-500">Loading leads...</p>}
       {error && <p className="text-red-600">{error}</p>}
 
       {/* Table */}
@@ -81,9 +109,21 @@ console.log("Leads data:", leads);
         enabledRows={enabledRows}
         setEnabledRows={setEnabledRows}
         remarks={remarks}
-        setRemarks={setRemarks}
+        dispatchRemarks={dispatchRemarks}
         showGlobalRemarks={showGlobalRemarks}
       />
+
+      {/* Submit button */}
+      {isAnyRowSelected && (
+        <div className="flex justify-end">
+          <button
+            onClick={submitChanges}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+          >
+            Save Changes
+          </button>
+        </div>
+      )}
     </div>
   );
 }
