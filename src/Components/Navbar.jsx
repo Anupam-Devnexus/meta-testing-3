@@ -66,7 +66,7 @@ export default function Navbar() {
   };
 
   // ---------------------------
-  // 🧭 Admin Navigation
+  // Admin Navigation
   // ---------------------------
   const adminNav = useMemo(() => {
     const baseNav = [
@@ -129,10 +129,13 @@ export default function Navbar() {
       });
     }
 
+
     // Remaining nav items
     baseNav.push(
       { icon: <FaChartLine />, label: "Stats", path: "/admin-dashboard/stats" },
-      { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" }
+      { icon: <SlCalender />, label: "Appointments", path: "/admin-dashboard/appointments" },
+      { icon: <SiGoogleads />, label: "Google", path: "/admin-dashboard/google" }
+    
     );
 
     return baseNav;
@@ -154,7 +157,7 @@ export default function Navbar() {
   const navData = role === "admin" ? adminNav : userNav;
 
   // ---------------------------
-  // 🎨 Render UI
+  //  Render UI
   // ---------------------------
   return (
     <nav className="h-screen bg-gradient-to-b from-[#2a1ce7] to-[#1c39bb] text-white fixed top-0 left-0 shadow-xl flex flex-col border-r border-white/10 w-64 transition-all duration-300">
