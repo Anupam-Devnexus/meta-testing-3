@@ -1,7 +1,7 @@
 @import "tailwindcss";
 :root {
-  --primary-color: #1e3a8a;         /* Dark blue */
-  --primary-light: #3b82f6;         /* Bright blue */
+  --primary-color: #082b8b;         /* Dark blue */
+  --primary-light: #2968ce;         /* Bright blue */
   --primary-dark: #1e40af;          /* Navy */
   --accent-color: #e0f2fe;          /* Light blue background */
   --text-color: #1e293b;            /* Slate gray */
@@ -64,4 +64,17 @@ html {
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-in-out;
+}
+/* Apply to the scrollable container */
+.hide-scrollbar {
+  overflow: auto;               /* or scroll, as needed */
+  -ms-overflow-style: none;     /* IE and Edge */
+  scrollbar-width: none;        /* Firefox */
+}
+
+/* Chrome, Safari, Opera (WebKit) */
+.hide-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent; /* optional */
 }

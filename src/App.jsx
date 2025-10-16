@@ -90,7 +90,7 @@ function AppContent() {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="hide-scrollbar flex min-h-screen bg-gray-100">
       {!hideNavbar && user && <Navbar />}
 
       <main className={`flex-1 min-h-screen overflow-auto ${!hideNavbar ? "ml-64" : ""}`}>

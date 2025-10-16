@@ -414,7 +414,7 @@ const Appointments = () => {
               </div>
             )}
 
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex justify-end gap-4 mt-4">
               <button onClick={() => setModalOpen(false)} className="px-3 py-1 bg-gray-300 rounded">Cancel</button>
               <button onClick={handleCreateMeeting} className="px-3 py-1 bg-green-600 text-white rounded">{loading ? "Creating..." : "Create"}</button>
             </div>
