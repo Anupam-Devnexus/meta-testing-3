@@ -14,7 +14,6 @@ export default function GoogleAds() {
     fetchinsights();
     fetchNewMeta();
   }, []);
-  console.log(metaleads)
 
   // Extract leads array dynamically
   const leadsData = metaleads?.leads || [];

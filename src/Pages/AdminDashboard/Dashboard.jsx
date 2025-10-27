@@ -53,11 +53,11 @@ export default function Dashboard() {
   // Render
   // -----------------------------
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-indigo-100 via-white to-indigo-300 p-6">
+    <div className="min-h-screen bg-gray p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-2">
-          <FaFacebook className="text-blue-600 text-2xl" />
+          <FaFacebook className="text-[#002b5b] text-2xl" />
           <span
             className={`font-semibold ${
               facebookConnected ? "text-green-600" : "text-red-600"
@@ -71,7 +71,7 @@ export default function Dashboard() {
           onClick={() =>
             setView((prev) => (prev === "integration" ? "stats" : "integration"))
           }
-          className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-xl shadow hover:bg-indigo-700 transition-all"
+          className="px-5 py-2.5 bg-[#003d82] text-white font-medium rounded-xl shadow hover:bg-indigo-700 transition-all"
         >
           {view === "integration" ? "View Dashboard Stats" : "Back to Integrations"}
         </button>
@@ -82,11 +82,11 @@ export default function Dashboard() {
         // -----------------------------
         // Integration View
         // -----------------------------
-        <div className="bg-white rounded-2xl shadow-lg p-8 transition-all hover:shadow-xl">
-          <h2 className="text-2xl font-bold text-indigo-700 flex items-center gap-2 mb-6">
+        <div className=" flex justify-between bg-white rounded-xl shadow-lg p-4 transition-all hover:shadow-xl">
+          <h2 className="text-2xl font-bold text-[#003d82] flex items-center gap-2 justify-between">
             <FaFacebook /> Facebook Integration
           </h2>
-
+{/* 
           <p className="text-lg mb-4">
             Connection Status:{" "}
             <span
@@ -96,7 +96,7 @@ export default function Dashboard() {
             >
               {facebookConnected ? "Connected ✅" : "Not Connected ❌"}
             </span>
-          </p>
+          </p> */}
 
           <IntegrationPage onConnectSuccess={() => setFacebookConnected(true)} />
         </div>
@@ -141,14 +141,14 @@ export default function Dashboard() {
               {/* Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                  <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                  <h2 className="text-2xl font-bold mb-4 text-[#003d82]">
                     Sales Funnel
                   </h2>
                   <SalesFunnel />
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                  <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                  <h2 className="text-2xl font-bold mb-4 text-[#003d82]">
                     Sales History
                   </h2>
                   <SellHistoryChart />
@@ -157,7 +157,7 @@ export default function Dashboard() {
 
               {/* Support Tracker */}
               <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                <h2 className="text-2xl font-bold mb-4 text-[#003d82]">
                   Support Tracker
                 </h2>
                 <SupportTracker />
@@ -173,7 +173,7 @@ export default function Dashboard() {
               </h2>
               <button
                 onClick={() => setView("integration")}
-                className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all"
+                className="px-5 py-2 bg-[#003d82] text-white rounded-xl hover:bg-[#003d82] transition-all"
               >
                 Go to Facebook Integration
               </button>

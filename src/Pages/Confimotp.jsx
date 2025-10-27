@@ -39,7 +39,7 @@ const ConfirmOtp = () => {
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition w-full"
+            className="bg-[#00357a] text-white py-2 rounded-lg hover:bg-blue-600 transition w-full"
           >
             Submit
           </button>

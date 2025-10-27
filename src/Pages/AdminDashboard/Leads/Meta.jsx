@@ -295,7 +295,7 @@ export default function Meta() {
           {/* Apply */}
           <button
             onClick={applyGlobalRemarks}
-            className="flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded-full shadow-sm hover:bg-blue-700 transition"
+            className="flex items-center gap-2 px-2 py-2 bg-[#00357a] text-white rounded-full shadow-sm hover:bg-blue-700 transition"
           >
             <FiCheck className="text-lg" />
           </button>
@@ -323,7 +323,7 @@ export default function Meta() {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white rounded-xl shadow-md divide-y divide-gray-200">
-          <thead className="bg-blue-50">
+          <thead className="bg-[#00357a]">
             <tr>
               {headers.map((header) => (
                 <th
@@ -413,7 +413,7 @@ export default function Meta() {
               onClick={() => setCurrentPage(i + 1)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                 currentPage === i + 1
-                  ? "bg-blue-600 text-white shadow"
+                  ? "bg-[#00357a] text-white shadow"
                   : "bg-white text-gray-700 hover:bg-blue-50"
               }`}
             >

@@ -65,7 +65,7 @@ export default function AllUsers() {
           <button
             onClick={() => navigate("/admin-dashboard/users/add")}
             disabled={actionLoading}
-            className={`px-4 py-2 bg-blue-600 text-white font-medium rounded-full hover:bg-blue-700 transition duration-200 ${
+            className={`px-4 py-2 bg-[#002b5b] text-white font-medium rounded-full hover:bg-blue-700 transition duration-200 ${
               actionLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
@@ -93,7 +93,7 @@ export default function AllUsers() {
       {!loading && !error && confirmData.length > 0 && (
         <div className="overflow-x-auto bg-white rounded-xl shadow">
           <table className="min-w-full border border-gray-300">
-            <thead className="bg-gray-200 text-gray-700">
+            <thead className="bg-[#002b5b] text-white">
               <tr>
                 <th className="py-2 px-4 border text-left">ID</th>
                 <th className="py-2 px-4 border text-left">Name</th>

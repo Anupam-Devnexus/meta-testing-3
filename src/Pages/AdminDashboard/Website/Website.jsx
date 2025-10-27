@@ -11,7 +11,7 @@ export default function Website() {
   useEffect(() => {
     fetchContacts();
   }, []);
-  console.log(data)
+
   // Safely extract submissions
   const submissions = data?.submissions || [];
   // console.log(submissions)

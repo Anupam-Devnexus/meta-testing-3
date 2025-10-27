@@ -200,12 +200,12 @@ const IntegrationPage = () => {
       id: 1,
       name: "Facebook",
       icon: FaFacebook,
-      bgColor: "bg-blue-50",
+      bgColor: "bg-[#002b5b",
       textColor: "text-blue-800",
       borderColor: "border-blue-200",
       buttonText:
         loading ? "Connecting..." : fbStatus === "true" ? (selectedPage ? `Connected to ${selectedPage.name}` : "Connected") : "Connect Facebook",
-      buttonColor: fbStatus === "true" ? "bg-green-600" : "bg-blue-600",
+      buttonColor: fbStatus === "true" ? "bg-green-600" : "bg-[#002b5b",
       onClick: fbStatus === "true" ? handleDisconnect : handleFacebookLogin,
       status: fbStatus,
       loading,
@@ -216,7 +216,7 @@ const IntegrationPage = () => {
    🖼️ Render UI
   ------------------------------------------------------- */
   return (
-    <div className="grid gap-5 p-2 sm:p-4">
+    <div className="flex  items-center gap-5 p-2 sm:p-4">
       {/* Error Alerts */}
       {(loadError || fbStatus === "false") && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
@@ -249,7 +249,7 @@ const IntegrationPage = () => {
 
       {/* Loading Spinner */}
       {loading && (
-        <div className="flex justify-center items-center mt-3 text-blue-600">
+        <div className="flex justify-center items-center mt-3 text-[#002b5b]">
           <FaSpinner className="animate-spin mr-2" />
           <span>Connecting to Facebook...</span>
         </div>
@@ -265,7 +265,7 @@ const IntegrationPage = () => {
                 key={p.id}
                 className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
                   selectedPage?.id === p.id
-                    ? "bg-indigo-50 border-indigo-500"
+                    ? "bg-indigo-50 border-[#002b5b"
                     : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                 }`}
                 onClick={() => setSelectedPage(p)}
@@ -282,8 +282,8 @@ const IntegrationPage = () => {
               disabled={loadingInsights}
               className={`mt-4 px-5 py-2 rounded-md shadow transition-all duration-200 ${
                 loadingInsights
-                  ? "bg-indigo-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                  ? "bg-[#002b5b] cursor-not-allowed"
+                  : "bg-[#002b5b] hover:bg-[#002b5b] text-white"
               }`}
             >
               {loadingInsights ? (

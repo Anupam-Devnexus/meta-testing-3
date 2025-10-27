@@ -44,7 +44,7 @@ export default function UserPieChart() {
               label
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill="#00357a" />
               ))}
             </Pie>
             <Tooltip />

@@ -35,7 +35,7 @@ export default function Stats() {
   const handleCardClick = (chart) => setActiveChart(chart);
 
   return (
-    <div className="p-2 space-y-3">
+    <div className="p-8 space-y-3">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">📊 Statistics Overview For You</h1>
 
       {/* Stats Cards */}
@@ -49,7 +49,7 @@ export default function Stats() {
           <StatCard
             title="Meta Leads"
             value={totalMetaLeads}
-            icon={<FaChartBar className="text-blue-500" />}
+            icon={<FaChartBar className="text-[#00357a]" />}
             active={activeChart === "meta"}
             onClick={() => handleCardClick("meta")}
           />
@@ -57,7 +57,7 @@ export default function Stats() {
           <StatCard
             title="Connect Facebook to See Meta Leads"
             value="-"
-            icon={<FaChartBar className="text-blue-500" />}
+            icon={<FaChartBar className="text-[#00357a]" />}
             active={false}
           />
         )}
@@ -114,7 +114,7 @@ function StatCard({ title, value, icon, onClick, active }) {
     <div
       onClick={onClick}
       className={`bg-white shadow-md rounded-xl p-6 flex items-center gap-4 cursor-pointer transition-all duration-300 border
-        ${active ? "shadow-xl ring-2 ring-blue-400 scale-105" : "hover:shadow-lg hover:scale-105"}`}
+        ${active ? "shadow-xl ring-2 ring-[#00357a] scale-105" : "hover:shadow-lg hover:scale-105"}`}
     >
       <div className="text-4xl">{icon}</div>
       <div>

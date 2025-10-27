@@ -156,7 +156,7 @@ export default function EditUser() {
         {/* Save Button */}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition"
+          className="w-full bg-[#00357a] text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition"
         >
           Save Changes
         </button>

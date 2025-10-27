@@ -26,7 +26,6 @@ const useAppointments = create((set) => ({
       });
 
       set({ appointments: res.data || [], loading: false });
-      console.log("Fetched appointments:", res.data);
     } catch (err) {
       console.error("Error fetching appointments:", err);
       set({
@@ -47,7 +46,6 @@ const useAppointments = create((set) => ({
       }
 
       // Log the payload before posting
-      console.log("Posting appointment:", appointment);
 
       const res = await axios.post(api, appointment, {
         headers: {
@@ -61,7 +59,6 @@ const useAppointments = create((set) => ({
         loading: false,
       }));
 
-      console.log("Appointment added:", res.data);
     } catch (err) {
       console.error("Error adding appointment:", err);
       set({

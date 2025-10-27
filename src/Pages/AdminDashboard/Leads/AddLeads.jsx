@@ -233,7 +233,7 @@ export default function AddLeads() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md"
+              className="w-full py-3 bg-[#00357a] text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md"
             >
               {isSubmitting ? "Submitting..." : "Submit Lead"}
             </button>
@@ -260,7 +260,7 @@ export default function AddLeads() {
               </button>
               <button
                 onClick={confirmAndSubmit}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                className="px-4 py-2 bg-[#00357a] text-white rounded-lg hover:bg-blue-700 transition"
               >
                 Confirm Submit
               </button>

@@ -55,7 +55,7 @@ const AccessCheckbox = ({ item, formData, handleChange }) => {
     <div className="mb-3">
       <label
         className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition ${
-          isChecked ? "bg-blue-50 text-blue-700 font-semibold" : "hover:bg-gray-100"
+          isChecked ? "bg-blue-50 text-[#00357a] font-semibold" : "hover:bg-gray-100"
         }`}
       >
         <input
@@ -318,7 +318,7 @@ export default function AddUser() {
           {/* Submit */}
           <button
             type="submit"
-            className="sm:col-span-2 w-full mt-4 py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition duration-200"
+            className="sm:col-span-2 w-full mt-4 py-3 bg-[#00357a] text-white font-semibold rounded-full hover:bg-blue-700 transition duration-200"
           >
             Submit
           </button>

@@ -13,7 +13,7 @@ const Terms = () => {
                 {/* Back Button */}
                 <button
                     onClick={() => navigate(-1)}
-                    className="mb-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    className="mb-6 px-4 py-2 bg-[#00357a] text-white rounded hover:bg-blue-700 transition"
                 >
                     &larr; Back
                 </button>

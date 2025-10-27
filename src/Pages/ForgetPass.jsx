@@ -75,15 +75,15 @@ const ForgetPass = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl shadow-md transition disabled:opacity-70"
+            className="w-full bg-[#00357a] hover:bg-blue-700 text-white font-semibold py-2 rounded-xl shadow-md transition disabled:opacity-70"
           >
             {loading ? "Checking..." : "Send Reset Link"}
           </button>
         </form>
 
         <button
-          onClick={() => navigate("/auth/api/signin-users")}
-          className="mt-4 text-blue-600 hover:underline font-medium"
+          onClick={() => navigate("/")}
+          className="mt-4 text-[#00357a] hover:underline font-medium"
         >
           ← Back
         </button>

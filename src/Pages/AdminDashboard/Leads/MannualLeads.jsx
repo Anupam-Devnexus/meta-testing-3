@@ -89,7 +89,7 @@ export default function ManualLeads() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/admin-dashboard/mannual-leads/add")}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+            className="bg-[#00357a] text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
           >
             Add Lead
           </button>

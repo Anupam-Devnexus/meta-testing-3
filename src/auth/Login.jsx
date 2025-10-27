@@ -104,7 +104,7 @@ export default function Login() {
       <div className="flex flex-col md:flex-row items-center bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl">
 
         {/* Left Hero Section */}
-        <div className="hidden md:flex flex-col justify-center bg-indigo-600 text-white w-1/2 p-12">
+        <div className="hidden md:flex flex-col justify-center bg-[#00357a] text-white w-1/2 p-12">
           <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
           <p className="text-lg text-indigo-100">
             Manage your leads, calendar, and integrations seamlessly.
@@ -150,7 +150,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-3 text-sm text-indigo-600 hover:underline cursor-pointer select-none"
+                className="absolute right-3 top-10 text-sm text-[#00357a] hover:underline cursor-pointer select-none"
                 tabIndex={-1}
               >
                 {showPassword ? "Hide" : "Show"}
@@ -163,7 +163,7 @@ export default function Login() {
               type="submit"
               disabled={loading}
               className={`w-full py-3 rounded-lg font-semibold transition-transform transform hover:scale-105 ${
-                loading ? "bg-gray-400 text-white cursor-not-allowed" : "bg-indigo-600 text-white hover:bg-indigo-700"
+                loading ? "bg-gray-400 text-white cursor-not-allowed" : "bg-[#00357a] text-white"
               }`}
             >
               {loading ? "Logging in..." : "Login"}
@@ -171,7 +171,7 @@ export default function Login() {
 
             {/* Forgot Password */}
             <p
-              className="text-sm text-center text-indigo-600 cursor-pointer hover:underline"
+              className="text-sm text-center text-[#00357a] cursor-pointer hover:underline"
               onClick={() => navigate("/forgot-password")}
             >
               Forgot Password?

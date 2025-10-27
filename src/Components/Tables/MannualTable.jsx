@@ -108,14 +108,14 @@ const ModernTable = ({ leads = [], patchApi }) => {
           placeholder="Global Remark 1"
           value={globalRemark1}
           onChange={(e) => setGlobalRemark1(e.target.value)}
-          className="border px-3 py-2 rounded-lg w-full md:w-1/2"
+          className="border px-3 py-2 rounded-lg w-full md:w-1/3"
         />
         <input
           type="text"
           placeholder="Global Remark 2"
           value={globalRemark2}
           onChange={(e) => setGlobalRemark2(e.target.value)}
-          className="border px-3 py-2 rounded-lg w-full md:w-1/2"
+          className="border px-3 py-2 rounded-lg w-full md:w-1/3"
         />
         <button
           onClick={applyGlobalRemarks}
@@ -127,7 +127,7 @@ const ModernTable = ({ leads = [], patchApi }) => {
         <button
           onClick={submitChanges}
           disabled={!Object.values(enabledRows).some(Boolean) || loading}
-          className="ml-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+          className="ml-auto px-4 py-2 rounded-lg bg-[#00357a] text-white hover:bg-blue-700 transition"
         >
           {loading ? "Submitting..." : "Submit Changes"}
         </button>

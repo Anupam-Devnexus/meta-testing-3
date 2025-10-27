@@ -79,9 +79,6 @@ export default function EditMannualLeads() {
       return;
     }
 
-    console.log("PATCH request to:", apiUrl);
-    console.log("Payload being sent:", formData);
-
     try {
       const response = await fetch(apiUrl, {
         method: "PATCH",

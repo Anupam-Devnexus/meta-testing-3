@@ -29,7 +29,7 @@ const ViewButton = ({ viewName, currentView, setView }) => (
     onClick={() => setView(viewName)}
     className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
       currentView === viewName
-        ? "bg-blue-600 text-white"
+        ? "bg-[#00357a] text-white"
         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
     }`}
   >

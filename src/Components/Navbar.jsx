@@ -160,7 +160,7 @@ export default function Navbar() {
   //  Render UI
   // ---------------------------
   return (
-    <nav className="h-screen bg-gradient-to-b from-[#0743c4] to-[#0e237e] text-white fixed top-0 left-0 shadow-xl flex flex-col border-r border-white/10 w-64 transition-all duration-300">
+    <nav className="h-screen bg-gradient-to-b from-[#003d82] to-[#0a112e] text-white fixed top-0 left-0 shadow-xl flex flex-col border-r border-white/10 w-64 transition-all duration-300">
       {/* Header */}
       <div className="px-6 py-5 border-b border-white/10">
         <h1 className="text-2xl font-bold tracking-wide">
