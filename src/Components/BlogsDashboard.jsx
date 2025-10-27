@@ -5,7 +5,6 @@ export default function BlogDashboard() {
   const [content, setContent] = useState("");
 
   const handleSave = () => {
-    console.log("Content:", content); // Send this to API
   };
 
   return (

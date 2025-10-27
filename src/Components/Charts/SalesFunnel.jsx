@@ -68,7 +68,7 @@ const FunnelCreator = () => {
       {!creating && !showFunnel && (
         <button
           onClick={() => setCreating(true)}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+          className="px-6 py-2 bg-[#00357a] text-white rounded-lg shadow hover:bg-blue-700"
         >
           Create Sales Funnel
         </button>
@@ -112,7 +112,7 @@ const FunnelCreator = () => {
           <div className="flex gap-3">
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-6 py-2 bg-[#00357a] text-white rounded-lg hover:bg-blue-700"
             >
               Submit
             </button>

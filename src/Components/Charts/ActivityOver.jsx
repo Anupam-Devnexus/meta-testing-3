@@ -28,13 +28,13 @@ const ActivityOver = () => {
           margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-          <XAxis dataKey="activity" stroke="#8884d8" />
-          <YAxis stroke="#8884d8" />
+          <XAxis dataKey="activity" stroke="#00357a" />
+          <YAxis stroke="#00357a" />
           <Tooltip
-            contentStyle={{ backgroundColor: "#f9f9f9", borderRadius: "8px" }}
+            contentStyle={{ backgroundColor: "#00357a", borderRadius: "8px" }}
           />
           <Legend />
-          <Bar dataKey="count" fill="#4f46e5" barSize={40} radius={[5, 5, 0, 0]} />
+          <Bar dataKey="count" fill="#00357a" barSize={40} radius={[5, 5, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

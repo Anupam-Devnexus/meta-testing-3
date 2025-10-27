@@ -15,7 +15,7 @@ const IntegrationCard = ({
       <button
         onClick={!isLoading ? onClick : undefined}
         disabled={isLoading}
-        className={`mt-4 cursor-pointer px-2 w-full py-2 text-white rounded-lg flex items-center justify-center ${buttonColor} ${isLoading ? "opacity-70 cursor-not-allowed" : ""
+        className={`mt-4 cursor-pointer px-2 w-full py-2 text-white rounded-lg flex items-center justify-center bg-[#003d82] ${isLoading ? "opacity-70 cursor-not-allowed" : ""
           }`}
       >
         {isLoading ? (

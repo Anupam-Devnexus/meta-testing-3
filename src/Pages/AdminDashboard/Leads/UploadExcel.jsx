@@ -22,7 +22,6 @@ export default function ExcelUploader() {
 
       setData(jsonData);
       setShowConfirm(true);
-      console.log("Parsed Excel Data:", jsonData);
     };
 
     reader.readAsBinaryString(file);
@@ -32,7 +31,6 @@ export default function ExcelUploader() {
     setUploading(true);
 
     const token = JSON.parse(localStorage.getItem("UserDetails"))?.token;
-    console.log("Auth Token:", token);
     if (!token) {
       alert("No authentication token found. Please log in again.");
       return;
@@ -49,7 +47,6 @@ export default function ExcelUploader() {
     );
 
     alert("Data uploaded successfully!");
-    console.log("Response:", response.data);
 
     setShowConfirm(false);
     setData([]);
@@ -71,7 +68,7 @@ export default function ExcelUploader() {
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow-lg">
       <label
         htmlFor="excelUpload"
-        className="inline-block cursor-pointer px-6 py-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+        className="inline-block cursor-pointer px-6 py-3 bg-[#002b5b] text-white rounded-md font-semibold hover:bg-blue-700 transition"
       >
         Upload Excel File
       </label>

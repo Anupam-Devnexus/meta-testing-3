@@ -25,7 +25,6 @@ const UserDashboard = () => {
     })
       .then((res) => res.json())
       .then((res) => {
-        console.log("API Response:", res);
         if (res.success && Array.isArray(res.data)) {
           setData(res.data);
         } else {

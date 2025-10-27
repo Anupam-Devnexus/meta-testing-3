@@ -16,7 +16,6 @@ const BACKEND_AUTH_URL = "https://dbbackend.devnexussolutions.com/auth/google";
 const BACKEND_EVENT_URL = "https://dbbackend.devnexussolutions.com/auth/api/appointment";
 
 const Appointments = () => {
-  console.log("[App] Render start");
 
   // -------------------------
   // State declarations
@@ -183,7 +182,6 @@ const Appointments = () => {
   // Fetch Google Calendar events
   // -------------------------
   const fetchEvents = useCallback(async (accessToken = localStorage.getItem("accessToken")) => {
-    console.log("[Events] Fetching events...");
     if (!accessToken) return logError("Events", "No access token");
 
     try {
@@ -196,7 +194,6 @@ const Appointments = () => {
         maxResults: 50,
         orderBy: "startTime",
       });
-      console.log("[Events] Raw events:", res.result.items);
 
       const mapped = res.result.items.map(event => ({
         id: event.id,
@@ -206,7 +203,6 @@ const Appointments = () => {
       }));
 
       setEvents(mapped);
-      console.log("[Events] Mapped events:", mapped);
     } catch (err) {
       logError("Events", "Failed to fetch events", err);
     }
@@ -216,14 +212,12 @@ const Appointments = () => {
   // Restore session if user already logged in
   // -------------------------
   useEffect(() => {
-    console.log("[App] Restoring session...");
     const savedUser = localStorage.getItem("userDetails");
     const accessToken = localStorage.getItem("accessToken");
     if (savedUser && accessToken && gapiReady) {
       setUser(JSON.parse(savedUser));
       setSignedIn(true);
       fetchEvents(accessToken);
-      console.log("[App] Session restored", savedUser);
     }
   }, [gapiReady, fetchEvents]);
 
@@ -231,7 +225,6 @@ const Appointments = () => {
   // Handle date click to open modal
   // -------------------------
   const handleDateClick = (info) => {
-    console.log("[UI] Date clicked:", info.dateStr);
     if (!signedIn) return toast.info("Please login first");
 
     setNewEvent(prev => ({ ...prev, date: info.dateStr }));
@@ -243,7 +236,6 @@ const Appointments = () => {
   // Attendee management
   // -------------------------
   const handleAddAttendee = () => {
-    console.log("[UI] Adding attendee");
     setNewEvent(prev => ({ ...prev, attendees: [...prev.attendees, ""] }));
   };
   const handleAttendeeChange = (i, value) => {
@@ -255,7 +247,6 @@ const Appointments = () => {
     });
   };
   const handleRemoveAttendee = (i) => {
-    console.log(`[UI] Removing attendee ${i}`);
     setNewEvent(prev => ({ ...prev, attendees: prev.attendees.filter((_, idx) => idx !== i) }));
   };
 
@@ -263,7 +254,6 @@ const Appointments = () => {
   // Create Google Calendar meeting
   // -------------------------
   const handleCreateMeeting = async () => {
-    console.log("[Event] Creating meeting...");
     if (!signedIn) return logError("Event", "Not signed in");
     setLoading(true);
 
@@ -281,7 +271,6 @@ const Appointments = () => {
         conferenceData: { createRequest: { requestId: String(Date.now()), conferenceSolutionKey: { type: "hangoutsMeet" } } },
       };
 
-      console.log("[Event] Event payload:", eventPayload);
 
       gapi.client.setToken({ access_token: accessToken });
       const res = await gapi.client.calendar.events.insert({
@@ -290,11 +279,9 @@ const Appointments = () => {
         conferenceDataVersion: 1,
         sendUpdates: "all",
       });
-      console.log("[Event] Event created in Google Calendar:", res.result);
 
       const link = res.result.conferenceData?.entryPoints?.[0]?.uri || "";
       setMeetLink(link);
-      console.log("[Event] Meet link:", link);
 
       // -------------------------
       // Post event to backend (for database and email)
@@ -352,7 +339,6 @@ const Appointments = () => {
           events={events}
           dateClick={handleDateClick}
           eventClick={(info) => {
-            console.log("[UI] Event clicked:", info.event);
             toast.info(`Event: ${info.event.title}`);
           }}
           height="80vh"

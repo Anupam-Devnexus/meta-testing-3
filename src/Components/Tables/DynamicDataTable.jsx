@@ -181,7 +181,6 @@ export default function DynamicDataTable({ apiData, patchApi = "" }) {
 
       if (!res.ok) throw new Error("Failed to submit changes.");
       const response = await res.json();
-      console.log("Patch response:", response);
     } catch (err) {
       console.error("Error submitting:", err);
     } finally {

@@ -51,9 +51,6 @@ const useCaleads = create((set, get) => ({
         loading: false,
       });
 
-      console.log("✅ All CA Leads:", leadsData);
-      console.log("✅ Campaign Names:", uniqueCampaigns);
-      console.log("✅ Campaign Data:", campaignData);
     } catch (err) {
       console.error("❌ Error fetching CA Leads:", err);
       set({
