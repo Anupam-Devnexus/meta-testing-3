@@ -75,6 +75,16 @@ export default function Navbar() {
       { icon: <FaUsers />, label: "Users", path: "/admin-dashboard/users" },
       {
         icon: <FaUsers />,
+        label: "Blogs",
+        path: "/create-new-blog",
+        submenu: [
+          { icon: <FaUsers />, sublabel: "Create Blogs", path: "/create-new-blog" },
+          { icon: <FaUsers />, sublabel: "Update Blogs", path: "/update-blogs" },
+
+        ],
+      },
+      {
+        icon: <FaUsers />,
         label: "Leads",
         path: "/admin-dashboard/leads",
         submenu: [
