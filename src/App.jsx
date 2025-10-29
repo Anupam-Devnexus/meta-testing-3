@@ -46,6 +46,8 @@ import Unauthorized from "./Pages/Unauthorized";
 import Privacy from "./Pages/Privacy";
 import Terms from "./Pages/Terms";
 import Home from "./Pages/Home";
+import CreateNewBlog from "./Components/Blogs/CreateNewBlog";
+import AllBlogs from "./Components/Blogs/UpdateBlogs";
 
 // ================= Route Configurations =================
 const adminRoutes = [
@@ -106,6 +108,10 @@ function AppContent() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+                <Route path="/create-new-blog" element={<CreateNewBlog />} />
+                <Route path="/update-blogs" element={<AllBlogs />} />
+
+                
 
           {/* Admin Routes */}
           <Route
