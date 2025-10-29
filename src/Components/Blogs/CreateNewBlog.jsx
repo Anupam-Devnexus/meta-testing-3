@@ -48,7 +48,7 @@ export default function CreateNewBlog() {
         formData.append("title", title);
         formData.append("blogContent", content);
 
-        const response = await fetch("http://localhost:3000/api/create-blogs", {
+        const response = await fetch("https://backend.devnexussolutions.com/api/create-blogs", {
             method: "POST",
             body: formData,
         });
