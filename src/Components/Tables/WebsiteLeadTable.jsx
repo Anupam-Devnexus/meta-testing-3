@@ -18,6 +18,15 @@ const WebsiteLeadTable = ({ data = [], patchApiUrl }) => {
   const [customRemark1, setCustomRemark1] = useState("");
   const [globalRemark2, setGlobalRemark2] = useState("");
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const [page, setPage] = useState(1);
+const pageSize = 5; // ✅ show 5 per page
+
+
+const total = rows.length;
+const totalPages = Math.ceil(total / pageSize);
+const start = (page - 1) * pageSize;
+const paginatedRows = rows.slice(start, start + pageSize);
+
 
   // ✅ Toggle row selection
   const handleSelect = (id) => {
@@ -161,7 +170,7 @@ const WebsiteLeadTable = ({ data = [], patchApiUrl }) => {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+        {paginatedRows.map((row) => (
               <tr
                 key={row._id}
                 className={`border-b transition-all hover:bg-gray-50 ${
@@ -278,8 +287,32 @@ const WebsiteLeadTable = ({ data = [], patchApiUrl }) => {
 
       {/* Footer Info */}
       <div className="text-xs text-gray-500 pt-2 border-t">
-        Showing {rows.length} leads | {selectedIds.length} selected
+        Showing total leads {rows.length}
       </div>
+
+      {/* ✅ Pagination Controls */}
+      <div className="flex justify-center items-center gap-4 pt-2">
+        <button
+          disabled={page <= 1}
+          onClick={() => setPage((p) => p - 1)}
+          className="px-4 py-2 border rounded disabled:opacity-40"
+        >
+          Prev
+        </button>
+
+        <span>
+          Page {page} / {totalPages}
+        </span>
+
+        <button
+          disabled={page >= totalPages}
+          onClick={() => setPage((p) => p + 1)}
+          className="px-4 py-2 border rounded disabled:opacity-40"
+        >
+          Next
+        </button>
+      </div>
+
 
       {selectedMessage && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
