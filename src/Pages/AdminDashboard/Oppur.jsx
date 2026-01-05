@@ -44,7 +44,7 @@ export const Oppur = () => {
     setLeadsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
-
+  console.log(currentLeads)
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold text-[var(--primary-color)] mb-4">
@@ -79,10 +79,9 @@ export const Oppur = () => {
                 <td className="px-4 py-3">{lead.campaign_name || "—"}</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      remarkColors[lead.status?.toLowerCase()] ||
+                    className={`px-3 py-1 text-xs font-medium rounded-full ${remarkColors[lead.status?.toLowerCase()] ||
                       remarkColors["other"]
-                    }`}
+                      }`}
                   >
                     {lead.status || "Other"}
                   </span>
@@ -124,22 +123,20 @@ export const Oppur = () => {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-md border ${
-                currentPage === 1
+              className={`px-4 py-2 rounded-md border ${currentPage === 1
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-[var(--primary-color)] text-white hover:bg-opacity-90"
-              }`}
+                }`}
             >
               Previous
             </button>
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-md border ${
-                currentPage === totalPages
+              className={`px-4 py-2 rounded-md border ${currentPage === totalPages
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-[var(--primary-color)] text-white hover:bg-opacity-90"
-              }`}
+                }`}
             >
               Next
             </button>
@@ -166,7 +163,7 @@ export const Oppur = () => {
 
       {/* ✅ Modal for Viewing Extra Fields */}
       {selectedLead && (
-       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[500px] p-6 relative">
             <button
               onClick={() => setSelectedLead(null)}
@@ -175,7 +172,7 @@ export const Oppur = () => {
               <X size={20} />
             </button>
             <h3 className="text-lg font-semibold text-[var(--primary-color)] mb-4">
-          Question Answer of {selectedLead.name || "Lead"}
+              Question Answer of {selectedLead.name || "Lead"}
             </h3>
             <div className="space-y-2 overflow-y-auto">
               {selectedLead.field_data?.length > 0 ? (

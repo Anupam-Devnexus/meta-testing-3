@@ -72,7 +72,7 @@ const adminRoutes = [
   { path: "oppurtunity", element: <Oppur /> },
   { path: "stats", element: <Stats /> },
   { path: "website", element: <Website /> },
-  {path:"google" , element:<GoogleInti/>},
+  { path: "google", element: <GoogleInti /> },
   { path: "meta/:campaignName", element: <DynamicCampaignPage /> },
 ];
 
@@ -108,10 +108,10 @@ function AppContent() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
-                <Route path="/create-new-blog" element={<CreateNewBlog />} />
-                <Route path="/update-blogs" element={<AllBlogs />} />
+          <Route path="/create-new-blog" element={<CreateNewBlog />} />
+          <Route path="/update-blogs" element={<AllBlogs />} />
 
-                
+
 
           {/* Admin Routes */}
           <Route
@@ -152,7 +152,7 @@ function AppContent() {
           />
         </Routes>
       </main>
-        <ToastContainer
+      <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
