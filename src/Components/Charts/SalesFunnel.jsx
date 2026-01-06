@@ -1,31 +1,110 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useManualLeadsStore } from "../../Zustand/MannualLeads";
 
-const defaultFunnelStages = [
-  { name: "Leads", value: 500 },
-  { name: "Contacted", value: 350 },
-  { name: "Qualified", value: 200 },
-  { name: "Proposals", value: 120 },
-  { name: "Closed", value: 60 },
-];
+const SalesFunnel = () => {
+  const { leads, fetchLeads } = useManualLeadsStore();
 
-const SalesFunnel = ({ stages }) => {
-  const maxValue = Math.max(...stages.map((stage) => stage.value));
+  /* Funnel mode */
+  const [mode, setMode] = useState("api");
+  /* Custom funnel state */
+  const [customStages, setCustomStages] = useState([]);
+  const [stageName, setStageName] = useState("");
+  const [stageValue, setStageValue] = useState("");
 
+  /* Fetch leads once */
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
+
+  /* ---------------- API Funnel (STATUS BASED) ---------------- */
+  const apiStages = useMemo(() => {
+    if (!Array.isArray(leads) || leads.length === 0) return [];
+
+    const countByStatus = (status) =>
+      leads.filter(l => l.status === status).length;
+
+    return [
+      { name: "Total", value: leads?.length },
+      { name: "New", value: countByStatus("new") },
+      { name: "In Progress", value: countByStatus("in progress") },
+      { name: "Converted", value: countByStatus("converted") },
+      { name: "Closed", value: countByStatus("closed") },
+    ];
+  }, [leads]);
+
+  /* Decide which funnel to show */
+  const stages =
+    mode === "custom" && customStages.length > 0
+      ? customStages
+      : apiStages;
+
+  const maxValue = Math.max(...stages.map(s => s.value), 1);
+
+  /* ---------------- Handlers ---------------- */
+  const addStage = useCallback(() => {
+    if (!stageName || !stageValue) return;
+
+    setCustomStages(prev => [
+      ...prev,
+      { name: stageName, value: Number(stageValue) },
+    ]);
+
+    setStageName("");
+    setStageValue("");
+  }, [stageName, stageValue]);
+
+  const enableCustomFunnel = () => {
+    setCustomStages([]);
+    setMode("custom");
+  };
+
+  const switchToApiFunnel = () => {
+    setCustomStages([]);
+    setMode("api");
+  };
+
+  /* ---------------- UI ---------------- */
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md max-w-full mx-auto">
-      <div className="flex flex-col gap-2">
+    <div className="p-6 bg-white rounded-xl shadow space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">
+          {mode === "custom" ? "Custom Sales Funnel" : "Sales Funnel"}
+        </h2>
+
+        {mode === "api" ? (
+          <button
+            onClick={enableCustomFunnel}
+            className="px-4 py-2 bg-[#00357a] text-white rounded hover:bg-blue-700"
+          >
+            Create Custom Funnel
+          </button>
+        ) : (
+          <button
+            onClick={switchToApiFunnel}
+            className="px-4 py-2 bg-gray-400 text-white rounded"
+          >
+            Use API Funnel
+          </button>
+        )}
+      </div>
+
+      {/* Funnel View */}
+      <div className="space-y-3">
         {stages.map((stage, idx) => {
-          const widthPercent = (stage.value / maxValue) * 100;
+          const width = (stage.value / maxValue) * 100;
           return (
             <div key={idx} className="flex items-center gap-4">
-              <span className="w-24 font-semibold">{stage.name}</span>
-              <div className="flex-1 bg-gray-200 h-12 rounded-md relative">
+              <span className="w-32 text-sm font-medium text-gray-700">
+                {stage.name}
+              </span>
+
+              <div className="relative flex-1 bg-gray-200 h-10 rounded-md">
                 <div
-                  className="bg-blue-500 h-12 rounded-md transition-all duration-500"
-                  style={{ width: `${widthPercent}%` }}
-                  title={`${stage.value} leads`}
-                ></div>
-                <span className="absolute right-2 top-2 text-white font-semibold">
+                  className="h-10 bg-blue-600 rounded-md transition-all duration-500"
+                  style={{ width: `${width}%` }}
+                />
+                <span className="absolute right-3 top-2 text-white text-sm font-semibold">
                   {stage.value}
                 </span>
               </div>
@@ -33,102 +112,47 @@ const SalesFunnel = ({ stages }) => {
           );
         })}
       </div>
-    </div>
-  );
-};
 
-const FunnelCreator = () => {
-  const [creating, setCreating] = useState(false);
-  const [stages, setStages] = useState([]);
-  const [stageName, setStageName] = useState("");
-  const [stageValue, setStageValue] = useState("");
-  const [showFunnel, setShowFunnel] = useState(false);
-
-  const addStage = () => {
-    if (stageName && stageValue) {
-      setStages([...stages, { name: stageName, value: Number(stageValue) }]);
-      setStageName("");
-      setStageValue("");
-    }
-  };
-
-  const handleSubmit = () => {
-    if (stages.length > 0) {
-      setShowFunnel(true);
-    }
-  };
-
-  const handleSkip = () => {
-    setStages(defaultFunnelStages);
-    setShowFunnel(true);
-  };
-
-  return (
-    <div className="p-6">
-      {!creating && !showFunnel && (
-        <button
-          onClick={() => setCreating(true)}
-          className="px-6 py-2 bg-[#00357a] text-white rounded-lg shadow hover:bg-blue-700"
-        >
-          Create Sales Funnel
-        </button>
-      )}
-
-      {creating && !showFunnel && (
-        <div className="bg-gray-50 p-6 rounded-lg shadow-md space-y-4">
-          <h2 className="text-xl font-bold">Add Funnel Stages</h2>
+      {/* Custom Funnel Builder */}
+      {mode === "custom" && (
+        <div className="border-t pt-5 space-y-4">
+          <h3 className="font-semibold">Add Custom Stages</h3>
 
           <div className="flex gap-2">
             <input
-              type="text"
+              className="border p-2 rounded w-full"
               placeholder="Stage Name"
               value={stageName}
-              onChange={(e) => setStageName(e.target.value)}
-              className="border p-2 rounded-md flex-1"
+              onChange={e => setStageName(e.target.value)}
             />
             <input
               type="number"
+              className="border p-2 rounded w-32"
               placeholder="Value"
               value={stageValue}
-              onChange={(e) => setStageValue(e.target.value)}
-              className="border p-2 rounded-md w-32"
+              onChange={e => setStageValue(e.target.value)}
             />
             <button
               onClick={addStage}
-              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+              className="px-4 py-2 bg-green-600 text-white rounded"
             >
               Add
             </button>
           </div>
 
-          <ul className="list-disc pl-6">
-            {stages.map((s, idx) => (
-              <li key={idx} className="text-gray-700">
-                {s.name} - {s.value}
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-2 bg-[#00357a] text-white rounded-lg hover:bg-blue-700"
-            >
-              Submit
-            </button>
-            <button
-              onClick={handleSkip}
-              className="px-6 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
-            >
-              Skip
-            </button>
-          </div>
+          {customStages.length > 0 && (
+            <ul className="text-sm text-gray-600 list-disc pl-5">
+              {customStages.map((s, i) => (
+                <li key={i}>
+                  {s.name} — {s.value}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
-
-      {showFunnel && <SalesFunnel stages={stages} />}
     </div>
   );
 };
 
-export default FunnelCreator;
+export default SalesFunnel;

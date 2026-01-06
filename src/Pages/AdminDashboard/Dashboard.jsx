@@ -152,12 +152,10 @@ export default function Dashboard() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-semibold mb-4 text-[#003d82]">
-            Sales Funnel
-          </h3>
+      
+          
           <SalesFunnel />
-        </div>
+      
 
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h3 className="text-xl font-semibold mb-4 text-[#003d82]">
@@ -168,12 +166,12 @@ export default function Dashboard() {
       </div>
 
       {/* Support Tracker */}
-      <div className="bg-white rounded-2xl shadow-lg p-6">
+      {/* <div className="bg-white rounded-2xl shadow-lg p-6">
         <h3 className="text-xl font-semibold mb-4 text-[#003d82]">
           Support Tracker
         </h3>
         <SupportTracker />
-      </div>
+      </div> */}
     </div>
   );
 
