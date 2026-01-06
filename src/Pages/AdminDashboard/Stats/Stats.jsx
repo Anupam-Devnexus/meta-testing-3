@@ -20,7 +20,7 @@ export default function Stats() {
   const { leads, loading, error, fetchLeads } = useManualLeadsStore();
 
 
-  // ✅ Facebook connection flag
+  // Facebook connection flag
   const fb_connect = localStorage.getItem("fb_connect") === "true";
 
   // Default chart is "meta" if connected, otherwise "manual"
@@ -34,7 +34,7 @@ export default function Stats() {
     fetchUser();
   }, [fb_connect]);
 
-// console.log("Mannual leads Page",leads)
+  // console.log("Mannual leads Page",leads)
 
   const totalMetaLeads = manualLeads?.leads?.length || 0;
   const totalManualLeads = leads?.length || 0;
@@ -50,20 +50,19 @@ export default function Stats() {
 
       {/* Stats Cards */}
       <div
-        className={`grid gap-6 ${
-          fb_connect ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
-        }`}
+        className={`grid gap-6 ${fb_connect ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
+          }`}
       >
         {/* Meta Leads only if connected */}
-       
-          {/* <StatCard
+
+        {/* <StatCard
             title="Meta Leads"
             value={totalMetaLeads}
             icon={<FaChartBar className="text-[#00357a]" />}
             active={activeChart === "meta"}
             onClick={() => handleCardClick("meta")}
           /> */}
-     
+
 
         <StatCard
           title="Manual Leads"
