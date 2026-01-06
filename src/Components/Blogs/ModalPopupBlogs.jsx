@@ -9,15 +9,27 @@ export default function ModalPopupBlog({ blog, onClose, onUpdate }) {
   const [featuredImage, setFeaturedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
   const [content, setContent] = useState("");
+  const [editorKey, setEditorKey] = useState(0);
+
 
   // ✅ Prefill existing blog data when editing
   useEffect(() => {
+    console.log(blog, 'update blogs');
+    
     if (blog) {
       setTitle(blog.title || "");
-      setContent(blog.blogContent || ""); // keep full HTML if exists
+      setContent(blog?.blogContent || "");
       setPreviewImage(blog.featuredImage || "");
     }
   }, [blog]);
+
+  useEffect(() => {
+    if (blog) {
+      setContent(blog.blogContent || "");
+      setEditorKey((k) => k + 1); // 🔥 force remount
+    }
+  }, [blog]);
+
 
   // ✅ Upload pasted images
   const uploadImageToServer = async (file) => {
@@ -150,13 +162,28 @@ export default function ModalPopupBlog({ blog, onClose, onUpdate }) {
           }}
         />
 
+        <div
+          style={{
+            width: "100%",
+            padding: "10px",
+            marginTop: "1rem",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            minHeight: "150px",
+          }}
+          dangerouslySetInnerHTML={{ __html: blog?.blogContent }}
+        />
+
         {/* ✅ Rich text editor prefilled with HTML content */}
         <Editor
+          key={editorKey}
           value={content}
           onTextChange={(e) => setContent(e.htmlValue)}
           onPasteCapture={handleImagePaste}
           style={{ height: "320px", marginTop: "1rem" }}
+          placeholder="Write blog content here..."
         />
+
 
         <div
           style={{

@@ -48,6 +48,7 @@ import Terms from "./Pages/Terms";
 import Home from "./Pages/Home";
 import CreateNewBlog from "./Components/Blogs/CreateNewBlog";
 import AllBlogs from "./Components/Blogs/UpdateBlogs";
+import ModalPopupBlog from "./Components/Blogs/ModalPopupBlogs";
 
 // ================= Route Configurations =================
 const adminRoutes = [
@@ -110,6 +111,7 @@ function AppContent() {
           <Route path="/terms" element={<Terms />} />
                 <Route path="/create-new-blog" element={<CreateNewBlog />} />
                 <Route path="/update-blogs" element={<AllBlogs />} />
+
 
                 
 
