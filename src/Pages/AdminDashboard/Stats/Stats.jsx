@@ -10,11 +10,15 @@ import UserPieChart from "../../../Components/Charts/UserChart";
 import SalesChart from "../../../Components/Charts/SalesChart";
 import ActivityOver from "../../../Components/Charts/ActivityOver";
 import Data from "../../../Datastore/Stats.json";
+import { useManualLeadsStore } from "../../../Zustand/MannualLeads";
+
 
 export default function Stats() {
   const { metaleads, fetchMetaLeads } = useMetaLeads();
   const { data: manualLeads, fetchData } = useLeadStore();
   const { users, fetchUser } = useUserStore();
+  const { leads, loading, error, fetchLeads } = useManualLeadsStore();
+
 
   // ✅ Facebook connection flag
   const fb_connect = localStorage.getItem("fb_connect") === "true";
@@ -25,12 +29,18 @@ export default function Stats() {
   useEffect(() => {
     if (fb_connect) fetchMetaLeads();
     fetchData();
+    fetchLeads();
+
     fetchUser();
   }, [fb_connect]);
 
-  const totalMetaLeads = metaleads?.leads?.length || 0;
-  const totalManualLeads = manualLeads?.leads?.length || 0;
+// console.log("Mannual leads Page",leads)
+
+  const totalMetaLeads = manualLeads?.leads?.length || 0;
+  const totalManualLeads = leads?.length || 0;
   const totalUsers = users?.users?.length || 0;
+
+  console.log(manualLeads)
 
   const handleCardClick = (chart) => setActiveChart(chart);
 
@@ -45,22 +55,15 @@ export default function Stats() {
         }`}
       >
         {/* Meta Leads only if connected */}
-        {fb_connect ? (
-          <StatCard
+       
+          {/* <StatCard
             title="Meta Leads"
             value={totalMetaLeads}
             icon={<FaChartBar className="text-[#00357a]" />}
             active={activeChart === "meta"}
             onClick={() => handleCardClick("meta")}
-          />
-        ) : (
-          <StatCard
-            title="Connect Facebook to See Meta Leads"
-            value="-"
-            icon={<FaChartBar className="text-[#00357a]" />}
-            active={false}
-          />
-        )}
+          /> */}
+     
 
         <StatCard
           title="Manual Leads"
@@ -114,7 +117,7 @@ function StatCard({ title, value, icon, onClick, active }) {
     <div
       onClick={onClick}
       className={`bg-white shadow-md rounded-xl p-6 flex items-center gap-4 cursor-pointer transition-all duration-300 border
-        ${active ? "shadow-xl ring-2 ring-[#00357a] scale-105" : "hover:shadow-lg hover:scale-105"}`}
+        ${active ? "shadow-xl ring-2 ring-[#00357a]" : "hover:shadow-lg "}`}
     >
       <div className="text-4xl">{icon}</div>
       <div>

@@ -26,8 +26,9 @@ export default function AddLeads() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [formToSubmit, setFormToSubmit] = useState(null);
 
-  const token = localStorage.getItem("userDetails");
-  const details = token ? JSON.parse(token).token : null;
+  const details = JSON.parse(localStorage.getItem("UserDetails"))?.token;
+
+
 
   const initialValues = {
     date: new Date().toISOString(),
@@ -70,7 +71,7 @@ export default function AddLeads() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("✅ Lead submitted successfully!");
+        toast.success("Lead submitted successfully!");
         resetForm();
         setFormToSubmit(null);
         setShowConfirm(false);

@@ -39,7 +39,7 @@ export default function ManualLeads() {
   useEffect(() => {
     fetchLeads();
   }, []);
-
+console.log("Mannual leads Page",leads)
   // --- Initialize enabledRows & remarks when leads change
   useEffect(() => {
     const initEnabled = {};

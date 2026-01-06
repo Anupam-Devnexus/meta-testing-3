@@ -1,48 +1,71 @@
-import { useEffect } from "react";
-import useLeadStore from "../../Zustand/LeadsGet";
+import { useEffect, useMemo } from "react";
+import { useManualLeadsStore } from "../../Zustand/MannualLeads";
+
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from "recharts";
 
-export default function MannualChart() {
-  const {
-    data: manualLeads,
-    loading: leadLoading,
-    error: leadError,
-    fetchData,
-  } = useLeadStore();
+const BudgetChart = () => {
+  const { leads, loading, error, fetchLeads } = useManualLeadsStore();
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchLeads();
+  }, [fetchLeads]);
 
-  // Transform leads to chart format
-  const chartData = manualLeads?.leads?.map((lead) => ({
-    name: lead.name || "No Name",
-    budget: Number(lead.budget) || 0,
-    createdBy: lead.createdBy || "Unknown",
-  })) || [];
+  // ✅ Convert API response → Chart format
+  const chartData = useMemo(() => {
+    if (!Array.isArray(leads)) return [];
+
+    return leads.map((lead) => ({
+      name: lead.name || "No Name",
+      budget: Number(lead.budget?.replace(/,/g, "")) || 0,
+      campaign: lead.campaign,
+      city: lead.city,
+      priority: lead.priority,
+    }));
+  }, [leads]);
 
   return (
-    <div className="w-full h-[400px] p-4">
-      <h2 className="text-xl font-bold mb-4">Budget Chart (per Lead)</h2>
-      {leadLoading && <p>Loading...</p>}
-      {leadError && <p>Error loading data.</p>}
-      {!leadLoading && chartData.length > 0 && (
+    <div className="w-full h-[420px] p-4 bg-white rounded-lg shadow">
+      <h2 className="text-xl font-bold mb-4">
+        Lead Budget Analysis
+      </h2>
+
+      {loading && <p className="text-gray-500">Loading chart...</p>}
+      {error && <p className="text-red-500">Error loading leads</p>}
+
+      {!loading && chartData.length === 0 && (
+        <p className="text-gray-500">No lead data available</p>
+      )}
+
+      {!loading && chartData.length > 0 && (
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-          >
+          <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
-            <Tooltip />
+            <Tooltip
+              formatter={(value) => `₹ ${value.toLocaleString()}`}
+              labelFormatter={(label) => `Lead: ${label}`}
+            />
             <Legend />
-            <Bar dataKey="budget" fill="#82ca9d" name="Budget" />
+            <Bar
+              dataKey="budget"
+              name="Budget (₹)"
+              fill="#22c55e"
+            />
           </BarChart>
         </ResponsiveContainer>
       )}
     </div>
   );
-}
+};
+
+export default BudgetChart;

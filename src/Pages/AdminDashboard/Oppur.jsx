@@ -58,8 +58,8 @@ export const Oppur = () => {
               <th className="px-4 py-3">SR No</th>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Phone</th>
-              <th className="px-4 py-3">Campaign</th>
+              {/* <th className="px-4 py-3">Phone</th> */}
+              <th className="px-4 py-3">Campaign Name</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Remarks</th>
               <th className="px-4 py-3">Created At</th>
@@ -75,8 +75,8 @@ export const Oppur = () => {
                 </td>
                 <td className="px-4 py-3">{lead.name || "—"}</td>
                 <td className="px-4 py-3">{lead.email || "—"}</td>
-                <td className="px-4 py-3">{lead.phone || "—"}</td>
-                <td className="px-4 py-3">{lead.campaign_name || "—"}</td>
+                {/* <td className="px-4 py-3">{lead.phone || "—"}</td> */}
+                <td className="px-4 py-3">{lead?.campaign_name || "—"}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`px-3 py-1 text-xs font-medium rounded-full ${remarkColors[lead.status?.toLowerCase()] ||
