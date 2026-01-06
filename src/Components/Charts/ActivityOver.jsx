@@ -14,6 +14,8 @@ import { useManualLeadsStore } from "../../Zustand/MannualLeads";
 import useContactStore from "../../Zustand/Contact";
 import useLeadStore from "../../Zustand/LeadsGet";
 import useUserStore from "../../Zustand/UsersGet";
+import useMetaLeads from "../../Zustand/MetaLeadsGet";
+
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -39,6 +41,8 @@ const ActivityOver = () => {
   const { users, fetchUser } = useUserStore();
   const { data: contactsData, fetchContacts } = useContactStore();
   const { data: leadsData, fetchData: fetchLeadsData } = useLeadStore();
+  const { metaleads, fetchMetaLeads } = useMetaLeads();
+
 
   const [chartData, setChartData] = useState([]);
 
@@ -46,6 +50,7 @@ const ActivityOver = () => {
     fetchLeads();
     fetchUser();
     fetchContacts();
+    fetchMetaLeads()
     fetchLeadsData();
   }, []);
 
@@ -55,6 +60,7 @@ const ActivityOver = () => {
       { name: "Users", count: users?.users?.length || 0 },
       { name: "Contacts", count: contactsData?.TotoalLeads || 0 },
       { name: "Leads Store", count: leadsData?.leads?.length || 0 },
+      {name:"Meta Leads" , count:metaleads?.total || 0}
     ];
     setChartData(dataForChart);
   }, [manualLeads, users, contactsData, leadsData]);

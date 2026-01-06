@@ -15,6 +15,8 @@ import useMetaLeads from "../../../Zustand/MetaLeadsGet";
 import metainsights from "../../../Zustand/MetaIns";
 import useNewMetaLeads from "../../../Zustand/NewMetaLeads";
 
+
+
 // 🔹 field variations
 const phoneFieldVariants = ["phone", "mobile", "contact_number", "PHONE_NUMBER", "number"];
 const emailFieldVariants = ["email", "EMAIL_ID", "contact_email", "mail"];
@@ -43,7 +45,7 @@ export default function Meta() {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
 
-  const itemsPerPage = 7;
+  const itemsPerPage = 10;
   const leadFields = ["created_time", "created_at"];
 
   // 🔹 helper: detect key from field variations
@@ -63,7 +65,7 @@ export default function Meta() {
     fetchinsights();
     fetchNewMeta();
   }, []);
-
+  // console.log("metaleads",metaleads)
   useEffect(() => {
     if (metaleads?.leads) {
       setLeads(metaleads.leads);
@@ -213,7 +215,7 @@ export default function Meta() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-blue-700 flex items-center gap-2">
-          <FaTag className="text-blue-500" /> Meta Leads
+          <FaTag className="text-blue-500" /> Meta Leads ({metaleads?.total})
         </h1>
         <div className="flex items-center gap-3">
           {/* Search */}
@@ -229,9 +231,8 @@ export default function Meta() {
           </div>
           {/* Filter */}
           <FaFilter
-            className={`text-blue-600 text-lg cursor-pointer transition ${
-              !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`text-blue-600 text-lg cursor-pointer transition ${!isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             onClick={() =>
               isAnyRowSelected && setShowGlobalRemarks((prev) => !prev)
             }
@@ -239,8 +240,8 @@ export default function Meta() {
               !isAnyRowSelected
                 ? "Select at least one row to enable"
                 : showGlobalRemarks
-                ? "Hide Global Remarks"
-                : "Show Global Remarks"
+                  ? "Hide Global Remarks"
+                  : "Show Global Remarks"
             }
           />
         </div>
@@ -259,7 +260,7 @@ export default function Meta() {
             <option value="">Select Remark 1</option>
             {remarkOptions1.map((opt, idx) => (
               <option key={idx} value={opt}>
-                {opt}
+                {idx}  {opt}
               </option>
             ))}
           </select>
@@ -304,16 +305,14 @@ export default function Meta() {
           <div className="flex items-center gap-2">
             <FaWhatsapp
               onClick={sendWhatsApp}
-              className={`p-1 bg-green-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-green-700 transition ${
-                !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`p-1 bg-green-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-green-700 transition ${!isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               title="Send WhatsApp Message"
             />
             <SiGmail
               onClick={sendGmail}
-              className={`p-1 bg-red-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-red-700 transition ${
-                !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`p-1 bg-red-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-red-700 transition ${!isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               title="Send Email via Gmail"
             />
           </div>
@@ -323,12 +322,12 @@ export default function Meta() {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white rounded-xl shadow-md divide-y divide-gray-200">
-          <thead className="bg-[#00357a]">
+          <thead className="bg-(--primary-light) text-white ">
             <tr>
               {headers.map((header) => (
                 <th
                   key={header}
-                  className="px-6 py-3 text-left text-xs font-semibold text-blue-800 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-semibold  uppercase tracking-wider"
                 >
                   {header}
                 </th>
@@ -352,9 +351,8 @@ export default function Meta() {
               return (
                 <tr
                   key={id}
-                  className={`transition-all duration-200 hover:shadow-sm ${
-                    enabledRows[id] ? "bg-green-50" : "bg-white"
-                  }`}
+                  className={`transition-all duration-200 hover:shadow-sm ${enabledRows[id] ? "bg-green-50" : "bg-white"
+                    }`}
                 >
                   <td className="px-4 py-3 text-center">
                     <input
@@ -411,11 +409,10 @@ export default function Meta() {
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                currentPage === i + 1
-                  ? "bg-[#00357a] text-white shadow"
-                  : "bg-white text-gray-700 hover:bg-blue-50"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${currentPage === i + 1
+                ? "bg-[#00357a] text-white shadow"
+                : "bg-white text-gray-700 hover:bg-blue-50"
+                }`}
             >
               {i + 1}
             </button>

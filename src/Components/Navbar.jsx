@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useCaleads from "../Zustand/Caleads";
-
+import { FaMeta } from "react-icons/fa6";
+import { CiDatabase } from "react-icons/ci";
 // Icons
 import {
   FaUsers,
@@ -73,6 +74,7 @@ export default function Navbar() {
       { icon: <RiAdminLine />, label: "Dashboard", path: "/admin-dashboard" },
       { icon: <LuPartyPopper />, label: "Opportunities", path: "/admin-dashboard/oppurtunity" },
       { icon: <FaUsers />, label: "Users", path: "/admin-dashboard/users" },
+       { icon: <FaMeta   />, label: "Meta", path: "/admin-dashboard/meta" },
       {
         icon: <FaUsers />,
         label: "Blogs",
@@ -84,7 +86,7 @@ export default function Navbar() {
         ],
       },
       {
-        icon: <FaUsers />,
+        icon: <CiDatabase />,
         label: "Leads",
         path: "/admin-dashboard/leads",
         submenu: [

@@ -44,7 +44,7 @@ export const Oppur = () => {
     setLeadsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
-  console.log(currentLeads)
+  // console.log(currentLeads)
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold text-[var(--primary-color)] mb-4">
@@ -124,8 +124,8 @@ export const Oppur = () => {
               onClick={handlePrevPage}
               disabled={currentPage === 1}
               className={`px-4 py-2 rounded-md border ${currentPage === 1
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-[var(--primary-color)] text-white hover:bg-opacity-90"
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-[var(--primary-color)] text-white hover:bg-opacity-90"
                 }`}
             >
               Previous
@@ -134,8 +134,8 @@ export const Oppur = () => {
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded-md border ${currentPage === totalPages
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-[var(--primary-color)] text-white hover:bg-opacity-90"
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-[var(--primary-color)] text-white hover:bg-opacity-90"
                 }`}
             >
               Next
@@ -161,7 +161,7 @@ export const Oppur = () => {
         </div>
       )}
 
-      {/* ✅ Modal for Viewing Extra Fields */}
+      {/*  Modal for Viewing Extra Fields */}
       {selectedLead && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[500px] p-6 relative">

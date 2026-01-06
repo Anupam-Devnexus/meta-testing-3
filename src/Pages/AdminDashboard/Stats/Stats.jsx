@@ -9,8 +9,9 @@ import MannualChart from "../../../Components/Charts/MannualChart";
 import UserPieChart from "../../../Components/Charts/UserChart";
 import SalesChart from "../../../Components/Charts/SalesChart";
 import ActivityOver from "../../../Components/Charts/ActivityOver";
-import Data from "../../../Datastore/Stats.json";
+
 import { useManualLeadsStore } from "../../../Zustand/MannualLeads";
+
 
 
 export default function Stats() {
@@ -36,11 +37,11 @@ export default function Stats() {
 
   // console.log("Mannual leads Page",leads)
 
-  const totalMetaLeads = manualLeads?.leads?.length || 0;
+  const totalMetaLeads = metaleads?.total || 0;
   const totalManualLeads = leads?.length || 0;
   const totalUsers = users?.users?.length || 0;
 
-  console.log(manualLeads)
+  // console.log(manualLeads)
 
   const handleCardClick = (chart) => setActiveChart(chart);
 
@@ -100,8 +101,8 @@ export default function Stats() {
 
         {/* Sales and Activity Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SalesChart data={Data.salesInsights} />
-          <ActivityOver data={Data.activityOverview} />
+          <SalesChart  />
+          <ActivityOver />
         </div>
       </div>
     </div>

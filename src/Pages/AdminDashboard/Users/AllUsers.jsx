@@ -20,6 +20,7 @@ export default function AllUsers() {
   useEffect(() => {
     fetchUser();
   }, []);
+  console.log(users?.users)
 
   const confirmData = users?.users || [];
 

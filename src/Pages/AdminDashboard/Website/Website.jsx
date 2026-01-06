@@ -15,7 +15,7 @@ export default function Website() {
   // Safely extract submissions
   const submissions = data?.submissions || [];
 
-  console.log(submissions)
+  // console.log(submissions)
   const api = "https://dbbackend.devnexussolutions.com/auth/api/contact"
 
   return (
