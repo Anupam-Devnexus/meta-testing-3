@@ -74,7 +74,7 @@ export default function Navbar() {
       { icon: <RiAdminLine />, label: "Dashboard", path: "/admin-dashboard" },
       { icon: <LuPartyPopper />, label: "Opportunities", path: "/admin-dashboard/oppurtunity" },
       { icon: <FaUsers />, label: "Users", path: "/admin-dashboard/users" },
-       { icon: <FaMeta   />, label: "Meta", path: "/admin-dashboard/meta" },
+      { icon: <FaMeta />, label: "Meta", path: "/admin-dashboard/meta" },
       {
         icon: <FaUsers />,
         label: "Blogs",
@@ -154,7 +154,7 @@ export default function Navbar() {
   }, [loading, campaignNames, fb_connect]);
 
   // ---------------------------
-  // 🧭 User Navigation
+  //  User Navigation
   // ---------------------------
   const userNav = useMemo(
     () =>
@@ -201,8 +201,8 @@ export default function Navbar() {
                       : handleNavigate(item.path)
                   }
                   className={`flex items-center justify-between px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 ${isParentActive
-                      ? "bg-white/20 font-semibold"
-                      : "hover:bg-white/10"
+                    ? "bg-white/20 font-semibold"
+                    : "hover:bg-white/10"
                     }`}
                 >
                   <div className="flex items-center gap-3 text-sm md:text-base">
@@ -227,10 +227,10 @@ export default function Navbar() {
                           <div
                             onClick={() => !sub.loading && handleNavigate(sub.path)}
                             className={`flex items-center gap-2 py-2 px-2 text-sm rounded-md cursor-pointer transition-all duration-200 ${sub.loading
-                                ? "bg-white/10 animate-pulse opacity-70"
-                                : isSubActive
-                                  ? "text-[#dcdc3c] font-semibold"
-                                  : "hover:text-[#dcdc3c]"
+                              ? "bg-white/10 animate-pulse opacity-70"
+                              : isSubActive
+                                ? "text-[#dcdc3c] font-semibold"
+                                : "hover:text-[#dcdc3c]"
                               }`}
                           >
                             {sub.icon}
@@ -269,7 +269,7 @@ export default function Navbar() {
 
         {dropdownOpen && (
           <div className="absolute bottom-16 left-4 right-4 bg-white text-[#141414] rounded-lg shadow-lg overflow-hidden animate-fade-in z-50">
-            <button
+            {/* <button
               onClick={() =>
                 handleNavigate(
                   role === "admin" ? "/admin-profile" : "/user-profile"
@@ -278,7 +278,7 @@ export default function Navbar() {
               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
             >
               View Profile
-            </button>
+            </button> */}
             <button
               onClick={handleLogOut}
               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 border-t"
