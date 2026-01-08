@@ -10,7 +10,7 @@ import { MdDelete } from "react-icons/md";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { FiCheck } from "react-icons/fi";
 import { SiGmail } from "react-icons/si";
-
+import axios from "axios";
 import useMetaLeads from "../../../Zustand/MetaLeadsGet";
 import metainsights from "../../../Zustand/MetaIns";
 import useNewMetaLeads from "../../../Zustand/NewMetaLeads";
@@ -44,9 +44,20 @@ export default function Meta() {
   const [showGlobalRemarks, setShowGlobalRemarks] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingLeadId, setEditingLeadId] = useState(null);
+  const [editRemark1, setEditRemark1] = useState("");
+  const [editRemark2, setEditRemark2] = useState("");
+  const [loadingAction, setLoadingAction] = useState(false);
 
   const itemsPerPage = 10;
   const leadFields = ["created_time", "created_at"];
+
+  const updateMetaLeadAPI = (id, payload) =>
+  axios.put(`/api/meta-leads/${id}`, payload);
+
+  const deleteMetaLeadAPI = (id) =>
+  axios.delete(`/api/meta-leads/${id}`);
 
   // 🔹 helper: detect key from field variations
   const getFieldKey = (allFields, variants) => {
@@ -210,6 +221,65 @@ export default function Meta() {
     });
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this lead?")) return;
+
+    // optimistic remove
+    setLeads((prev) => prev.filter((l) => l._id !== id));
+
+    setEnabledRows((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+
+    setRemarks((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+
+    try {
+      await deleteMetaLeadAPI(id);
+    } catch (err) {
+      alert("Delete failed. Please refresh.");
+    }
+  };
+
+  const handleEdit = (id) => {
+    setEditingLeadId(id);
+    setEditRemark1(remarks[id]?.remark1 || "");
+    setEditRemark2(remarks[id]?.remark2 || "");
+    setEditModalOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editingLeadId) return;
+
+    const payload = {
+      remark1: editRemark1,
+      remark2: editRemark2,
+    };
+
+    // optimistic UI update
+    setRemarks((prev) => ({
+      ...prev,
+      [editingLeadId]: payload,
+    }));
+
+    setLoadingAction(true);
+
+    try {
+      await updateMetaLeadAPI(editingLeadId, payload);
+      setEditModalOpen(false);
+    } catch (err) {
+      alert("Failed to update lead");
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+
   return (
     <section className="w-full bg-gray-50 min-h-screen p-6">
       {/* Header */}
@@ -371,6 +441,9 @@ export default function Meta() {
                       {cell}
                     </td>
                   ))}
+                  <td className="px-4 py-3 text-sm font-medium text-gray-600">
+                    {remarks[id]?.tag || "-"}
+                  </td>
 
                   <td className="px-4 py-3 text-sm font-medium text-gray-600">
                     {remarks[id]?.remark1 || "-"}
@@ -380,13 +453,22 @@ export default function Meta() {
                   </td>
 
                   <td className="px-4 py-3 flex items-center gap-2">
-                    <button className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition">
+                    <button
+                      onClick={() => handleEdit(id)}
+                      className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition"
+                    >
                       <FaRegEdit size={18} />
                     </button>
-                    <button className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition">
+
+                    <button
+                      onClick={() => handleDelete(id)}
+                      className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition"
+                    >
                       <MdDelete size={20} />
                     </button>
                   </td>
+
+
                 </tr>
               );
             })}
@@ -427,6 +509,49 @@ export default function Meta() {
           </button>
         </div>
       )}
+      {editModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl w-[400px] p-6 shadow-lg">
+            <h2 className="text-lg font-semibold mb-4 text-blue-700">
+              Edit Lead Remarks
+            </h2>
+
+            <div className="space-y-3">
+              <input
+                value={editRemark1}
+                onChange={(e) => setEditRemark1(e.target.value)}
+                placeholder="Remark 1"
+                className="w-full px-4 py-2 border rounded-lg text-sm outline-none"
+              />
+
+              <input
+                value={editRemark2}
+                onChange={(e) => setEditRemark2(e.target.value)}
+                placeholder="Remark 2"
+                className="w-full px-4 py-2 border rounded-lg text-sm outline-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="px-4 py-2 text-sm rounded-lg border"
+              >
+                Cancel
+              </button>
+
+              <button
+                disabled={loadingAction}
+                onClick={saveEdit}
+                className="px-4 py-2 text-sm rounded-lg bg-[#00357a] text-white disabled:opacity-50"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </section>
   );
 }

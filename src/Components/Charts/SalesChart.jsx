@@ -38,7 +38,7 @@ const SalesTooltip = ({ active, payload, label }) => {
         <strong>₹{cumulativeRevenue.toLocaleString()}</strong>
       </p>
 
-      <div className="max-h-40 overflow-y-auto space-y-2">
+      <div className="max-h-60 overflow-y-scroll space-y-2">
         {leads.map((lead, idx) => (
           <div key={idx} className="text-xs border-b pb-1 last:border-0">
             <p><strong>Name:</strong> {lead.name}</p>

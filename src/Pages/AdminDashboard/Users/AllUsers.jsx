@@ -72,7 +72,7 @@ export default function AllUsers() {
           >
             Add New
           </button>
-          <button
+          {/* <button
             onClick={() => navigate("/admin-dashboard/upload-excel")}
             disabled={actionLoading}
             className={`px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition ${
@@ -80,7 +80,7 @@ export default function AllUsers() {
             }`}
           >
             Upload Excel File
-          </button>
+          </button> */}
         </div>
       </div>
 
