@@ -47,4 +47,5 @@ export const useManualLeadsStore = create((set) => ({
       set({ leads: [], loading: false, error: "An error occurred while fetching leads" });
     }
   },
+
 }));

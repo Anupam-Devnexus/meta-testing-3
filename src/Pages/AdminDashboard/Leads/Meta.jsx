@@ -14,6 +14,7 @@ import axios from "axios";
 import useMetaLeads from "../../../Zustand/MetaLeadsGet";
 import metainsights from "../../../Zustand/MetaIns";
 import useNewMetaLeads from "../../../Zustand/NewMetaLeads";
+import { toast } from "react-toastify";
 
 
 
@@ -54,10 +55,26 @@ export default function Meta() {
   const leadFields = ["created_time", "created_at"];
 
   const updateMetaLeadAPI = (id, payload) =>
-  axios.put(`/api/meta-leads/${id}`, payload);
+    axios.put(`/auth/api/meta-leads/${id}`, payload);
 
-  const deleteMetaLeadAPI = (id) =>
-  axios.delete(`/api/meta-leads/${id}`);
+  const deleteMetaLeadAPI = async (id) => {
+
+    try {
+      await axios.delete(import.meta.env.VITE_BASE_URL + `/auth/api/meta-leads/${id}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(localStorage.getItem("User")).token}`
+        }
+      }
+      )
+      toast.success("Entry deleted")
+
+
+    } catch (error) {
+      console.log(error)
+      toast.error(error.message)
+    }
+
+  }
 
   // 🔹 helper: detect key from field variations
   const getFieldKey = (allFields, variants) => {
@@ -222,7 +239,9 @@ export default function Meta() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this lead?")) return;
+    // console.log(id)
+    // return
+    if (!confirm("Are you sure you want to delete this lead?")) return;
 
     // optimistic remove
     setLeads((prev) => prev.filter((l) => l._id !== id));

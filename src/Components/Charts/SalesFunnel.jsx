@@ -1,19 +1,25 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useManualLeadsStore } from "../../Zustand/MannualLeads";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const SalesFunnel = () => {
   const { leads, fetchLeads } = useManualLeadsStore();
 
   /* Funnel mode */
-  const [mode, setMode] = useState("api");
+  const [mode, setMode] = useState(localStorage.getItem("db-fm") || "api");
   /* Custom funnel state */
   const [customStages, setCustomStages] = useState([]);
   const [stageName, setStageName] = useState("");
   const [stageValue, setStageValue] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   /* Fetch leads once */
   useEffect(() => {
     fetchLeads();
+    mode == 'custom' && enableCustomFunnel()
+
   }, [fetchLeads]);
 
   /* ---------------- API Funnel (STATUS BASED) ---------------- */
@@ -41,25 +47,71 @@ const SalesFunnel = () => {
   const maxValue = Math.max(...stages.map(s => s.value), 1);
 
   /* ---------------- Handlers ---------------- */
-  const addStage = useCallback(() => {
-    if (!stageName || !stageValue) return;
+  const addStage = useCallback(async () => {
+    if (!stageName.trim() || !stageValue.trim()) return;
 
-    setCustomStages(prev => [
-      ...prev,
-      { name: stageName, value: Number(stageValue) },
-    ]);
+    setLoading(true)
 
-    setStageName("");
-    setStageValue("");
+    const payload = {
+      stageName,
+      stageValue: Number(stageValue),
+    };
+
+    const token = JSON.parse(localStorage.getItem("User")).token
+
+    try {
+      // API call
+      const { data } = await axios.post(
+        import.meta.env.VITE_BASE_URL + "/auth/api/add-custom-lead",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Update UI only after success
+      setCustomStages((prev) => [...prev, data.data]);
+      toast.success(data.message)
+
+      // Reset inputs
+      setStageName("");
+      setStageValue("");
+    } catch (error) {
+      console.error(error);
+      // show toast / error UI here
+      toast.error(error.message)
+    } finally {
+      setLoading(false)
+
+    }
   }, [stageName, stageValue]);
 
-  const enableCustomFunnel = () => {
-    setCustomStages([]);
-    setMode("custom");
+  const enableCustomFunnel = async () => {
+    try {
+      const token = JSON.parse(localStorage.getItem("User")).token
+      const { data } = await axios.get(import.meta.env.VITE_BASE_URL + '/auth/api/get-custom-lead', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      // console.log(data)
+
+      setCustomStages(data.data);
+      localStorage.setItem("db-fm", "custom")
+
+      setMode("custom");
+    } catch (error) {
+      console.log(error)
+      toast.error(error.message)
+    }
   };
 
   const switchToApiFunnel = () => {
     setCustomStages([]);
+    localStorage.setItem("db-fm", "api")
     setMode("api");
   };
 
@@ -129,6 +181,7 @@ const SalesFunnel = () => {
               type="number"
               className="border p-2 rounded w-32"
               placeholder="Value"
+              min={0}
               value={stageValue}
               onChange={e => setStageValue(e.target.value)}
             />
@@ -136,11 +189,11 @@ const SalesFunnel = () => {
               onClick={addStage}
               className="px-4 py-2 bg-green-600 text-white rounded"
             >
-              Add
+              {loading ? 'Adding' : 'Add'}
             </button>
           </div>
 
-          {customStages.length > 0 && (
+          {/* {customStages.length > 0 && (
             <ul className="text-sm text-gray-600 list-disc pl-5">
               {customStages.map((s, i) => (
                 <li key={i}>
@@ -148,7 +201,7 @@ const SalesFunnel = () => {
                 </li>
               ))}
             </ul>
-          )}
+          )} */}
         </div>
       )}
     </div>

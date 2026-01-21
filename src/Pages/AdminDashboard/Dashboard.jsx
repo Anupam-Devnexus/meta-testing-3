@@ -152,11 +152,7 @@ export default function Dashboard() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      
-          
-          <SalesFunnel />
-      
-
+        <SalesFunnel />
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h3 className="text-xl font-semibold mb-4 text-[#003d82]">
             Sales History

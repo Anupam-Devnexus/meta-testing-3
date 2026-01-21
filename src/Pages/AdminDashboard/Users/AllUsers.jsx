@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// 🔹 Simple Spinner Component
+//  Simple Spinner Component
 const Spinner = () => (
   <div className="flex justify-center items-center py-10">
     <div className="w-10 h-10 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
@@ -66,9 +66,8 @@ export default function AllUsers() {
           <button
             onClick={() => navigate("/admin-dashboard/users/add")}
             disabled={actionLoading}
-            className={`px-4 py-2 bg-[#002b5b] text-white font-medium rounded-full hover:bg-blue-700 transition duration-200 ${
-              actionLoading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`px-4 py-2 bg-[#002b5b] text-white font-medium rounded-full hover:bg-blue-700 transition duration-200 ${actionLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
           >
             Add New
           </button>
@@ -118,18 +117,16 @@ export default function AllUsers() {
                         navigate(`/admin-dashboard/users/edit/${user._id}`)
                       }
                       disabled={actionLoading}
-                      className={`bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition ${
-                        actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                      className={`bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition ${actionLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(user._id)}
                       disabled={actionLoading}
-                      className={`bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition ${
-                        actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                      className={`bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition ${actionLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                     >
                       {actionLoading ? "Deleting..." : "Delete"}
                     </button>
