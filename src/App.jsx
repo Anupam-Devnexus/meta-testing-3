@@ -90,7 +90,7 @@ function AppContent() {
   const hideNavbar = ["/login", "/", "/signup", "/forgot-password", "/confirm-otp", "/privacy", "/terms"].includes(
     window.location.pathname
   );
-
+// pushing my branch
   return (
     <div className="hide-scrollbar flex min-h-screen bg-gray-100">
       {!hideNavbar && user && <Navbar />}
