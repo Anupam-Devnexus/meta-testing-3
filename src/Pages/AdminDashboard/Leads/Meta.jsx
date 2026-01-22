@@ -16,14 +16,12 @@ import metainsights from "../../../Zustand/MetaIns";
 import useNewMetaLeads from "../../../Zustand/NewMetaLeads";
 import { toast } from "react-toastify";
 
-
-
 // 🔹 field variations
 const phoneFieldVariants = ["phone", "mobile", "contact_number", "PHONE_NUMBER", "number"];
 const emailFieldVariants = ["email", "EMAIL_ID", "contact_email", "mail"];
 
 export default function Meta() {
-  const { metaleads, fetchMetaLeads } = useMetaLeads();
+  const { metaleads, fetchMetaLeads, loading, error } = useMetaLeads();
   const { fetchinsights } = metainsights();
   const { fetchNewMeta } = useNewMetaLeads();
 
@@ -45,7 +43,7 @@ export default function Meta() {
   const [showGlobalRemarks, setShowGlobalRemarks] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  // const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingLeadId, setEditingLeadId] = useState(null);
   const [editRemark1, setEditRemark1] = useState("");
   const [editRemark2, setEditRemark2] = useState("");
@@ -116,11 +114,10 @@ export default function Meta() {
   const handleRemark1Change = (value) => {
     if (value === "Other") {
       setShowCustomInput(true);
-      setGlobalRemark1("");
     } else {
-      setGlobalRemark1(value);
       setShowCustomInput(false);
     }
+    setGlobalRemark1(value);
   };
 
   const addCustomRemark = () => {
@@ -135,7 +132,13 @@ export default function Meta() {
     setShowCustomInput(false);
   };
 
-  const applyGlobalRemarks = () => {
+  const applyGlobalRemarks = async () => {
+    if (!isAnyRowSelected) {
+      alert(
+        "No row selected"
+      ); return
+    }
+
     const updatedRemarks = { ...remarks };
     Object.keys(enabledRows)
       .filter((id) => enabledRows[id])
@@ -143,6 +146,22 @@ export default function Meta() {
         updatedRemarks[id] = { remark1: globalRemark1, remark2: globalRemark2 };
       });
     setRemarks(updatedRemarks);
+    console.log(updatedRemarks)
+    console.log(enabledRows)
+
+    //     let payload = {
+    //       remarks1,
+    // remarks2
+    //     }
+
+    // try {
+    //   const { data } = await axios.patch("http://localhost:3001/auth/api/meta-ads/" + id,)
+    // } catch (error) {
+
+    // }
+
+    console.log(customRemark1, globalRemark1, globalRemark2)
+
   };
 
   // 🔹 build headers (normalize phone/email display)
@@ -265,39 +284,42 @@ export default function Meta() {
     }
   };
 
-  const handleEdit = (id) => {
-    setEditingLeadId(id);
-    setEditRemark1(remarks[id]?.remark1 || "");
-    setEditRemark2(remarks[id]?.remark2 || "");
-    setEditModalOpen(true);
-  };
+  // const handleEdit = (id) => {
+  //   setEditingLeadId(id);
+  //   setEditRemark1(remarks[id]?.remark1 || "");
+  //   setEditRemark2(remarks[id]?.remark2 || "");
+  //   setEditModalOpen(true);
+  // };
 
-  const saveEdit = async () => {
-    if (!editingLeadId) return;
+  // const saveEdit = async () => {
+  //   if (!editingLeadId) return;
 
-    const payload = {
-      remark1: editRemark1,
-      remark2: editRemark2,
-    };
+  //   const payload = {
+  //     remark1: editRemark1,
+  //     remark2: editRemark2,
+  //   };
 
-    // optimistic UI update
-    setRemarks((prev) => ({
-      ...prev,
-      [editingLeadId]: payload,
-    }));
+  //   // optimistic UI update
+  //   setRemarks((prev) => ({
+  //     ...prev,
+  //     [editingLeadId]: payload,
+  //   }));
 
-    setLoadingAction(true);
+  //   setLoadingAction(true);
 
-    try {
-      await updateMetaLeadAPI(editingLeadId, payload);
-      setEditModalOpen(false);
-    } catch (err) {
-      alert("Failed to update lead");
-    } finally {
-      setLoadingAction(false);
-    }
-  };
+  //   try {
+  //     await updateMetaLeadAPI(editingLeadId, payload);
+  //     setEditModalOpen(false);
+  //   } catch (err) {
+  //     alert("Failed to update lead");
+  //   } finally {
+  //     setLoadingAction(false);
+  //   }
+  // };
 
+  if (loading || error) {
+    return <div className="text-center h-10">{loading && 'Loading...' || error && error?.message}</div>
+  }
 
   return (
     <section className="w-full bg-gray-50 min-h-screen p-6">
@@ -349,7 +371,7 @@ export default function Meta() {
             <option value="">Select Remark 1</option>
             {remarkOptions1.map((opt, idx) => (
               <option key={idx} value={opt}>
-                {idx}  {opt}
+                {opt}
               </option>
             ))}
           </select>
@@ -359,23 +381,28 @@ export default function Meta() {
             <div className="flex gap-2 items-center">
               <input
                 type="text"
+                disabled={!isAnyRowSelected}
+
                 placeholder="Enter custom remark"
                 value={customRemark1}
                 onChange={(e) => setCustomRemark1(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none"
+                className="px-4 py-2 border-b border-gray-300 text-sm outline-none flex-1"
+
               />
-              <button
+              {/* <button
                 onClick={addCustomRemark}
                 className="flex items-center gap-1 px-2 py-2 bg-green-600 text-white rounded-full shadow-sm hover:bg-green-700 transition"
               >
                 <FiCheck />
-              </button>
+              </button> */}
             </div>
           )}
 
           {/* Remark 2 */}
           <input
             type="text"
+            disabled={!isAnyRowSelected}
+
             placeholder="Enter Remark 2"
             value={globalRemark2}
             onChange={(e) => setGlobalRemark2(e.target.value)}
@@ -384,6 +411,7 @@ export default function Meta() {
 
           {/* Apply */}
           <button
+            // disabled={!isAnyRowSelected}
             onClick={applyGlobalRemarks}
             className="flex items-center gap-2 px-2 py-2 bg-[#00357a] text-white rounded-full shadow-sm hover:bg-blue-700 transition"
           >
@@ -428,7 +456,7 @@ export default function Meta() {
               <tr>
                 <td
                   colSpan={headers.length}
-                  className="py-6 text-center text-gray-400"
+                  className="p-6 text-gray-400"
                 >
                   No leads found.
                 </td>
@@ -472,12 +500,12 @@ export default function Meta() {
                   </td>
 
                   <td className="px-4 py-3 flex items-center gap-2">
-                    <button
+                    {/* <button
                       onClick={() => handleEdit(id)}
                       className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition"
                     >
                       <FaRegEdit size={18} />
-                    </button>
+                    </button> */}
 
                     <button
                       onClick={() => handleDelete(id)}
@@ -528,7 +556,7 @@ export default function Meta() {
           </button>
         </div>
       )}
-      {editModalOpen && (
+      {/* {editModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl w-[400px] p-6 shadow-lg">
             <h2 className="text-lg font-semibold mb-4 text-blue-700">
@@ -569,7 +597,7 @@ export default function Meta() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
     </section>
   );

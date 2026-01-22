@@ -6,9 +6,11 @@ import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 
 export default function CreateNewBlog() {
-    const [title, setTitle] = useState('');
-      const [featuredImage, setFeaturedImage] = useState('');
-      const [content, setContent] = useState('');
+  const [title, setTitle] = useState('');
+  const [featuredImage, setFeaturedImage] = useState('');
+  const [keywords, setKeywords] = useState('');
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const uploadImageToServer = async (file) => {
     const formData = new FormData();
@@ -41,26 +43,38 @@ export default function CreateNewBlog() {
     }
   };
 
+  const handleSubmit = async () => {
+    setLoading(true)
+    const formData = new FormData();
+    formData.append("featuredImage", featuredImage); // the raw File object
+    formData.append("title", title);
+    formData.append("blogContent", content);
+    formData.append("keywords", keywords);
+    try {
 
-    const handleSubmit = async () => {
-        const formData = new FormData();
-        formData.append("featuredImage", featuredImage); // the raw File object
-        formData.append("title", title);
-        formData.append("blogContent", content);
+      const response = await fetch("http://localhost:3002/api/create-blogs", { // https://backend.devnexussolutions.com/api/create-blogs
+        method: "POST",
+        body: formData,
+      });
 
-        const response = await fetch("https://backend.devnexussolutions.com/api/create-blogs", {
-            method: "POST",
-            body: formData,
-        });
+      const result = await response.json();
+      alert(result.message || 'Blog saved!');
+
+      setTitle('');
+      setFeaturedImage('');
+      setContent('');
+      setKeywords('');
+    } catch (error) {
+      console.log(error)
+      alert(error.message)
+    } finally {
+      setLoading(false)
+
+    }
 
 
-        const result = await response.json();
-        alert(result.message || 'Blog saved!');
 
-        setTitle('');
-        setFeaturedImage('');
-        setContent('');
-    };
+  };
 
   // // console.log("Pasted image detected:", file);
   // // console.log("Uploaded image URL:", url);
@@ -69,9 +83,10 @@ export default function CreateNewBlog() {
   return (
     <div className="card" style={{ padding: "2rem" }}>
       <h2>DevNexus Blogs</h2>
-     {/* Featured Image Upload */}
+      {/* Featured Image Upload */}
       <label>Featured Image</label>
       <input
+        disabled={loading}
         type="file"
         accept="image/*"
         name='featuredImage'
@@ -79,15 +94,16 @@ export default function CreateNewBlog() {
         className="mb-4"
       />
       {featuredImage && (
-  <img
-    src={URL.createObjectURL(featuredImage)} // 👈 convert File to blob URL
-    alt="Featured"
-    className="mb-4 max-h-40 rounded"
-  />
-)}
+        <img
+          src={URL.createObjectURL(featuredImage)} // 👈 convert File to blob URL
+          alt="Featured"
+          className="mb-4 max-h-40 rounded"
+        />
+      )}
 
       {/* Title Field */}
       <input
+        disabled={loading}
         type="text"
         placeholder="Enter blog title"
         value={title}
@@ -95,18 +111,35 @@ export default function CreateNewBlog() {
         className="w-full p-3 border rounded mb-4"
       />
       <Editor
+        disabled={loading}
+
         value={content}
         onTextChange={(e) => setContent(e.htmlValue)}
         onPasteCapture={handleImagePaste}
         style={{ height: "320px" }}
       />
+
+      <textarea
+        disabled={loading}
+
+        placeholder="Enter blog Keywords"
+        value={keywords}
+        maxLength={580}
+        rows={4}
+        onChange={(e) => setKeywords(e.target.value)}
+        className="w-full resize-none p-3 border rounded my-4"
+      />
+
       <button
+        disabled={loading}
+
         onClick={handleSubmit}
-        className="add-btn"
-        style={{ marginTop: "1rem" }}
+        className="add-btn mt-1 border p-3 bg-gray-100 "
+
       >
-        Save Blog
+        {loading ? "Saving" : 'Save Blog'}
       </button>
     </div>
   );
 }
+

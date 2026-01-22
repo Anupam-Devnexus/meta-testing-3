@@ -8,18 +8,23 @@ export default function ModalPopupBlog({ blog, onClose, onUpdate }) {
   const [title, setTitle] = useState("");
   const [featuredImage, setFeaturedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
+  const [keywords, setKeywords] = useState('');
+
   const [content, setContent] = useState("");
 
-  // ✅ Prefill existing blog data when editing
+  console.log(blog.blogContent)
+
+  //  Prefill existing blog data when editing
   useEffect(() => {
     if (blog) {
       setTitle(blog.title || "");
-      setContent(blog.blogContent || ""); // keep full HTML if exists
+      setContent(blog.blogContent); // keep full HTML if exists
       setPreviewImage(blog.featuredImage || "");
+      setKeywords(blog?.keywords || '')
     }
   }, [blog]);
 
-  // ✅ Upload pasted images
+  //  Upload pasted images
   const uploadImageToServer = async (file) => {
     const formData = new FormData();
     formData.append("upload", file);
@@ -46,11 +51,12 @@ export default function ModalPopupBlog({ blog, onClose, onUpdate }) {
     }
   };
 
-  // ✅ Submit handler for create or update
+  //  Submit handler for create or update
   const handleSubmit = async () => {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("blogContent", content);
+    formData.append("keywords", keywords);
     if (featuredImage) formData.append("featuredImage", featuredImage);
 
     const endpoint = blog
@@ -150,12 +156,25 @@ export default function ModalPopupBlog({ blog, onClose, onUpdate }) {
           }}
         />
 
-        {/* ✅ Rich text editor prefilled with HTML content */}
+        {/*  Rich text editor prefilled with HTML content */}
         <Editor
+          key={blog?._id || "new"}
+          className="mt-4"
           value={content}
           onTextChange={(e) => setContent(e.htmlValue)}
           onPasteCapture={handleImagePaste}
-          style={{ height: "320px", marginTop: "1rem" }}
+          style={{ height: "320px", }}
+        />
+
+        <textarea
+
+
+          placeholder="Enter blog Keywords"
+          value={keywords}
+          maxLength={580}
+          rows={4}
+          onChange={(e) => setKeywords(e.target.value)}
+          className="w-full resize-none p-3 border rounded my-4"
         />
 
         <div
