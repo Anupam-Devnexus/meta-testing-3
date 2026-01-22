@@ -39,7 +39,7 @@ export default function ManualLeads() {
   useEffect(() => {
     fetchLeads();
   }, []);
-console.log("Mannual leads Page",leads)
+  console.log("Mannual leads Page", leads)
   // --- Initialize enabledRows & remarks when leads change
   useEffect(() => {
     const initEnabled = {};
@@ -79,7 +79,12 @@ console.log("Mannual leads Page",leads)
       alert("Failed to update remarks ❌");
     }
   };
- 
+
+
+
+  {/* Loading/Error */ }
+  if (loading) return <p className="text-gray-500 text-center ">Loading leads...</p>
+  if (error) return <p className="text-red-600 text-center">{error?.message}</p>
 
   return (
     <div className="p-3 space-y-6">
@@ -96,16 +101,13 @@ console.log("Mannual leads Page",leads)
         </div>
       </div>
 
-    
 
-      {/* Loading/Error */}
-      {loading && <p className="text-gray-500">Loading leads...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+
 
       {/* Table */}
       <MannualTable
         leads={leads}
-        patchApi="https://dbbackend.devnexussolutions.com/user/leads"
+        patchApi="http://localhost:3001/user/leads"
         enabledRows={enabledRows}
         setEnabledRows={setEnabledRows}
         remarks={remarks}
