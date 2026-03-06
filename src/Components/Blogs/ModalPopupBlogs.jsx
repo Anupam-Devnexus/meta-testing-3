@@ -29,7 +29,7 @@ export default function ModalPopupBlog({ blog, onClose, onUpdate }) {
     const formData = new FormData();
     formData.append("upload", file);
     const res = await fetch(
-      "https://backend.devnexussolutions.com/api/upload-image",
+      `${import.meta.env.VITE_BASE_URL}/api/upload-image`,
       { method: "POST", body: formData }
     );
     const data = await res.json();
@@ -60,8 +60,8 @@ export default function ModalPopupBlog({ blog, onClose, onUpdate }) {
     if (featuredImage) formData.append("featuredImage", featuredImage);
 
     const endpoint = blog
-      ? `https://backend.devnexussolutions.com/api/update/blogs/${blog._id}`
-      : "https://backend.devnexussolutions.com/api/create-blogs";
+      ? `${import.meta.env.VITE_BASE_URL}/update/blogs/${blog._id}`
+      : `${import.meta.env.VITE_BASE_URL}/create-blogs`;
 
     const method = blog ? "PATCH" : "POST";
 

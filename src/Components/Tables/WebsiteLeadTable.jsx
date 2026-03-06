@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Mail, MessageCircle, Save, Filter, CheckSquare } from "lucide-react";
+import { Mail, MessageCircle, Save, Filter, CheckSquare, Copy } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 const DEFAULT_REMARKS_OPTIONS = [
@@ -19,13 +19,13 @@ const WebsiteLeadTable = ({ data = [], patchApiUrl }) => {
   const [globalRemark2, setGlobalRemark2] = useState("");
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [page, setPage] = useState(1);
-const pageSize = 5; // ✅ show 5 per page
+  const pageSize = 5; //  show 5 per page
 
 
-const total = rows.length;
-const totalPages = Math.ceil(total / pageSize);
-const start = (page - 1) * pageSize;
-const paginatedRows = rows.slice(start, start + pageSize);
+  const total = rows.length;
+  const totalPages = Math.ceil(total / pageSize);
+  const start = (page - 1) * pageSize;
+  const paginatedRows = rows.slice(start, start + pageSize);
 
 
   // ✅ Toggle row selection
@@ -54,10 +54,10 @@ const paginatedRows = rows.slice(start, start + pageSize);
       prev.map((r) =>
         selectedIds.includes(r._id)
           ? {
-              ...r,
-              remarks1: remark1Value || r.remarks1,
-              remarks2: globalRemark2 || r.remarks2,
-            }
+            ...r,
+            remarks1: remark1Value || r.remarks1,
+            remarks2: globalRemark2 || r.remarks2,
+          }
           : r
       )
     );
@@ -91,9 +91,61 @@ const paginatedRows = rows.slice(start, start + pageSize);
     }
   };
 
+  const getSelectedData = () => {
+    return rows?.filter((item) => selectedIds.includes(item._id));
+  };
+
+  const formatShareText = () => {
+    const selected = getSelectedData();
+    return selected
+      .map((item, index) => {
+        return `Lead ${index + 1}
+          Name: ${item.name}
+          Phone: ${item.phoneNumber}
+          Email: ${item.email}
+          Service: ${item.services}
+          Message: ${item.message}
+          `;
+      })
+      .join("\n----------------------\n");
+  };
+
+  const handleWhatsapp = () => {
+    const message = formatShareText();
+
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+    window.open(url, "_blank");
+  };
+
+  const handleEmail = () => {
+    const body = formatShareText();
+
+    const subject = "Shared Leads";
+
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+
+    window.open(mailtoLink, "_blank");
+
+    // window.location.href = mailtoLink;
+  };
+
+  const handleCopy = async () => {
+    const text = formatShareText();
+
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Copied to clipboard");
+    } catch (err) {
+      console.error("Clipboard copy failed", err);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6 transition-all duration-300">
-      {/* 🌍 Global Controls */}
+      {/*  Global Controls */}
       <div className="flex flex-col sm:flex-row justify-between gap-4 items-center border-b pb-4">
         <div className="flex flex-wrap items-center gap-3">
           {/* <div className="flex items-center gap-2">
@@ -142,14 +194,46 @@ const paginatedRows = rows.slice(start, start + pageSize);
             <CheckSquare size={16} /> Apply to Selected
           </button>
         </div>
+        {/* <div  > */}
+        <div className="flex gap-4" >
 
-        {/* Save Button */}
-        <button
-          onClick={handleSave}
-          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl flex items-center gap-2 transition-all"
-        >
-          <Save size={16} /> Save Changes
-        </button>
+          {/* share Button */}
+          {selectedIds?.length > 0 && (
+            <div className="flex gap-2">
+
+              <button
+                onClick={handleEmail}
+                className="bg-red-600 hover:bg-red-700 text-white p-3 rounded-full"
+              >
+                <Mail size={15} />
+              </button>
+
+              <button
+                onClick={handleWhatsapp}
+                className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-full"
+              >
+                <FaWhatsapp size={15} />
+              </button>
+
+              <button
+                onClick={handleCopy}
+                className="bg-gray-400 hover:bg-gray-700 text-white p-3 rounded-full"
+              >
+                <Copy size={15} />
+              </button>
+
+            </div>
+          )}
+
+          <div>
+            <button
+              onClick={handleSave}
+              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl flex items-center gap-2 transition-all"
+            >
+              <Save size={16} /> Save Changes
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 📋 Leads Table */}
@@ -170,14 +254,13 @@ const paginatedRows = rows.slice(start, start + pageSize);
             </tr>
           </thead>
           <tbody>
-        {paginatedRows.map((row) => (
+            {paginatedRows.map((row) => (
               <tr
                 key={row._id}
-                className={`border-b transition-all hover:bg-gray-50 ${
-                  selectedIds.includes(row._id)
-                    ? "bg-blue-50 border-blue-200"
-                    : ""
-                }`}
+                className={`border-b transition-all hover:bg-gray-50 ${selectedIds.includes(row._id)
+                  ? "bg-blue-50 border-blue-200"
+                  : ""
+                  }`}
               >
                 {/* Checkbox */}
                 <td className="p-3 text-center">
@@ -270,13 +353,13 @@ const paginatedRows = rows.slice(start, start + pageSize);
                 >
                   {row.created_at
                     ? new Date(row.created_at).toLocaleString("en-IN", {
-                        timeZone: "Asia/Kolkata",
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                      timeZone: "Asia/Kolkata",
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
                     : "NA"}
                 </td>
               </tr>
