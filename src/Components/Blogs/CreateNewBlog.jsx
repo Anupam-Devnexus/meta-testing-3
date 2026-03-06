@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 // import { useNavigate } from "react-router-dom";
 import { Editor } from "primereact/editor";
 import "primereact/resources/themes/saga-blue/theme.css";
@@ -11,12 +11,13 @@ export default function CreateNewBlog() {
   const [keywords, setKeywords] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const imgRef = useRef('');
 
   const uploadImageToServer = async (file) => {
     const formData = new FormData();
     formData.append("upload", file);
 
-    const res = await fetch("https://backend.devnexussolutions.com/api/upload-image", {
+    const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/upload-image`, {
       method: "POST",
       body: formData,
     });
@@ -52,7 +53,7 @@ export default function CreateNewBlog() {
     formData.append("keywords", keywords);
     try {
 
-      const response = await fetch("http://localhost:3002/api/create-blogs", { // https://backend.devnexussolutions.com/api/create-blogs
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/create-blogs`, { // http://localhost:3002/api/create-blogs
         method: "POST",
         body: formData,
       });
@@ -64,6 +65,7 @@ export default function CreateNewBlog() {
       setFeaturedImage('');
       setContent('');
       setKeywords('');
+      if (imgRef?.current) imgRef.current.value = '';
     } catch (error) {
       console.log(error)
       alert(error.message)
@@ -86,6 +88,7 @@ export default function CreateNewBlog() {
       {/* Featured Image Upload */}
       <label>Featured Image</label>
       <input
+        ref={imgRef}
         disabled={loading}
         type="file"
         accept="image/*"

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage, FieldArray } from "formik";
 import * as Yup from "yup";
 import { ToastContainer, toast } from "react-toastify";
@@ -23,12 +22,8 @@ const validationSchema = Yup.object({
 
 export default function AddLeads() {
   const navigate = useNavigate();
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [formToSubmit, setFormToSubmit] = useState(null);
 
-  const details = JSON.parse(localStorage.getItem("UserDetails"))?.token;
-
-
+  const token = JSON.parse(localStorage.getItem("UserDetails"))?.token;
 
   const initialValues = {
     date: new Date().toISOString(),
@@ -46,15 +41,7 @@ export default function AddLeads() {
     dynamicFields: [],
   };
 
-  const handleFormSubmit = (values, { resetForm }) => {
-    setFormToSubmit({ values, resetForm });
-    setShowConfirm(true);
-  };
-
-  const confirmAndSubmit = async () => {
-    if (!formToSubmit) return;
-    const { values, resetForm } = formToSubmit;
-
+  const handleSubmit = async (values, { resetForm, setSubmitting }) => {
     try {
       const response = await fetch(
         "https://dbbackend.devnexussolutions.com/auth/api/Add-leads",
@@ -62,25 +49,25 @@ export default function AddLeads() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${details}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(values),
-        }
+        },
       );
 
       const data = await response.json();
 
-      if (response.ok) {
-        toast.success("Lead submitted successfully!");
-        resetForm();
-        setFormToSubmit(null);
-        setShowConfirm(false);
-      } else {
-        toast.error(data?.message || "❌ Submission failed.");
+      if (!response.ok) {
+        throw new Error(data?.message || "Submission failed");
       }
-    } catch (error) {
-      console.error("Submission Error:", error);
-      toast.error("An error occurred during submission.");
+
+      toast.success("Lead submitted successfully!");
+      resetForm();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Something went wrong");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -97,39 +84,40 @@ export default function AddLeads() {
         </button>
       </div>
 
-      {/* Form */}
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
-        onSubmit={handleFormSubmit}
+        onSubmit={handleSubmit}
       >
         {({ isSubmitting, values }) => (
           <Form className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-            {/* Basic Info */}
+            {/* Lead Info */}
             <div>
               <h2 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">
                 🧾 Lead Information
               </h2>
+
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
                 {[
                   { label: "Name", name: "name" },
-                  { label: "Email", name: "email", type: "email" },
+                  { label: "Email", name: "email" },
                   { label: "Phone", name: "phone" },
                   { label: "City", name: "city" },
                   { label: "Budget", name: "budget" },
                   { label: "Requirement", name: "requirement" },
                   { label: "Source", name: "source" },
                   { label: "Campaign", name: "Campaign" },
-                ].map(({ label, name, type = "text" }) => (
+                ].map(({ label, name }) => (
                   <div key={name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1">
                       {label}
                     </label>
+
                     <Field
                       name={name}
-                      type={type}
-                      className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full border rounded-lg p-2.5"
                     />
+
                     <ErrorMessage
                       name={name}
                       component="div"
@@ -142,46 +130,27 @@ export default function AddLeads() {
 
             {/* Remarks */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">
+              <h2 className="text-lg font-semibold mb-3 border-b pb-2">
                 💬 Remarks & Status
               </h2>
+
               <div className="grid sm:grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Remarks 1
-                  </label>
-                  <Field
-                    name="remarks1"
-                    placeholder="Enter first remark"
-                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Remarks 2
-                  </label>
-                  <Field
-                    name="remarks2"
-                    placeholder="Enter second remark"
-                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
-                  </label>
-                  <Field
-                    as="select"
-                    name="status"
-                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  >
-                    {statusOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Field>
-                </div>
+                <Field
+                  name="remarks1"
+                  placeholder="Remark 1"
+                  className="input"
+                />
+                <Field
+                  name="remarks2"
+                  placeholder="Remark 2"
+                  className="input"
+                />
+
+                <Field as="select" name="status" className="input">
+                  {statusOptions.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </Field>
               </div>
             </div>
 
@@ -189,43 +158,41 @@ export default function AddLeads() {
             <FieldArray name="dynamicFields">
               {({ push, remove }) => (
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">
+                  <h2 className="text-lg font-semibold mb-3 border-b pb-2">
                     ➕ Additional Fields
                   </h2>
-                  <div className="space-y-4">
-                    {values.dynamicFields.map((_, index) => (
-                      <div
-                        key={index}
-                        className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 items-center"
-                      >
-                        <Field
-                          name={`dynamicFields[${index}].label`}
-                          placeholder="Label"
-                          className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        />
-                        <Field
-                          name={`dynamicFields[${index}].value`}
-                          placeholder="Value"
-                          className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => remove(index)}
-                          className="text-red-500 hover:underline"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
 
-                    <button
-                      type="button"
-                      onClick={() => push({ label: "", value: "" })}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                    >
-                      + Add Field
-                    </button>
-                  </div>
+                  {values.dynamicFields.map((_, index) => (
+                    <div key={index} className="grid sm:grid-cols-3 gap-4 mb-3">
+                      <Field
+                        name={`dynamicFields.${index}.label`}
+                        placeholder="Label"
+                        className="input"
+                      />
+
+                      <Field
+                        name={`dynamicFields.${index}.value`}
+                        placeholder="Value"
+                        className="input"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="text-red-500"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => push({ label: "", value: "" })}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg"
+                  >
+                    + Add Field
+                  </button>
                 </div>
               )}
             </FieldArray>
@@ -234,7 +201,7 @@ export default function AddLeads() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-[#00357a] text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md"
+              className="w-full py-3 bg-[#00357a] text-white rounded-lg"
             >
               {isSubmitting ? "Submitting..." : "Submit Lead"}
             </button>
@@ -242,33 +209,7 @@ export default function AddLeads() {
         )}
       </Formik>
 
-      {/* Toast */}
       <ToastContainer position="top-right" autoClose={3000} />
-
-      {/* Confirmation Modal */}
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 transition">
-          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
-            <h3 className="text-xl font-semibold text-gray-800">
-              Do you want to add more fields before submitting?
-            </h3>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-              >
-                Yes, Add More
-              </button>
-              <button
-                onClick={confirmAndSubmit}
-                className="px-4 py-2 bg-[#00357a] text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Confirm Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

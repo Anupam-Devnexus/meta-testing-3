@@ -15,9 +15,16 @@ import useMetaLeads from "../../../Zustand/MetaLeadsGet";
 import metainsights from "../../../Zustand/MetaIns";
 import useNewMetaLeads from "../../../Zustand/NewMetaLeads";
 import { toast } from "react-toastify";
+import { formatDateTime } from "@/Components/Tables/MannualTable";
 
 // 🔹 field variations
-const phoneFieldVariants = ["phone", "mobile", "contact_number", "PHONE_NUMBER", "number"];
+const phoneFieldVariants = [
+  "phone",
+  "mobile",
+  "contact_number",
+  "PHONE_NUMBER",
+  "number",
+];
 const emailFieldVariants = ["email", "EMAIL_ID", "contact_email", "mail"];
 
 export default function Meta() {
@@ -56,23 +63,21 @@ export default function Meta() {
     axios.put(`/auth/api/meta-leads/${id}`, payload);
 
   const deleteMetaLeadAPI = async (id) => {
-
     try {
-      await axios.delete(import.meta.env.VITE_BASE_URL + `/auth/api/meta-leads/${id}`, {
-        headers: {
-          Authorization: `Bearer ${JSON.parse(localStorage.getItem("User")).token}`
-        }
-      }
-      )
-      toast.success("Entry deleted")
-
-
+      await axios.delete(
+        import.meta.env.VITE_BASE_URL + `/auth/api/meta-leads/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(localStorage.getItem("User")).token}`,
+          },
+        },
+      );
+      toast.success("Entry deleted");
     } catch (error) {
-      console.log(error)
-      toast.error(error.message)
+      console.log(error);
+      toast.error(error.message);
     }
-
-  }
+  };
 
   // 🔹 helper: detect key from field variations
   const getFieldKey = (allFields, variants) => {
@@ -134,9 +139,8 @@ export default function Meta() {
 
   const applyGlobalRemarks = async () => {
     if (!isAnyRowSelected) {
-      alert(
-        "No row selected"
-      ); return
+      alert("No row selected");
+      return;
     }
 
     const updatedRemarks = { ...remarks };
@@ -146,8 +150,8 @@ export default function Meta() {
         updatedRemarks[id] = { remark1: globalRemark1, remark2: globalRemark2 };
       });
     setRemarks(updatedRemarks);
-    console.log(updatedRemarks)
-    console.log(enabledRows)
+    console.log(updatedRemarks);
+    console.log(enabledRows);
 
     //     let payload = {
     //       remarks1,
@@ -160,17 +164,18 @@ export default function Meta() {
 
     // }
 
-    console.log(customRemark1, globalRemark1, globalRemark2)
-
+    console.log(customRemark1, globalRemark1, globalRemark2);
   };
 
   // 🔹 build headers (normalize phone/email display)
-  const allFieldKeys = leads[0]?.AllFields ? Object.keys(leads[0].AllFields) : [];
+  const allFieldKeys = leads[0]?.AllFields
+    ? Object.keys(leads[0].AllFields)
+    : [];
   const headers = [
     "Select",
     "ID",
     ...leadFields.map((f) =>
-      f.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+      f.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
     ),
     ...allFieldKeys.map((k) => {
       if (phoneFieldVariants.includes(k.toLowerCase())) return "Phone Number";
@@ -189,7 +194,7 @@ export default function Meta() {
       Object.values(lead.AllFields || {})
         .join(" ")
         .toLowerCase()
-        .includes(search.toLowerCase())
+        .includes(search.toLowerCase()),
     )
     .map((lead) => {
       const leadFieldValues = leadFields.map((f) => lead[f] || "-");
@@ -200,7 +205,7 @@ export default function Meta() {
   const totalPages = Math.ceil(rows.length / itemsPerPage);
   const currentRows = rows.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   // -----------------------------
@@ -251,7 +256,7 @@ export default function Meta() {
       const subject = "Lead Follow-up";
       const body = `Hello ${lead.name || "there"},\nRemark1: ${remark1}\nRemark2: ${remark2}\n\nBest Regards`;
       const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${encodeURIComponent(
-        subject
+        subject,
       )}&body=${encodeURIComponent(body)}`;
       window.open(url, "_blank");
     });
@@ -318,7 +323,11 @@ export default function Meta() {
   // };
 
   if (loading || error) {
-    return <div className="text-center h-10">{loading && 'Loading...' || error && error?.message}</div>
+    return (
+      <div className="text-center h-10">
+        {(loading && "Loading...") || (error && error?.message)}
+      </div>
+    );
   }
 
   return (
@@ -342,8 +351,9 @@ export default function Meta() {
           </div>
           {/* Filter */}
           <FaFilter
-            className={`text-blue-600 text-lg cursor-pointer transition ${!isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+            className={`text-blue-600 text-lg cursor-pointer transition ${
+              !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             onClick={() =>
               isAnyRowSelected && setShowGlobalRemarks((prev) => !prev)
             }
@@ -382,12 +392,10 @@ export default function Meta() {
               <input
                 type="text"
                 disabled={!isAnyRowSelected}
-
                 placeholder="Enter custom remark"
                 value={customRemark1}
                 onChange={(e) => setCustomRemark1(e.target.value)}
                 className="px-4 py-2 border-b border-gray-300 text-sm outline-none flex-1"
-
               />
               {/* <button
                 onClick={addCustomRemark}
@@ -402,7 +410,6 @@ export default function Meta() {
           <input
             type="text"
             disabled={!isAnyRowSelected}
-
             placeholder="Enter Remark 2"
             value={globalRemark2}
             onChange={(e) => setGlobalRemark2(e.target.value)}
@@ -422,14 +429,16 @@ export default function Meta() {
           <div className="flex items-center gap-2">
             <FaWhatsapp
               onClick={sendWhatsApp}
-              className={`p-1 bg-green-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-green-700 transition ${!isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+              className={`p-1 bg-green-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-green-700 transition ${
+                !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               title="Send WhatsApp Message"
             />
             <SiGmail
               onClick={sendGmail}
-              className={`p-1 bg-red-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-red-700 transition ${!isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+              className={`p-1 bg-red-600 text-white text-3xl rounded-md cursor-pointer shadow-sm hover:bg-red-700 transition ${
+                !isAnyRowSelected ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               title="Send Email via Gmail"
             />
           </div>
@@ -454,10 +463,7 @@ export default function Meta() {
           <tbody className="divide-y divide-gray-100">
             {currentRows.length === 0 && (
               <tr>
-                <td
-                  colSpan={headers.length}
-                  className="p-6 text-gray-400"
-                >
+                <td colSpan={headers.length} className="p-6 text-gray-400">
                   No leads found.
                 </td>
               </tr>
@@ -468,8 +474,9 @@ export default function Meta() {
               return (
                 <tr
                   key={id}
-                  className={`transition-all duration-200 hover:shadow-sm ${enabledRows[id] ? "bg-green-50" : "bg-white"
-                    }`}
+                  className={`transition-all duration-200 hover:shadow-sm ${
+                    enabledRows[id] ? "bg-green-50" : "bg-white"
+                  }`}
                 >
                   <td className="px-4 py-3 text-center">
                     <input
@@ -485,7 +492,9 @@ export default function Meta() {
                       key={idx}
                       className="px-4 py-3 whitespace-nowrap text-gray-700 text-sm"
                     >
-                      {cell}
+                      {typeof cell === "string" && cell.includes("T")
+                        ? formatDateTime(cell)
+                        : cell}
                     </td>
                   ))}
                   <td className="px-4 py-3 text-sm font-medium text-gray-600">
@@ -514,8 +523,6 @@ export default function Meta() {
                       <MdDelete size={20} />
                     </button>
                   </td>
-
-
                 </tr>
               );
             })}
@@ -538,10 +545,11 @@ export default function Meta() {
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${currentPage === i + 1
-                ? "bg-[#00357a] text-white shadow"
-                : "bg-white text-gray-700 hover:bg-blue-50"
-                }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                currentPage === i + 1
+                  ? "bg-[#00357a] text-white shadow"
+                  : "bg-white text-gray-700 hover:bg-blue-50"
+              }`}
             >
               {i + 1}
             </button>
@@ -598,7 +606,6 @@ export default function Meta() {
           </div>
         </div>
       )} */}
-
     </section>
   );
 }

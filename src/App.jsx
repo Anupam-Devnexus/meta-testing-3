@@ -48,6 +48,7 @@ import Terms from "./Pages/Terms";
 import Home from "./Pages/Home";
 import CreateNewBlog from "./Components/Blogs/CreateNewBlog";
 import AllBlogs from "./Components/Blogs/UpdateBlogs";
+import UpdateBlog from "./Pages/Blogs/UpdateBlog";
 
 // ================= Route Configurations =================
 const adminRoutes = [
@@ -90,7 +91,7 @@ function AppContent() {
   const hideNavbar = ["/login", "/", "/signup", "/forgot-password", "/confirm-otp", "/privacy", "/terms"].includes(
     window.location.pathname
   );
-// pushing my branch
+  // pushing my branch
   return (
     <div className="hide-scrollbar flex min-h-screen bg-gray-100">
       {!hideNavbar && user && <Navbar />}
@@ -110,6 +111,7 @@ function AppContent() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/create-new-blog" element={<CreateNewBlog />} />
           <Route path="/update-blogs" element={<AllBlogs />} />
+          <Route path="/update-blogs/:id" element={<UpdateBlog />} />
 
 
 

@@ -15,12 +15,12 @@ const UserDashboard = () => {
   }
 
   useEffect(() => {
-    fetch("https://dbbackend.devnexussolutions.com/auth/api/get-all-leads", {
+    fetch(`${import.meta.env.VITE_BASE_URL}/auth/api/get-all-leads`, {
       method: "GET",
-       headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Uncomment if token is needed
-        },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Uncomment if token is needed
+      },
       credentials: "include", // send session cookie
     })
       .then((res) => res.json())
@@ -112,13 +112,12 @@ const UserDashboard = () => {
                     </select>
                   ) : (
                     <span
-                      className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                        item.status === "Closed"
-                          ? "bg-green-100 text-green-800"
-                          : item.status === "In Progress"
+                      className={`inline-block px-2 py-1 rounded text-xs font-medium ${item.status === "Closed"
+                        ? "bg-green-100 text-green-800"
+                        : item.status === "In Progress"
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-gray-100 text-gray-800"
-                      }`}
+                        }`}
                     >
                       {item.status}
                     </span>
